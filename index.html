@@ -125,7 +125,6 @@ footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
   letter-spacing:.12em; text-shadow: 0 1px 2px rgba(0,0,0,.35); box-shadow:0 10px 20px rgba(0,0,0,.18);
   border:2px solid rgba(255,255,255,0.12); pointer-events:none;
 }
-
 /* Floating cart */
 .floating-cart {
   position: fixed; bottom: 20px; right: 20px;
@@ -138,7 +137,6 @@ footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
 .floating-cart .cart-count { font-size: 14px; font-weight: 800; line-height: 1; }
 .floating-cart .cart-count:empty { display:none; }
 .floating-cart:hover { transform: scale(1.1) rotate(5deg); }
-
 /* Cart modal */
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:3000; }
 .modal-content {
@@ -161,7 +159,6 @@ footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
 <div class="wrap">
   <div class="card">
     <div class="admin-btn-modal"><a href="login.html">Admin</a></div>
-
     <header>
       <div class="brand">
         <svg class="welcome" viewBox="0 0 700 140" xmlns="http://www.w3.org/2000/svg">
@@ -175,41 +172,31 @@ footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
         </div>
       </div>
     </header>
-
-    
     <div class="category-buttons">
       <a class="pill-btn" href="women.html">Women</a>
       <a class="pill-btn" href="men.html">Men</a>
-      <a class="pill-btn" href="painel_vintage_wear.html">Admin Panel</a>
     </div>
-
-
     <div class="divider"></div>
     <section class="grid" id="products"></section>
     <div class="divider"></div>
-
     <footer>© <span id="year"></span> Vintage Wear Ireland</footer>
   </div>
 </div>
-
 <div class="floating-cart" onclick="openCart()" aria-label="Open cart">
   <div class="cart-ico">🛒</div>
   <div class="cart-count" id="cartCount"></div>
 </div>
-
 <div id="cartModal" class="modal">
   <div class="modal-content cart-content" style="max-width:520px;text-align:left;">
     <button class="modal-close" onclick="closeCart()">×</button>
     <h2>Your Cart</h2>
     <div id="cartItems" style="margin:12px 0;"></div>
     <hr class="cart-divider" style="margin:12px 0;">
-
     <h4 style="margin:6px 0 4px 0;color:#111;">Shipping Options</h4>
     <div class="shipping-options" style="margin-bottom:10px;">
       <label><input type="radio" name="shipping" value="7"> €7 — Untracked</label><br>
       <label><input type="radio" name="shipping" value="10"> €10 — Tracked</label>
     </div>
-
     <div class="cart-total">
       <span>Total:</span>
       <span id="cartTotal">€ --</span>
@@ -217,19 +204,16 @@ footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
     <button class="btn cart-checkout">Checkout</button>
   </div>
 </div>
-
 <script>
 const PUBLIC_JSON = './products.json';
 const grid = document.getElementById('products');
 let currentList = [];
-
 function fmtEUR(n){
   const v = Number(n);
   if(Number.isNaN(v)) return '€ ' + (n ?? '');
   if(Number.isInteger(v)) return '€ ' + v;
   return '€ ' + String(v);
 }
-
 function sanitizeList(list){
   if(!Array.isArray(list)) return [];
   return list.map(p => ({
@@ -245,7 +229,6 @@ function sanitizeList(list){
     stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
   }));
 }
-
 async function readPublic(){
   try{
     const r = await fetch(PUBLIC_JSON + '?t=' + Date.now(), {cache:'no-store'});
@@ -254,7 +237,6 @@ async function readPublic(){
     return sanitizeList(data);
   }catch(e){ return []; }
 }
-
 function render(list){
   grid.innerHTML = '';
   if(!list.length){
@@ -278,7 +260,6 @@ function render(list){
     cta.appendChild(a); el.appendChild(cta); grid.appendChild(el);
   });
 }
-
 function searchProducts(){
   const term = document.getElementById('search').value.toLowerCase();
   const filtered = currentList.filter(p =>
@@ -288,13 +269,11 @@ function searchProducts(){
   );
   render(filtered);
 }
-
 /* Cart */
 const CART_KEY='vw_cart';
 function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
 function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
 let cart = loadCart();
-
 function addToCart(productId){
   const product = currentList.find(p => String(p.id) === String(productId));
   if(!product) return;
@@ -303,17 +282,14 @@ function addToCart(productId){
   saveCart(cart);
   updateCartIcon();
 }
-
 function updateCartIcon(){
   const countEl = document.getElementById('cartCount');
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   countEl.textContent = totalItems ? String(totalItems) : '';
 }
-
 function getSelectedShipping(){
   return document.querySelector('input[name="shipping"]:checked');
 }
-
 function openCart(){
   const cartModal = document.getElementById('cartModal');
   const list = document.getElementById('cartItems');
@@ -350,9 +326,7 @@ function openCart(){
   }
   cartModal.style.display = 'flex';
 }
-
 function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
-
 function changeQty(id, delta){
   const item = cart.find(p => p.id === id);
   if(!item) return;
@@ -362,7 +336,6 @@ function changeQty(id, delta){
   openCart();
   updateCartIcon();
 }
-
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-action="add-to-cart"]');
   if(!btn) return;
@@ -370,31 +343,25 @@ document.addEventListener('click', function(e){
   const id = btn.dataset.id;
   if(id){ addToCart(id); }
 });
-
 document.addEventListener('DOMContentLoaded', () => {
   const radios = document.querySelectorAll('input[name="shipping"]');
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.querySelector('.cart-checkout');
-
   function calcBaseTotal() {
     return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
   }
-
   function updateDisplayTotal() {
     const base = calcBaseTotal();
     const sel = document.querySelector('input[name="shipping"]:checked');
     const shippingVal = sel ? Number(sel.value) : 0;
     totalEl.textContent = fmtEUR(base + shippingVal);
   }
-
   radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
-
   const _openCart = openCart;
   openCart = function() {
     _openCart();
     updateDisplayTotal();
   };
-
   checkoutBtn.addEventListener('click', () => {
     const sel = getSelectedShipping();
     if(!sel){
@@ -408,7 +375,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'checkout.html';
   });
 });
-
 (async function init(){
   currentList = await readPublic();
   currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
