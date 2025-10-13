@@ -13,19 +13,6 @@
     "status": "published"
   },
   {
-    "id": "4",
-    "title": "Collagen Peptides 400g",
-    "brand": "HS Nutrition",
-    "price": 39.9,
-    "image": "https://images.unsplash.com/photo-1615484477211-9b1d8d2e3d5c?w=600",
-    "description": "Collagen peptides for skin, joints, and hair health.",
-    "gallery": [],
-    "category": "cosmetics",
-    "createdAt": 1733059200,
-    "stock": 15,
-    "status": "published"
-  },
-  {
     "id": "1760369062104",
     "title": "vestido",
     "price": 29,
