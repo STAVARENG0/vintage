@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Men • Vintage Wear | Ireland</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<meta content="no-store" http-equiv="Cache-Control"/>
+<style>
+:root{
+  --cream:#f6f1e7;
+  --cream-2:#f3e9d8;
+  --text:#2a2a2a;
+  --muted:#6f6f6f;
+  --olive:#6b7b2a;
+  --mustard:#f1b332;
+  --coral:#ff8e7f;
+  --terracotta:#b33b2e;
+  --card:#ffffff;
+  --accent: #f1b332;
+  --accent-2: #ff8e7f;
+}
+*{box-sizing:border-box}
+body{ margin:0; font-family:Poppins,system-ui,Arial,sans-serif; color:var(--text); background:linear-gradient(180deg,var(--cream),var(--cream-2)); min-height:100dvh; }
+.wrap{max-width:1200px;margin:0 auto;padding:26px}
+.card{ background:transparent; border:none; border-radius:0; padding:0; box-shadow:none; position:relative; }
+header{text-align:center;margin-bottom:18px}
+.brand{ display:flex; flex-direction:column; align-items:center; gap:0; position:relative; }
+.brand img{ max-width:100%; height:auto; border:2px solid var(--mustard); border-radius:18px; background:#fff; box-shadow:0 10px 20px rgba(0,0,0,.06); }
+.welcome { width: 100%; max-width: 550px; margin: 10px 0 0 0; }
+.welcome text { font-family: "Poppins", cursive; font-size: 52px; fill: none; stroke: var(--olive); stroke-width: 2px; stroke-dasharray: 800; stroke-dashoffset: 800; animation: draw 6s ease forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.brand .search-box { position: absolute; bottom: 10px; right: 20px; max-width: 300px; display: flex; gap: 6px; }
+.search-box input { flex: 1; padding: 12px 16px; border-radius: 20px; border: 1px solid #ddd; outline: none; background: #ffffff; color: #000000; font-size: 14px; }
+.search-box input::placeholder { color: #555; }
+.search-box button { padding: 12px 20px; border: 1px solid #ddd; border-radius: 20px; background: #ffffff; color: #000000; font-weight: 700; cursor: pointer; }
+.search-box button:hover { opacity: .9; }
+.category-buttons{ display:flex; justify-content:center; gap:12px; margin: 12px 0 2px; flex-wrap: wrap; }
+.pill-btn{ display:inline-flex; align-items:center; gap:8px; padding:12px 20px; border-radius: 9999px; background: linear-gradient(90deg,var(--accent),var(--accent-2)); color: #2a2a2a; font-weight: 800; border: 2px solid rgba(0,0,0,.05); text-decoration:none; box-shadow: 0 6px 18px rgba(0,0,0,0.12); cursor:pointer; transition: transform .18s ease, filter .18s ease; }
+.pill-btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+@media (max-width: 600px) {
+  .brand { align-items: center; }
+  .brand .search-box { position: static; margin-top: 14px; width: 100%; max-width: 100%; padding: 0 10px; display: flex; justify-content: center; gap: 8px; }
+}
+h1{ text-align:center; margin:10px 0; color:var(--terracotta); font-family:Orbitron,sans-serif; }
+.divider{height:2px;background:linear-gradient(90deg,transparent,var(--olive),transparent);margin:18px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:22px;align-items:stretch}
+@media (max-width:600px){ .grid{grid-template-columns:repeat(2,1fr)} }
+.product{background:var(--card);border:1px solid rgba(0,0,0,.08);border-radius:18px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.08);display:flex;flex-direction:column; position:relative;}
+.product img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#fafafa;display:block}
+.product-body{padding:14px 16px 10px}
+.product h3{margin:0 0 6px;font-weight:700;font-size:16px;color:var(--text);}
+.meta{color:var(--muted);font-size:13px;line-height:1.4;margin-bottom:8px}
+.price{font-weight:800;color:var(--terracotta);margin-bottom:6px}
+.cta{padding:12px 14px 14px;border-top:1px dashed rgba(0,0,0,.06)}
+.btn{display:block;width:100%;text-align:center;text-decoration:none;font-weight:800;padding:12px 14px;border-radius:28px;background:linear-gradient(90deg,var(--olive), var(--mustard));color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.15);transition:transform .18s ease, filter .18s ease;}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.btn.disabled{opacity:.55;pointer-events:none;filter:grayscale(1)}
+footer{color:var(--muted);text-align:center;font-size:12px;margin-top:20px}
+.oos-ribbon{ position:absolute; top:10px; left:-40px; transform: rotate(-20deg); background: rgba(179,59,46,0.9); color:#fff; padding:10px 60px; font-weight:900; letter-spacing:.12em; text-shadow: 0 1px 2px rgba(0,0,0,.35); box-shadow:0 10px 20px rgba(0,0,0,.18); border:2px solid rgba(255,255,255,0.12); pointer-events:none; }
+/* Floating cart */
+.floating-cart{ position: fixed; bottom: 20px; right: 20px; background: linear-gradient(180deg, var(--mustard), var(--coral)); color: white; border-radius: 50%; width: 70px; height: 70px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; box-shadow: 0 6px 18px rgba(0,0,0,0.2); cursor:pointer; z-index: 5000; transition: transform 0.3s ease; }
+.floating-cart .cart-ico { font-size: 28px; line-height: 1; }
+.floating-cart .cart-count { font-size: 14px; font-weight: 800; line-height: 1; }
+.floating-cart .cart-count:empty { display:none; }
+.floating-cart:hover { transform: scale(1.1) rotate(5deg); }
+/* Cart modal */
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:3000; }
+.modal-content { background:var(--card); padding:20px; border-radius:16px; max-width:600px; width:90%; text-align:left; color:var(--text); position:relative; border: 1px solid rgba(0,0,0,0.08); }
+.modal-close{ position:absolute; top:10px; right:10px; background:var(--terracotta); border:none; color:#fff; font-weight:bold; padding:6px 12px; border-radius:6px; cursor:pointer }
+.cart-content{ background:#ffffff; color:#111; box-shadow:0 18px 42px rgba(0,0,0,.12); }
+.cart-content h2{ color:#111; margin:0 0 6px; }
+.cart-divider{ border:none; border-top:2px dashed rgba(0,0,0,0.08); }
+.cart-total{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-weight:800; color:#111; }
+.cart-checkout{ width:100%; background:linear-gradient(90deg,var(--olive), var(--mustard)) !important; color:#fff; border:none; }
+.cart-item{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.cart-item-left{ display:flex; align-items:center; gap:10px; }
+.cart-thumb{ width:46px; height:46px; border-radius:8px; object-fit:cover; border:1px solid rgba(0,0,0,.06); }
+.cart-qty{ display:flex; align-items:center; gap:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <header>
+      <div class="brand">
+        <svg class="welcome" viewBox="0 0 700 140" xmlns="http://www.w3.org/2000/svg">
+          <text text-anchor="middle" x="50%" y="56%">MEN</text>
+          <text text-anchor="middle" x="50%" y="78%" style="font-family: Poppins, sans-serif; font-size: 18px; fill: var(--terracotta); stroke: none;">Ireland • Nationwide delivery</text>
+        </svg>
+        <img alt="Vintage Wear cover" src="LOGO.png"/>
+        <div class="search-box">
+          <input id="search" placeholder="Search in Men..." type="text"/>
+          <button onclick="searchProducts()">Search</button>
+        </div>
+      </div>
+    </header>
+    <div class="category-buttons">
+      <a class="pill-btn" href="index.html">Home</a>
+      <a class="pill-btn" href="women.html">Women</a>
+      <a class="pill-btn" href="men.html">Men</a>
+    </div>
+    <h1>Men</h1>
+    <div class="divider"></div>
+    <section class="grid" id="products"></section>
+    <div class="divider"></div>
+    <footer>© <span id="year"></span> Vintage Wear Ireland</footer>
+  </div>
+</div>
+
+<div class="floating-cart" onclick="openCart()" aria-label="Open cart">
+  <div class="cart-ico">🛒</div>
+  <div class="cart-count" id="cartCount"></div>
+</div>
+
+<div id="cartModal" class="modal">
+  <div class="modal-content cart-content" style="max-width:520px;text-align:left;">
+    <button class="modal-close" onclick="closeCart()">×</button>
+    <h2>Your Cart</h2>
+    <div id="cartItems" style="margin:12px 0;"></div>
+    <hr class="cart-divider" style="margin:12px 0;">
+    <h4 style="margin:6px 0 4px 0;color:#111;">Shipping Options</h4>
+    <div class="shipping-options" style="margin-bottom:10px;">
+      <label><input type="radio" name="shipping" value="7"> €7 — Untracked</label><br>
+      <label><input type="radio" name="shipping" value="10"> €10 — Tracked</label>
+    </div>
+    <div class="cart-total">
+      <span>Total:</span>
+      <span id="cartTotal">€ --</span>
+    </div>
+    <button class="btn cart-checkout">Checkout</button>
+  </div>
+</div>
+
+<script>
+const PUBLIC_JSON = './products.json';
+const grid = document.getElementById('products');
+let currentList = [];
+
+function fmtEUR(n){
+  const v = Number(n);
+  if(Number.isNaN(v)) return '€ ' + (n ?? '');
+  if(Number.isInteger(v)) return '€ ' + v;
+  return '€ ' + String(v);
+}
+
+function sanitizeList(list){
+  if(!Array.isArray(list)) return [];
+  return list.map(p => ({
+    id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
+    title: p.title || '',
+    brand: p.brand || '',
+    price: Number(p.price || 0),
+    image: p.image || 'LOGO.png',
+    description: p.description || '',
+    gallery: Array.isArray(p.gallery)? p.gallery : [],
+    category: (p.category || '').toLowerCase(),
+    createdAt: p.createdAt || 0,
+    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
+  }));
+}
+
+async function readPublic(){
+  try{
+    const r = await fetch(PUBLIC_JSON + '?t=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    return sanitizeList(data);
+  }catch(e){ return []; }
+}
+
+function render(list){
+  grid.innerHTML = '';
+  if(!list.length){
+    grid.innerHTML = '<div class="meta" style="text-align:center;padding:20px;">No products found in Men.</div>';
+    return;
+  }
+  list.forEach(p=>{
+    const el = document.createElement('article'); el.className='product';
+    if(Number(p.stock) <= 0){
+      const badge = document.createElement('div'); badge.className = 'oos-ribbon'; badge.textContent = 'OUT OF STOCK'; el.appendChild(badge);
+    }
+    const img = document.createElement('img'); img.src = p.image; img.alt = p.title; el.appendChild(img);
+    const body = document.createElement('div'); body.className='product-body';
+    const brand = p.brand ? `<div class="meta">${p.brand}</div>` : '';
+    body.innerHTML = `<h3>${p.title}</h3>${brand}<div class='meta'>Stock: ${p.stock}</div><div class='price'>${fmtEUR(p.price)}</div>`;
+    el.appendChild(body);
+    const cta = document.createElement('div'); cta.className='cta';
+    const a = document.createElement('a');
+    a.className='btn'; a.href='#'; a.textContent = Number(p.stock) > 0 ? "Add to Cart" : "Out of Stock";
+    if(Number(p.stock) > 0){ a.dataset.action = 'add-to-cart'; a.dataset.id = p.id; } else { a.classList.add('disabled'); }
+    cta.appendChild(a); el.appendChild(cta); grid.appendChild(el);
+  });
+}
+
+function searchProducts(){
+  const term = document.getElementById('search').value.toLowerCase();
+  const filtered = currentList.filter(p =>
+    p.title.toLowerCase().includes(term) ||
+    (p.brand && p.brand.toLowerCase().includes(term))
+  );
+  render(filtered);
+}
+
+/* Cart */
+const CART_KEY='vw_cart';
+function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
+function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+let cart = loadCart();
+
+function addToCart(productId){
+  const product = currentList.find(p => String(p.id) === String(productId));
+  if(!product) return;
+  const existing = cart.find(item => item.id === product.id);
+  if(existing){ existing.qty++; } else { cart.push({...product, qty: 1}); }
+  saveCart(cart);
+  updateCartIcon();
+}
+
+function updateCartIcon(){
+  const countEl = document.getElementById('cartCount');
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+  countEl.textContent = totalItems ? String(totalItems) : '';
+}
+
+function getSelectedShipping(){ return document.querySelector('input[name="shipping"]:checked'); }
+
+function openCart(){
+  const cartModal = document.getElementById('cartModal');
+  const list = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  list.innerHTML = '';
+  if(cart.length === 0){
+    list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
+    totalEl.textContent = '€ 0.00';
+  } else {
+    let total = 0;
+    cart.forEach(item => {
+      total += Number(item.price) * item.qty;
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML = `
+        <div class="cart-item-left">
+          <img class="cart-thumb" src="${item.image}" alt="${item.title}">
+          <div>
+            <strong>${item.title}</strong><br>
+            <small>${fmtEUR(item.price)}</small>
+          </div>
+        </div>
+        <div class="cart-qty">
+          <button onclick="changeQty('${item.id}', -1)" style="padding:4px 8px;">−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty('${item.id}', 1)" style="padding:4px 8px;">+</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+    const selected = getSelectedShipping();
+    const shipping = selected ? Number(selected.value) : 0;
+    totalEl.textContent = fmtEUR(total + shipping);
+  }
+  cartModal.style.display = 'flex';
+}
+
+function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
+
+function changeQty(id, delta){
+  const item = cart.find(p => p.id === id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  saveCart(cart);
+  openCart();
+  updateCartIcon();
+}
+
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action="add-to-cart"]');
+  if(!btn) return;
+  e.preventDefault();
+  const id = btn.dataset.id;
+  if(id){ addToCart(id); }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const radios = document.querySelectorAll('input[name="shipping"]');
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.querySelector('.cart-checkout');
+
+  function calcBaseTotal() {
+    return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
+  }
+
+  function updateDisplayTotal() {
+    const base = calcBaseTotal();
+    const sel = document.querySelector('input[name="shipping"]:checked');
+    const shippingVal = sel ? Number(sel.value) : 0;
+    totalEl.textContent = fmtEUR(base + shippingVal);
+  }
+
+  radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
+
+  const _openCart = openCart;
+  openCart = function() {
+    _openCart();
+    updateDisplayTotal();
+  };
+
+  checkoutBtn.addEventListener('click', () => {
+    const sel = getSelectedShipping();
+    if(!sel){
+      alert('Please select a shipping option before continuing.');
+      document.getElementById('cartModal').style.display = 'flex';
+      return;
+    }
+    const shipping = Number(sel.value);
+    const shippingLabel = shipping === 10 ? 'Tracked (€10)' : 'Untracked (€7)';
+    localStorage.setItem('vw_shipping', JSON.stringify({ amount: shipping, label: shippingLabel, ts: Date.now() }));
+    window.location.href = 'checkout.html';
+  });
+});
+
+/* Init: filter only men's products */
+(async function init(){
+  const all = await readPublic();
+  const men = new Set(['men','man','male','masculino','masculina']);
+  currentList = all.filter(p => men.has(p.category));
+  currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  render(currentList);
+  document.getElementById('year').textContent = new Date().getFullYear();
+  updateCartIcon();
+})();
+</script>
+</body>
+</html>
