@@ -8,7 +8,6 @@
 <link rel="shortcut icon" href="data:,">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-/* ===== VintageShop palette to match index.html ===== */
 :root{
   --cream:#f6f1e7;
   --cream-2:#f3e9d8;
@@ -20,150 +19,72 @@
   --terracotta:#b33b2e;
   --card:#ffffff;
 }
-
-*{ box-sizing:border-box; margin:0; padding:0; font-family:'Poppins',system-ui,Arial,sans-serif; }
+*{ box-sizing:border-box; margin:0; padding:0; font-family:'Poppins',sans-serif; }
 body{
   background: linear-gradient(180deg, var(--cream), var(--cream-2));
   color:var(--text);
-  display:flex; justify-content:center; align-items:center;
-  min-height:100vh; padding:24px;
+  display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px;
 }
-
-/* Card container with vintage accents */
 .checkout-card{
   background:var(--card);
   border:1px solid rgba(0,0,0,.06);
   border-radius:18px;
   box-shadow:0 10px 28px rgba(0,0,0,.08);
-  max-width:760px; width:100%;
-  padding:28px 24px;
+  max-width:660px; width:100%; padding:28px 22px; text-align:center;
 }
-.header{
-  display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:12px;
+.logo{
+  width:220px; border-radius:16px; border:2px solid var(--mustard);
+  box-shadow:0 10px 24px rgba(0,0,0,.10);
+  margin:0 auto 14px;
+  display:block;
 }
-.brand-mark{
-  display:flex; align-items:center; gap:12px;
-}
-.brand-badge{
-  width:46px; height:46px; border-radius:12px; background: #fff;
-  border:2px solid var(--mustard);
-  box-shadow:0 6px 14px rgba(0,0,0,.08);
-  display:flex; align-items:center; justify-content:center;
-  font-weight:900; color:var(--olive);
-}
-.header h1{
-  font-size:22px; letter-spacing:.08em; text-transform:uppercase;
-  font-weight:900; color:var(--terracotta);
-}
-.header small{ color:var(--muted); }
-
-.divider{
-  height:2px; background:linear-gradient(90deg,transparent,var(--olive),transparent); margin:12px 0 16px;
-}
-
-.content{
-  display:grid; grid-template-columns: 1.2fr .8fr; gap:20px;
-}
-@media (max-width:900px){ .content{ grid-template-columns:1fr; } }
-
-/* Items list */
-.items{
-  background:#fff;
-  border:1px dashed rgba(0,0,0,.08);
-  border-radius:14px;
-  padding:14px;
-}
-.item{
-  display:grid; grid-template-columns: 1fr auto; gap:12px;
-  padding:10px 0;
-  border-bottom:1px dashed rgba(0,0,0,.06);
-}
-.item:last-child{ border-bottom:none; }
+h1{ color:var(--terracotta); font-size:22px; margin-bottom:12px; text-transform:uppercase; letter-spacing:.06em; }
+.summary{ margin:18px 0; }
+.row{ display:flex; justify-content:space-between; align-items:center; margin:8px 0; font-size:14px; }
+.row.total{ font-size:20px; font-weight:900; color:var(--olive); margin-top:12px; }
+.items{ text-align:left; margin:10px 0 6px; }
+.item{ display:flex; justify-content:space-between; gap:12px; margin:6px 0; }
 .item-title{ font-size:14px; font-weight:600; color:#2a2a2a; }
 .item-sub{ font-weight:800; color:var(--terracotta); }
-
-.empty{
-  color:var(--muted); text-align:center; padding:20px 8px;
-}
-
-/* Summary + Pay area */
-.summary{
-  background:#fff;
-  border:1px solid rgba(0,0,0,.06);
-  border-radius:14px;
-  box-shadow:0 8px 18px rgba(0,0,0,.06);
-  padding:16px;
-}
-.row{ display:flex; justify-content:space-between; align-items:center; margin:8px 0; font-size:14px; }
-.row.total{ font-size:20px; font-weight:900; color:var(--olive); margin-top:8px; }
-.badge{
-  display:inline-block; padding:4px 10px; border-radius:9999px;
-  background: linear-gradient(90deg, var(--mustard), var(--coral));
-  color:#fff; font-weight:800; font-size:12px;
-}
-
-/* PayPal section */
-#paypal-section{ margin-top:14px; }
-#paypal-button-paypal, #paypal-button-card{ margin-bottom:10px; }
-.helper{ margin-top:8px; font-size:13px; color:var(--muted); text-align:center; }
-
-footer{ margin-top:16px; color:var(--muted); font-size:12px; text-align:center; }
+#paypal-section{ margin-top:16px; }
+#paypal-button-paypal, #paypal-button-card{ margin-bottom:12px; }
+.helper{ margin-top:12px; font-size:13px; color:var(--muted); }
+footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 .hidden{ display:none !important; }
 </style>
 </head>
 <body>
 
 <div class="checkout-card">
-  <div class="header">
-    <div class="brand-mark">
-      <div class="brand-badge">VS</div>
-      <div>
-        <h1>Checkout</h1>
-        <small class="muted">Review your order and pay securely</small>
-      </div>
-    </div>
-    <span class="badge">VintageShop</span>
+  <img src="LOGO.png" alt="Checkout" class="logo">
+  <h1>Checkout</h1>
+
+  <div class="items" id="cartList"></div>
+  <div class="summary">
+    <div class="row"><span class="label">Products Subtotal</span><span class="value" id="subtotalValue">€ 0.00</span></div>
+    <div class="row"><span class="label" id="shippingLabel">Shipping</span><span class="value" id="shippingValue">€ 0.00</span></div>
+    <div class="row total">Total: € <span id="totalAmount">0.00</span></div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="content">
-    <section>
-      <div class="items" id="cartList"></div>
-    </section>
-
-    <aside>
-      <div class="summary">
-        <div class="row"><span class="label">Products Subtotal</span><span class="value" id="subtotalValue">€ 0.00</span></div>
-        <div class="row"><span class="label" id="shippingLabel">Shipping</span><span class="value" id="shippingValue">€ 0.00</span></div>
-        <div class="row total">Total: € <span id="totalAmount">0.00</span></div>
-
-        <div id="paypal-section">
-          <div id="paypal-button-paypal"></div>
-          <div id="paypal-button-card"></div>
-          <div id="helperMsg" class="helper hidden">Add products to your cart to enable payment.</div>
-        </div>
-      </div>
-    </aside>
+  <div id="paypal-section">
+    <div id="paypal-button-paypal"></div>
+    <div id="paypal-button-card"></div>
+    <div id="helperMsg" class="helper hidden">Add products to your cart to enable payment.</div>
   </div>
 
-  <footer>© <span id="year"></span> VintageShop</footer>
+  <footer>© <span id="year"></span> Checkout</footer>
 </div>
 
-<!-- PayPal SDK with the user's API key -->
 <script src="https://www.paypal.com/sdk/js?client-id=AfTde7kvXeDpijvvMVxUcfb7b-XIQgWMnQ8W2rcUd8PX5wyHAddc-Xf0_VG_wLUVl0dNw_9HXAzpo6dt&currency=EUR&intent=capture&commit=true&locale=en_IE&components=buttons,funding-eligibility&enable-funding=card"></script>
-
 <script>
 const CART_KEY='hs_cart';
-const SHIP_KEY='hs_shipping';
+const SHIP_KEY='hs_shipping'; // kept for compatibility if you want to re-enable later
 
 document.getElementById('year').textContent = new Date().getFullYear();
 function fmtEUR(n){ return '€ ' + Number(n).toFixed(2); }
 
+// NEW: default shipping = 0; only apply if ?shipping= is present
 function getShipping(){
-  let data=null;
-  try{ data = JSON.parse(localStorage.getItem(SHIP_KEY) || 'null'); }catch(e){ data=null; }
-  if(data && typeof data.amount === 'number'){ return data; }
   const q = new URLSearchParams(location.search).get('shipping');
   const qNum = q !== null ? Number(q) : NaN;
   if(!Number.isNaN(qNum)){
@@ -178,7 +99,7 @@ function renderSummary(){
   const list = document.getElementById('cartList');
   let subtotal = 0;
   if(!cart.length){
-    list.innerHTML = '<p class="empty">Your cart is empty.</p>';
+    list.innerHTML = '<p style="color:#6f6f6f;text-align:center;">Your cart is empty.</p>';
   }else{
     list.innerHTML = cart.map(item=>{
       const qty = Number(item.qty)||0;
@@ -195,22 +116,20 @@ function renderSummary(){
   document.getElementById('shippingLabel').textContent = ship.label || 'Shipping';
   document.getElementById('shippingValue').textContent = fmtEUR(ship.amount || 0);
 
-  // Regra: não permitir pagar apenas frete. Se subtotal = 0, esconder botões e mostrar helper.
   let effectiveTotal = 0;
   const helper = document.getElementById('helperMsg');
-  const btnPP = document.getElementById('paypal-button-paypal');
-  const btnCard = document.getElementById('paypal-button-card');
-
+  const payBtn = document.getElementById('paypal-button-paypal');
+  const cardBtn = document.getElementById('paypal-button-card');
   if(subtotal > 0){
     effectiveTotal = subtotal + Number(ship.amount||0);
     helper.classList.add('hidden');
-    btnPP.classList.remove('hidden');
-    btnCard.classList.remove('hidden');
+    payBtn.classList.remove('hidden');
+    cardBtn.classList.remove('hidden');
   }else{
     effectiveTotal = 0;
     helper.classList.remove('hidden');
-    btnPP.classList.add('hidden');
-    btnCard.classList.add('hidden');
+    payBtn.classList.add('hidden');
+    cardBtn.classList.add('hidden');
   }
   document.getElementById('totalAmount').textContent = effectiveTotal.toFixed(2);
   return { subtotal, shipping: Number(ship.amount||0), total: effectiveTotal };
@@ -232,7 +151,7 @@ function commonConfig(){
       const { subtotal, shipping, total } = renderSummary();
       if(subtotal <= 0){ throw new Error('Empty subtotal'); }
       return actions.order.create({
-        purchase_units:[{ amount:{ value: total.toFixed(2), currency_code:'EUR' }, description:'VintageShop Order' }]
+        purchase_units:[{ amount:{ value: total.toFixed(2), currency_code:'EUR' }, description:'Checkout Order' }]
       });
     },
     onApprove: function(data, actions){
