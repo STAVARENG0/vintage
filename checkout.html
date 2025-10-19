@@ -77,23 +77,54 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 
 <script src="https://www.paypal.com/sdk/js?client-id=AfTde7kvXeDpijvvMVxUcfb7b-XIQgWMnQ8W2rcUd8PX5wyHAddc-Xf0_VG_wLUVl0dNw_9HXAzpo6dt&currency=EUR&intent=capture&commit=true&locale=en_IE&components=buttons,funding-eligibility&enable-funding=card"></script>
 <script>
+// Primary keys (as em index.html)
 const CART_KEY='hs_cart';
-const SHIP_KEY='hs_shipping'; // kept for compatibility if you want to re-enable later
+const SHIP_KEY='hs_shipping';
 
 document.getElementById('year').textContent = new Date().getFullYear();
 function fmtEUR(n){ return '€ ' + Number(n).toFixed(2); }
 
-// NEW: default shipping = 0; only apply if ?shipping= is present
+// Try multiple cart keys to be safe
+function readCartFromAnyKey(){
+  const keys = [CART_KEY, 'cart', 'v_cart', 'cartItems', 'cart_items', 'cartData'];
+  for(const k of keys){
+    try{
+      const raw = localStorage.getItem(k);
+      if(!raw) continue;
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr) && arr.length){
+        return arr;
+      }
+    }catch(e){ /* ignore */ }
+  }
+  // fallback empty
+  return [];
+}
+
+// Shipping: prefer localStorage('hs_shipping'), then ?shipping=, else 0
 function getShipping(){
+  try{
+    const raw = localStorage.getItem(SHIP_KEY);
+    if(raw){
+      const data = JSON.parse(raw);
+      if(data && typeof data.amount === 'number'){
+        return { amount: Number(data.amount)||0, label: data.label || 'Shipping' };
+      }
+      // if stored as a simple number string
+      if(!isNaN(Number(raw))){
+        return { amount: Number(raw), label: 'Shipping' };
+      }
+    }
+  }catch(e){ /* ignore */ }
   const q = new URLSearchParams(location.search).get('shipping');
   const qNum = q !== null ? Number(q) : NaN;
   if(!Number.isNaN(qNum)){
-    return { amount: qNum, label: qNum === 10 ? 'Tracked (€10)' : (qNum === 7 ? 'No tracked (€7)' : 'Shipping'), ts: Date.now() };
+    return { amount: qNum, label: qNum === 10 ? 'Tracked (€10)' : (qNum === 7 ? 'No tracked (€7)' : 'Shipping') };
   }
-  return { amount: 0, label: 'Shipping', ts: Date.now() };
+  return { amount: 0, label: 'Shipping' };
 }
 
-let cart=[]; try{ cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }catch(e){ cart=[]; }
+let cart = readCartFromAnyKey();
 
 function renderSummary(){
   const list = document.getElementById('cartList');
@@ -105,8 +136,9 @@ function renderSummary(){
       const qty = Number(item.qty)||0;
       const price = Number(item.price)||0;
       const sub = qty*price; subtotal += sub;
+      const title = item.title || item.name || 'Product';
       return `<div class="item">
-                <div class="item-title">${qty}× ${item.title}</div>
+                <div class="item-title">${qty}× ${title}</div>
                 <div class="item-sub">${fmtEUR(sub)}</div>
               </div>`;
     }).join('');
@@ -157,7 +189,8 @@ function commonConfig(){
     onApprove: function(data, actions){
       return actions.order.capture().then(function(details){
         alert('✅ Payment completed by ' + (details?.payer?.name?.given_name || 'customer') + '!');
-        localStorage.removeItem(CART_KEY);
+        // clear only the known cart keys
+        ['hs_cart','cart','v_cart','cartItems','cart_items','cartData'].forEach(k=>localStorage.removeItem(k));
         document.getElementById('cartList').innerHTML = '<p style="color:var(--olive);text-align:center;">Payment Approved!</p>';
         document.getElementById('subtotalValue').textContent = fmtEUR(0);
         document.getElementById('shippingValue').textContent = fmtEUR(0);
