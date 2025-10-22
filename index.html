@@ -345,11 +345,6 @@ header{ text-align:center; }
 <h2>Your Cart</h2>
 <div id="cartItems" style="margin:12px 0;"></div>
 <hr class="cart-divider" style="margin:12px 0;"/>
-<h4 style="margin:6px 0 4px 0;color:#111;">Shipping Options</h4>
-<div class="shipping-options" style="margin-bottom:10px;">
-<label><input name="shipping" type="radio" value="7"/> €7 — Untracked</label><br/>
-<label><input name="shipping" type="radio" value="10"/> €10 — Tracked</label>
-</div>
 <div class="cart-total">
 <span>Total:</span>
 <span id="cartTotal">€ --</span>
@@ -440,9 +435,6 @@ function updateCartIcon(){
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   countEl.textContent = totalItems ? String(totalItems) : '';
 }
-function getSelectedShipping(){
-  return document.querySelector('input[name="shipping"]:checked');
-}
 function openCart(){
   const cartModal = document.getElementById('cartModal');
   const list = document.getElementById('cartItems');
@@ -473,9 +465,7 @@ function openCart(){
       `;
       list.appendChild(row);
     });
-    const selected = getSelectedShipping();
-    const shipping = selected ? Number(selected.value) : 0;
-    totalEl.textContent = fmtEUR(total + shipping);
+    totalEl.textContent = fmtEUR(total);
   }
   cartModal.style.display = 'flex';
 }
@@ -497,7 +487,6 @@ document.addEventListener('click', function(e){
   if(id){ addToCart(id); }
 });
 document.addEventListener('DOMContentLoaded', () => {
-  const radios = document.querySelectorAll('input[name="shipping"]');
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.querySelector('.cart-checkout');
   function calcBaseTotal() {
@@ -505,26 +494,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function updateDisplayTotal() {
     const base = calcBaseTotal();
-    const sel = document.querySelector('input[name="shipping"]:checked');
-    const shippingVal = sel ? Number(sel.value) : 0;
-    totalEl.textContent = fmtEUR(base + shippingVal);
+    totalEl.textContent = fmtEUR(base);
   }
-  radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
   const _openCart = openCart;
   openCart = function() {
     _openCart();
     updateDisplayTotal();
   };
   checkoutBtn.addEventListener('click', () => {
-    const sel = getSelectedShipping();
-    if(!sel){
-      alert('Please select a shipping option before continuing.');
-      document.getElementById('cartModal').style.display = 'flex';
-      return;
-    }
-    const shipping = Number(sel.value);
-    const shippingLabel = shipping === 10 ? 'Tracked (€10)' : 'Untracked (€7)';
-    localStorage.setItem('vw_shipping', JSON.stringify({ amount: shipping, label: shippingLabel, ts: Date.now() }));
+    // Default shipping: none/0. Keep downstream pages happy if they expect this key.
+    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
     window.location.href = 'checkout.html';
   });
 });
