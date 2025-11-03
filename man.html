@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>VintageShop</title>
+<title>VintageShop — Man</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&amp;family=Poppins:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
@@ -320,12 +320,13 @@ header{ text-align:center; }
 <div class="card">
 <div class="admin-btn-modal"><a href="login.html">Admin</a></div>
 <header>
-<div class="brand"><svg aria-label="WELCOME" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">WELCOME</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1><div class="tagline">clothes shop</div><div class="search-box">
+<div class="brand"><svg aria-label="WELCOME" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">Man</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1><div class="tagline">clothes shop</div><div class="search-box">
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
-<a class="pill-btn" href="woman.html"">Woman</a>
-<a class="pill-btn" href="man.html"">Man</a>
+<a class="pill-btn" href="index.html">Home</a>
+<a class="pill-btn" href="woman.html">Woman</a>
+<a class="pill-btn" href="man.html">Man</a>
 </div>
 </div>
 </header>
@@ -455,6 +456,9 @@ function updateCartIcon(){
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   countEl.textContent = totalItems ? String(totalItems) : '';
 }
+function getSelectedShipping(){
+  return document.querySelector('input[name="shipping"]:checked');
+}
 function openCart(){
   const cartModal = document.getElementById('cartModal');
   const list = document.getElementById('cartItems');
@@ -485,7 +489,9 @@ function openCart(){
       `;
       list.appendChild(row);
     });
-    totalEl.textContent = fmtEUR(total);
+    const selected = getSelectedShipping();
+    const shipping = selected ? Number(selected.value) : 0;
+    totalEl.textContent = fmtEUR(total + shipping);
   }
   cartModal.style.display = 'flex';
 }
@@ -507,6 +513,7 @@ document.addEventListener('click', function(e){
   if(id){ addToCart(id); }
 });
 document.addEventListener('DOMContentLoaded', () => {
+  const radios = document.querySelectorAll('input[name="shipping"]');
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.querySelector('.cart-checkout');
   function calcBaseTotal() {
@@ -514,8 +521,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function updateDisplayTotal() {
     const base = calcBaseTotal();
-    totalEl.textContent = fmtEUR(base);
+    const sel = document.querySelector('input[name="shipping"]:checked');
+    const shippingVal = sel ? Number(sel.value) : 0;
+    totalEl.textContent = fmtEUR(base + shippingVal);
   }
+  radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
   const _openCart = openCart;
   openCart = function() {
     _openCart();
