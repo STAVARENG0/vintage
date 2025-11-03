@@ -22,5 +22,17 @@
     "gallery": [],
     "createdAt": 1760907611955,
     "status": "published"
+  },
+  {
+    "id": "1762195975208",
+    "title": "BOLSA VINTAGE  DE COURO ",
+    "price": 25,
+    "description": "BOLSA MUITO LINDA QUE VAI FAZE VC BRILHAR NO ROLE",
+    "category": "women",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762195975208/Imagem do WhatsApp de 2025-11-03 à(s) 18.51.30_5300e250.jpg",
+    "gallery": [],
+    "createdAt": 1762195976348,
+    "status": "published"
   }
 ]
