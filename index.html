@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Add to Cart — robust integration
-  btnAdd?.addEventListener('click', ()=>{
+  btnAdd?.addEventListener('click', (e)=>{
   e?.preventDefault?.();
   e?.stopPropagation?.();
   if (!card) return idx;
@@ -766,9 +766,13 @@ document.addEventListener('DOMContentLoaded', () => {
     card.getAttribute('data-id') ||
     card.getAttribute('data-product-id') ||
     card.dataset?.productId;
-  if (pid && typeof window.addToCart === 'function') {
-    try { window.addToCart(pid); } catch (_) {}
+  if (pid) {
+  let did = false;
+  try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch (_) {}
+  if (!did) {
+    try { if (typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch (_) {}
   }
+}
   try {
     btnAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles: false, detail: { index: idx } }));
   } catch (_) {}
