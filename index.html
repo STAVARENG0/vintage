@@ -317,9 +317,9 @@ header{ text-align:center; }
 /* ==== Vintage Modal — exact layout ==== */
 .product img, .product h3 { cursor: pointer; }
 
-.vmodal{ display:none; position:fixed; inset:0; background: #fff;
+.vmodal{ display:none; position:fixed; inset:0; background: transparent;
   z-index: 10000; align-items:center; justify-content:center; padding:18px; }
-.vmodal__dialog{ position:relative; background:var(--card); color:var(--text); border-radius:16px;
+.vmodal__dialog{ position:relative; background: #fff; color:var(--text); border-radius:16px;
   border:1px solid rgba(255,255,255,.06); max-width:980px; width:100%;
   display:grid; grid-template-columns: 58% 42%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.35); }
 @media (max-width: 860px){ .vmodal__dialog{ grid-template-columns:1fr; } }
@@ -719,6 +719,15 @@ document.addEventListener('DOMContentLoaded', () => {
     metaEl.textContent = meta;
     descEl.textContent = desc;
 
+    
+    // sync CTA with site cart handler
+    try {
+      const ctaBtn = card.querySelector('[data-action="add-to-cart"]');
+      const pidFromBtn = ctaBtn?.dataset?.id;
+      const pidGuess = pidFromBtn || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
+      btnAdd.setAttribute('data-action','add-to-cart');
+      if (pidGuess) btnAdd.dataset.id = String(pidGuess);
+    } catch(e) {}
     renderThumbs(); go(0);
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden','false');
@@ -750,45 +759,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add to Cart — robust integration
   btnAdd?.addEventListener('click', ()=>{
-    let handled = false;
-    if (card){
-      // 1) Try form submit
-      const form = card.closest('form') || card.querySelector('form');
-      if (form){
-        try{ form.requestSubmit ? form.requestSubmit() : form.submit(); handled = true; }catch{}
-      }
-      // 2) Try native add-to-cart buttons
-      if (!handled){
-        const nativeBtn = card.querySelector('[data-add-to-cart], .add-to-cart, button[name="add-to-cart"], button[aria-label*="Carrinho"], button[aria-label*="cart" i]');
-        if (nativeBtn){ nativeBtn.click(); handled = true; }
-      }
-      // 3) Try a global addToCart(productId)
-      if (!handled){
-        const pid = card.getAttribute('data-product-id') || card.dataset?.productId;
-        if (pid && typeof window.addToCart === 'function'){ try{ window.addToCart(pid); handled = true; }catch{} }
-      }
-    }
-    // 4) Fallback: CustomEvent
-    if (!handled){
-      const ev = new CustomEvent('add-to-cart', { detail: {
-        title: titleEl.textContent, price: priceEl.textContent, image: imgs[idx], productCard: card
-      }});
-      window.dispatchEvent(ev);
-      handled = true;
-    }
     
-    // If not handled yet, try to use the CTA button inside the product card to get the product id
-    if (!handled && card){
-      const cta = card.querySelector('[data-action="add-to-cart"]');
-      const pid = cta?.dataset?.id || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
-      if (pid && typeof window.addToCart === 'function'){
-        try { window.addToCart(pid); handled = true; } catch {}
-      } else if (cta){
-        try { cta.click(); handled = true; } catch {}
+      // Let the global '[data-action="add-to-cart"]' listener handle it
+      if (btnAdd.hasAttribute('data-action')) {
+        btnAdd.dispatchEvent(new MouseEvent('click', {bubbles:true}));
+        return;
       }
-    }
-  });
-})();
+      // Fallbacks (in case no global handler captures it)
+      let handled = false;
+      if (card){
+        const cta = card.querySelector('[data-action="add-to-cart"]');
+        const pid = btnAdd.dataset?.id || cta?.dataset?.id || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
+        if (typeof window.addToCart === 'function' && pid){ try{ window.addToCart(pid); handled = true; }catch{} }
+        if (!handled && cta){ try{ cta.click(); handled = true; }catch{} }
+      }
+    });})();
 
 </script>
 </body>
