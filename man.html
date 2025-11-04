@@ -357,6 +357,19 @@ header{ text-align:center; }
 
 
 </style>
+
+<style id="pointer-cursor-ultimate">
+  a, button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"] { cursor: pointer !important; }
+  *[onclick], *[data-onclick], *[data-open], *[data-modal],
+  *[data-product-id], *[data-open-product-modal] { cursor: pointer !important; }
+  html body .card, html body .card *,
+  html body .product, html body .product *,
+  html body .product-card, html body .product-card *,
+  html body .product-item, html body .product-item *,
+  html body .product-tile, html body .product-tile * { cursor: pointer !important; }
+  #productModal *, .vmodal *, .modal * { cursor: pointer !important; }
+</style>
+
 </head>
 <body>
 <div class="wrap">
@@ -788,5 +801,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });})();
 
 </script>
+
+<script id="pointer-cursor-ultimate-js">
+  (function () {
+    const HOVER_SEL = [
+      '.product-card', '.card', '.product', '.product-item', '.product-tile',
+      '[data-product-id]', '[data-open-product-modal]', '[data-open]', '[data-modal]', '[onclick]'
+    ].join(',');
+
+    document.addEventListener('mousemove', function (e) {
+      const el = e.target && e.target.closest ? e.target.closest(HOVER_SEL) : null;
+      document.body.style.cursor = el ? 'pointer' : '';
+    });
+
+    try {
+      document.querySelectorAll(HOVER_SEL).forEach(function (el) {
+        try { el.style.setProperty('cursor','pointer','important'); } catch(e){}
+        try {
+          el.querySelectorAll('*').forEach(function (ch) {
+            ch.style.setProperty('cursor','pointer','important');
+          });
+        } catch(e){}
+      });
+    } catch(e) {}
+  })();
+</script>
+
 </body>
 </html>
