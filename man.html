@@ -683,42 +683,20 @@ btnAdd?.addEventListener('click', (e)=>{
 });
 </script>
 
-<!-- Adapter: bind cart thumbnails to open the product modal from index -->
+<!-- Adapter: delegated click to openFromCard on product image/title -->
 <script>
-(function(){
-  // Open modal when clicking on a cart thumbnail
-  document.addEventListener('click', function(e){
-    const img = e.target && e.target.closest && e.target.closest('.cart-thumb');
-    if(!img) return;
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Try to find nearby info
-    const left = img.closest('.cart-item-left');
-    const title = (left && left.querySelector('strong') ? left.querySelector('strong').textContent.trim() : 'Produto');
-    const price = (left && left.querySelector('small') ? left.querySelector('small').textContent.trim() : '');
-
-    // Build a lightweight "card" element compatible with openFromCard
-    const card = document.createElement('div');
-    card.className = 'product';
-    const h3 = document.createElement('h3');
-    h3.textContent = title;
-    const priceEl = document.createElement('div');
-    priceEl.className = 'price';
-    priceEl.textContent = price;
-    const im = document.createElement('img');
-    im.src = img.currentSrc || img.src;
-    im.alt = title;
-    card.appendChild(h3);
-    card.appendChild(priceEl);
-    card.appendChild(im);
-
-    // Call the index modal opener
-    if (typeof openFromCard === 'function'){
-      openFromCard(card);
+document.addEventListener('click', (e)=>{
+  const img = e.target.closest && e.target.closest('.product img');
+  const title = e.target.closest && e.target.closest('.product h3');
+  const clickable = img || title;
+  if (clickable){
+    const c = clickable.closest('.product');
+    if (c && typeof openFromCard === 'function'){
+      e.preventDefault?.();
+      openFromCard(c);
     }
-  }, true);
-})();
+  }
+});
 </script>
 
 </body>
