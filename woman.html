@@ -343,216 +343,8 @@ header{ text-align:center; }
 <div class="cart-ico">🛒</div>
 <div class="cart-count" id="cartCount"></div>
 </div>
-<div class="modal" id="cartModal">
-<div class="modal-content cart-content" style="max-width:520px;text-align:left;">
-<button class="modal-close" onclick="closeCart()">×</button>
-<h2>Your Cart</h2>
-<div id="cartItems" style="margin:12px 0;"></div>
-<hr class="cart-divider" style="margin:12px 0;"/>
 
-    <div id="shipping-options" style="margin:12px 0 10px; padding:10px; border:1px dashed rgba(0,0,0,0.12); border-radius:10px;">
-      <div style="font-weight:800; margin-bottom:8px;">Delivery / Pickup</div>
-      <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;">
-        <input type="radio" name="deliveryMethod" value="shipping" checked />
-        <span data-price="9">Shipping (€9)</span>
-      </label>
-      <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
-        <input type="radio" name="deliveryMethod" value="pickup" />
-        <span>
-          Pickup<br/>
-          <small style="display:block; color:#555;">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</small>
-        </span>
-      </label>
-    </div>
-    
-      <div class="cart-total" id="shipping-row" style="font-weight:600;">
-        <span>Shipping </span>
-        <span id="shipping-value" data-price="9">€9</span>
-      </div>
-    <div class="cart-total">
-<span>Total:</span>
-<span id="cartTotal">€ --</span>
-</div>
-<button class="btn cart-checkout">Checkout</button>
-</div>
-</div>
-<script>
-const PUBLIC_JSON = './products.json';
-const grid = document.getElementById('products');
-let currentList = [];
-function fmtEUR(n){
-  const v = Number(n);
-  if(Number.isNaN(v)) return '€ ' + (n ?? '');
-  if(Number.isInteger(v)) return '€ ' + v;
-  return '€ ' + String(v);
-}
-function sanitizeList(list){
-  if(!Array.isArray(list)) return [];
-  return list.map(p => ({
-    id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
-    title: p.title || '',
-    brand: p.brand || '',
-    price: Number(p.price || 0),
-    image: p.image || 'LOGO.png',
-    description: p.description || '',
-    gallery: Array.isArray(p.gallery)? p.gallery : [],
-    category: p.category || '',
-    createdAt: p.createdAt || 0,
-    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
-  }));
-}
-async function readPublic(){
-  try{
-    const r = await fetch(PUBLIC_JSON + '?t=' + Date.now(), {cache:'no-store'});
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    const data = await r.json();
-    return sanitizeList(data);
-  }catch(e){ return []; }
-}
-function render(list){
-  grid.innerHTML = '';
-  if(!list.length){
-    grid.innerHTML = '<div class="meta" style="text-align:center;padding:20px;">No products available.</div>';
-    return;
-  }
-  list.forEach(p=>{
-    const el = document.createElement('article'); el.className='product';
-    // attach description & gallery data so vModal can read them
-    try {
-      el.setAttribute('data-description', String(p.description || ''));
-      const imgsForAttr = Array.isArray(p.gallery) && p.gallery.length ? p.gallery.join(',') : (p.image || '');
-      el.setAttribute('data-images', imgsForAttr);
-    } catch(e){}
-    if(Number(p.stock) <= 0){
-      const badge = document.createElement('div'); badge.className = 'oos-ribbon'; badge.textContent = 'OUT OF STOCK'; el.appendChild(badge);
-    }
-    const img = document.createElement('img'); img.src = p.image; img.alt = p.title; el.appendChild(img);
-    const body = document.createElement('div'); body.className='product-body';
-    const brand = p.brand ? `<div class="meta">${p.brand}</div>` : '';
-    body.innerHTML = `<h3>${p.title}</h3>${brand}<div class='meta'>Stock: ${p.stock}</div><div class='price'>${fmtEUR(p.price)}</div><div class='description' style='display:none'>${p.description}</div>`;el.appendChild(body);
-    const cta = document.createElement('div'); cta.className='cta';
-    const a = document.createElement('a');
-    a.className='btn'; a.href='#'; a.textContent = Number(p.stock) > 0 ? "Add to cart" : "Out of Stock";
-    if(Number(p.stock) > 0){ a.dataset.action = 'add-to-cart'; a.dataset.id = p.id; } else { a.classList.add('disabled'); }
-    cta.appendChild(a); el.appendChild(cta); grid.appendChild(el);
-  });
-}
-function searchProducts(){
-  const term = document.getElementById('search').value.toLowerCase();
-  const filtered = currentList.filter(p =>
-    p.title.toLowerCase().includes(term) ||
-    (p.brand && p.brand.toLowerCase().includes(term)) ||
-    (p.category && p.category.toLowerCase().includes(term))
-  );
-  render(filtered);
-}
-/* Cart */
-const CART_KEY='vw_cart';
-function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
-function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
-let cart = loadCart();
-function addToCart(productId){
-  const product = currentList.find(p => String(p.id) === String(productId));
-  if(!product) return;
-  const existing = cart.find(item => item.id === product.id);
-  if(existing){ existing.qty++; } else { cart.push({...product, qty: 1}); }
-  saveCart(cart);
-  updateCartIcon();
-}
-function updateCartIcon(){
-  const countEl = document.getElementById('cartCount');
-  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-  countEl.textContent = totalItems ? String(totalItems) : '';
-}
-function getSelectedShipping(){
-  return document.querySelector('input[name="shipping"]:checked');
-}
-function openCart(){
-  const cartModal = document.getElementById('cartModal');
-  const list = document.getElementById('cartItems');
-  const totalEl = document.getElementById('cartTotal');
-  list.innerHTML = '';
-  if(cart.length === 0){
-    list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
-    totalEl.textContent = '€ 0.00';
-  } else {
-    let total = 0;
-    cart.forEach(item => {
-      total += Number(item.price) * item.qty;
-      const row = document.createElement('div');
-      row.className = 'cart-item';
-      row.innerHTML = `
-        <div class="cart-item-left">
-          <img class="cart-thumb" src="${item.image}" alt="${item.title}">
-          <div>
-            <strong>${item.title}</strong><br>
-            <small>${fmtEUR(item.price)}</small>
-          </div>
-        </div>
-        <div class="cart-qty">
-          <button onclick="changeQty('${item.id}', -1)" style="padding:4px 8px;">−</button>
-          <span>${item.qty}</span>
-          <button onclick="changeQty('${item.id}', 1)" style="padding:4px 8px;">+</button>
-        </div>
-      `;
-      list.appendChild(row);
-    });
-    const selected = getSelectedShipping();
-    const shipping = selected ? Number(selected.value) : 0;
-    totalEl.textContent = fmtEUR(total + shipping);
-  }
-  cartModal.style.display = 'flex';
-}
-function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
-function changeQty(id, delta){
-  const item = cart.find(p => p.id === id);
-  if(!item) return;
-  item.qty += delta;
-  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
-  saveCart(cart);
-  openCart();
-  updateCartIcon();
-}
-document.addEventListener('click', function(e){
-  const btn = e.target.closest('[data-action="add-to-cart"]');
-  if(!btn) return;
-  e.preventDefault();
-  const id = btn.dataset.id;
-  if(id){ addToCart(id); }
-});
-document.addEventListener('DOMContentLoaded', () => {
-  const radios = document.querySelectorAll('input[name="shipping"]');
-  const totalEl = document.getElementById('cartTotal');
-  const checkoutBtn = document.querySelector('.cart-checkout');
-  function calcBaseTotal() {
-    return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
-  }
-  function updateDisplayTotal() {
-    const base = calcBaseTotal();
-    const sel = document.querySelector('input[name="shipping"]:checked');
-    const shippingVal = sel ? Number(sel.value) : 0;
-    totalEl.textContent = fmtEUR(base + shippingVal);
-  }
-  radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
-  const _openCart = openCart;
-  openCart = function() {
-    _openCart();
-    updateDisplayTotal();
-  };
-  checkoutBtn.addEventListener('click', () => {
-    // Default shipping: none/0. Keep downstream pages happy if they expect this key.
-    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
-    window.location.href = 'checkout.html';
-  });
-});
-(async function init(){
-  currentList = await readPublic();
-  currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-  render(currentList);
-  document.getElementById('year').textContent = new Date().getFullYear();
-  updateCartIcon();
-})();
-</script>
+
 
 <script>
 (function(){
@@ -634,5 +426,388 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
+<div class="modal" id="cartModal">
+<div class="modal-content cart-content" style="max-width:520px;text-align:left;">
+<button class="modal-close" onclick="closeCart()">×</button>
+<h2>Your Cart</h2>
+<div id="cartItems" style="margin:12px 0;"></div>
+<hr class="cart-divider" style="margin:12px 0;"/>
+
+    <div id="shipping-options" style="margin:12px 0 10px; padding:10px; border:1px dashed rgba(0,0,0,0.12); border-radius:10px;">
+      <div style="font-weight:800; margin-bottom:8px;">Delivery / Pickup</div>
+      <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;">
+        <input type="radio" name="deliveryMethod" value="shipping" checked />
+        <span data-price="9">Shipping (€9)</span>
+      </label>
+      <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+        <input type="radio" name="deliveryMethod" value="pickup" />
+        <span>
+          Pickup<br/>
+          <small style="display:block; color:#555;">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</small>
+        </span>
+      </label>
+    </div>
+    
+      <div class="cart-total" id="shipping-row" style="font-weight:600;">
+        <span>Shipping </span>
+        <span id="shipping-value" data-price="9">€9</span>
+      </div>
+    <div class="cart-total">
+<span>Total:</span>
+<span id="cartTotal">€ --</span>
+</div>
+<button class="btn cart-checkout">Checkout</button>
+</div>
+</div>
+<script>
+const PUBLIC_JSON = './products.json';
+const grid = document.getElementById('products');
+let currentList = [];
+function fmtEUR(n){
+  const v = Number(n);
+  if(Number.isNaN(v)) return '€ ' + (n ?? '');
+  if(Number.isInteger(v)) return '€ ' + v;
+  return '€ ' + String(v);
+}
+function sanitizeList(list){
+  if(!Array.isArray(list)) return [];
+  return list.map(p => ({
+    id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
+    title: p.title || '',
+    brand: p.brand || '',
+    price: Number(p.price || 0),
+    image: p.image || 'LOGO.png',
+    description: p.description || '',
+    gallery: Array.isArray(p.gallery)? p.gallery : [],
+    category: p.category || '',
+    createdAt: p.createdAt || 0,
+    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
+  }));
+}
+async function readPublic(){
+  try{
+    const r = await fetch(PUBLIC_JSON + '?t=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    return sanitizeList(data);
+  }catch(e){ return []; }
+}
+function render(list){
+  grid.innerHTML = '';
+  if(!list.length){
+    grid.innerHTML = '<div class="meta" style="text-align:center;padding:20px;">No products available.</div>';
+    return;
+  }
+  list.forEach(p=>{
+    const el = document.createElement('article'); el.className='product';
+    // attach description & gallery for vmodal to read
+    try {
+      el.setAttribute('data-description', String(p.description || ''));
+      const imgsForAttr = Array.isArray(p.gallery) && p.gallery.length ? p.gallery.join(',') : (p.image || '');
+      el.setAttribute('data-images', imgsForAttr);
+    } catch(e) {}
+
+    if(Number(p.stock) <= 0){
+      const badge = document.createElement('div'); badge.className = 'oos-ribbon'; badge.textContent = 'OUT OF STOCK'; el.appendChild(badge);
+    }
+    const img = document.createElement('img'); img.src = p.image; img.alt = p.title; el.appendChild(img);
+    const body = document.createElement('div'); body.className='product-body';
+    const brand = p.brand ? `<div class="meta">${p.brand}</div>` : '';
+    body.innerHTML = `<h3>${p.title}</h3>${brand}<div class='meta'>Stock: ${p.stock}</div><div class='price'>${fmtEUR(p.price)}</div><div class='description' style='display:none'>${p.description}</div>`;
+    el.appendChild(body);
+    const cta = document.createElement('div'); cta.className='cta';
+    const a = document.createElement('a');
+    a.className='btn'; a.href='#'; a.textContent = Number(p.stock) > 0 ? "Add to cart" : "Out of Stock";
+    if(Number(p.stock) > 0){ a.dataset.action = 'add-to-cart'; a.dataset.id = p.id; } else { a.classList.add('disabled'); }
+    cta.appendChild(a); el.appendChild(cta); grid.appendChild(el);
+  });
+}
+function searchProducts(){
+  const term = document.getElementById('search').value.toLowerCase();
+  const filtered = currentList.filter(p =>
+    p.title.toLowerCase().includes(term) ||
+    (p.brand && p.brand.toLowerCase().includes(term)) ||
+    (p.category && p.category.toLowerCase().includes(term))
+  );
+  render(filtered);
+}
+/* Cart */
+const CART_KEY='vw_cart';
+function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
+function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+let cart = loadCart();
+function addToCart(productId){
+  const product = currentList.find(p => String(p.id) === String(productId));
+  if(!product) return;
+  const existing = cart.find(item => item.id === product.id);
+  if(existing){ existing.qty++; } else { cart.push({...product, qty: 1}); }
+  saveCart(cart);
+  updateCartIcon();
+}
+function updateCartIcon(){
+  const countEl = document.getElementById('cartCount');
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+  countEl.textContent = totalItems ? String(totalItems) : '';
+}
+function openCart(){
+  const cartModal = document.getElementById('cartModal');
+  const list = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  list.innerHTML = '';
+  if(cart.length === 0){
+    list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
+    totalEl.textContent = '€ 0.00';
+  } else {
+    let total = 0;
+    cart.forEach(item => {
+      total += Number(item.price) * item.qty;
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML = `
+        <div class="cart-item-left">
+          <img class="cart-thumb" src="${item.image}" alt="${item.title}">
+          <div>
+            <strong>${item.title}</strong><br>
+            <small>${fmtEUR(item.price)}</small>
+          </div>
+        </div>
+        <div class="cart-qty">
+          <button onclick="changeQty('${item.id}', -1)" style="padding:4px 8px;">−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty('${item.id}', 1)" style="padding:4px 8px;">+</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+    totalEl.textContent = fmtEUR(total);
+  }
+  cartModal.style.display = 'flex';
+}
+function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
+function changeQty(id, delta){
+  const item = cart.find(p => p.id === id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  saveCart(cart);
+  openCart();
+  updateCartIcon();
+}
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action="add-to-cart"]');
+  if(!btn) return;
+  e.preventDefault();
+  const id = btn.dataset.id;
+  if(id){ addToCart(id); }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.querySelector('.cart-checkout');
+  function calcBaseTotal() {
+    return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
+  }
+  function updateDisplayTotal() {
+    const base = calcBaseTotal();
+    totalEl.textContent = fmtEUR(base);
+  }
+  const _openCart = openCart;
+  openCart = function() {
+    _openCart();
+    updateDisplayTotal();
+  };
+  checkoutBtn.addEventListener('click', () => {
+    // Default shipping: none/0. Keep downstream pages happy if they expect this key.
+    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
+    window.location.href = 'checkout.html';
+  });
+});
+(async function init(){
+  currentList = await readPublic();
+  currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  render(currentList);
+  document.getElementById('year').textContent = new Date().getFullYear();
+  updateCartIcon();
+})();
+</script>
+<script>
+(function(){
+  function getCartSubtotal(){
+    const items = Array.from(document.querySelectorAll('.cart-item'));
+    let sum = 0;
+    items.forEach(item => {
+      const priceEl = item.querySelector('[data-price]');
+      const qtyEl = item.querySelector('input[type="number"]');
+      let price = 0;
+      let qty = 1;
+      if (priceEl){
+        price = parseFloat((priceEl.getAttribute('data-price')||'0').replace(',', '.'));
+      } else {
+        const m = (item.textContent||'').match(/€\s*([\d,.]+)/);
+        if (m) price = parseFloat(m[1].replace(',', '.'));
+      }
+      if (qtyEl) qty = parseInt(qtyEl.value || '1', 10);
+      if (!isNaN(price) && !isNaN(qty)) sum += price * qty;
+    });
+    return sum;
+  }
+  function updateTotals(){
+    let subtotal = getCartSubtotal();
+    const method = (document.querySelector('input[name="deliveryMethod"]:checked')||{}).value || 'shipping';
+    let shipping = method === 'shipping' ? 9 : 0;
+
+    const shipRow = document.getElementById('shipping-row');
+    const shipVal = document.getElementById('shipping-value');
+    if (shipRow){
+      shipRow.style.display = (method === 'shipping') ? 'flex' : 'none';
+    }
+    if (shipVal){
+      shipVal.textContent = '€' + shipping.toFixed(0);
+    }
+
+    const grand = subtotal + shipping;
+
+    let totalValueEl = document.querySelector('#cart-grand-total');
+    if (!totalValueEl){
+      const totalEl = document.querySelector('.cart-total span:last-child');
+      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
+    }
+    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
+  }
+
+  document.addEventListener('change', function(e){
+    if (e.target && e.target.name === 'deliveryMethod'){
+      updateTotals();
+    }
+    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
+      updateTotals();
+    }
+  });
+
+  const ready = () => { updateTotals(); };
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ready);
+  } else {
+    ready();
+  }
+  window.updateCartTotalsWithShipping = updateTotals;
+})();
+</script>
+<script>
+
+// ==== VModal behavior (clean) ====
+(function(){
+  if (window.__vmodal) return; window.__vmodal = true;
+  const $ = (s, r=document)=> r.querySelector(s);
+  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
+
+  const modal = $('#vModal');
+  const mainImg = $('#vmMain');
+  const thumbs = $('#vmThumbs');
+  const titleEl = $('#vmTitle');
+  const priceEl = $('#vmPrice');
+  const metaEl = $('#vmMeta');
+  const descEl = $('#vmDesc');
+  const btnClose = $('#vmClose');
+  const btnAdd = $('#vmAdd');
+  let card = null;
+  let imgs = [];
+  let idx = 0;
+
+  function renderThumbs(){
+    thumbs.innerHTML = '';
+    imgs.forEach((src, i)=>{
+      const b = document.createElement('button');
+      b.className = 'vmodal__thumb' + (i===idx ? ' is-active' : '');
+      b.innerHTML = `<img src="${src}" alt="">`;
+      b.addEventListener('click', ()=> go(i));
+      thumbs.appendChild(b);
+    });
+  }
+  function go(i){
+    if(!imgs.length) return;
+    idx = (i + imgs.length) % imgs.length;
+    mainImg.src = imgs[idx];
+    $$('.vmodal__thumb', thumbs).forEach((t, j)=> t.classList.toggle('is-active', j===idx));
+  }
+
+  function openFromCard(c){
+    card = c;
+    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
+    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
+    const meta  = (card.querySelector('.stock')?.textContent?.trim() || card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '');
+    const desc  = card.getAttribute('data-description') || card.querySelector('.description')?.textContent?.trim() || '';
+
+    const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
+    const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
+    imgs = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
+    if (!imgs.length) { imgs = ['/assets/placeholder.png']; }
+
+    titleEl.textContent = title.toUpperCase();
+    priceEl.textContent = price;
+    metaEl.textContent = meta;
+    descEl.textContent = desc;
+
+    
+    // sync CTA with site cart handler
+    try {
+      const ctaBtn = card.querySelector('[data-action="add-to-cart"]');
+      const pidFromBtn = ctaBtn?.dataset?.id;
+      const pidGuess = pidFromBtn || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
+      if (pidGuess) btnAdd.dataset.id = String(pidGuess);
+    } catch(e) {}
+    renderThumbs(); go(0);
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(){
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  // Delegated open on img/title click
+  document.addEventListener('click', (e)=>{
+    const img = e.target.closest('.product img');
+    const title = e.target.closest('.product h3');
+    const clickable = img || title;
+    if (clickable){
+      const c = clickable.closest('.product');
+      if (c){ e.preventDefault?.(); openFromCard(c); }
+    }
+  });
+
+  // Close
+  btnClose?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e)=>{
+    if (modal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeModal();
+  });
+
+  // Add to Cart — robust integration
+  btnAdd?.addEventListener('click', (e)=>{
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  if (!card) return idx;
+  const pid =
+    btnAdd.dataset?.id ||
+    card.getAttribute('data-id') ||
+    card.getAttribute('data-product-id') ||
+    card.dataset?.productId;
+  if (pid) {
+  let did = false;
+  try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch (_) {}
+  if (!did) {
+    try { if (typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch (_) {}
+  }
+}
+  try {
+    btnAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles: false, detail: { index: idx } }));
+  } catch (_) {}
+  return idx;
+});})();
+
+</script>
 </body>
 </html>
