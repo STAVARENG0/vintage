@@ -725,7 +725,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const ctaBtn = card.querySelector('[data-action="add-to-cart"]');
       const pidFromBtn = ctaBtn?.dataset?.id;
       const pidGuess = pidFromBtn || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
-      btnAdd.setAttribute('data-action','add-to-cart');
       if (pidGuess) btnAdd.dataset.id = String(pidGuess);
     } catch(e) {}
     renderThumbs(); go(0);
@@ -759,21 +758,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add to Cart — robust integration
   btnAdd?.addEventListener('click', ()=>{
-    
-      // Let the global '[data-action="add-to-cart"]' listener handle it
-      if (btnAdd.hasAttribute('data-action')) {
-        btnAdd.dispatchEvent(new MouseEvent('click', {bubbles:true}));
-        return;
-      }
-      // Fallbacks (in case no global handler captures it)
-      let handled = false;
-      if (card){
-        const cta = card.querySelector('[data-action="add-to-cart"]');
-        const pid = btnAdd.dataset?.id || cta?.dataset?.id || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
-        if (typeof window.addToCart === 'function' && pid){ try{ window.addToCart(pid); handled = true; }catch{} }
-        if (!handled && cta){ try{ cta.click(); handled = true; }catch{} }
-      }
-    });})();
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  if (!card) return idx;
+  const pid =
+    btnAdd.dataset?.id ||
+    card.getAttribute('data-id') ||
+    card.getAttribute('data-product-id') ||
+    card.dataset?.productId;
+  if (pid && typeof window.addToCart === 'function') {
+    try { window.addToCart(pid); } catch (_) {}
+  }
+  try {
+    btnAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles: false, detail: { index: idx } }));
+  } catch (_) {}
+  return idx;
+});})();
 
 </script>
 </body>
