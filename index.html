@@ -317,7 +317,7 @@ header{ text-align:center; }
 /* ==== Vintage Modal — exact layout ==== */
 .product img, .product h3 { cursor: pointer; }
 
-.vmodal{ display:none; position:fixed; inset:0; background: #fff;
+.vmodal{ display:none; position:fixed; inset:0; background: linear-gradient(180deg, var(--cream), var(--cream-2));
   z-index: 10000; align-items:center; justify-content:center; padding:18px; }
 .vmodal__dialog{ position:relative; background:var(--card); color:var(--text); border-radius:16px;
   border:1px solid rgba(255,255,255,.06); max-width:980px; width:100%;
@@ -325,9 +325,9 @@ header{ text-align:center; }
 @media (max-width: 860px){ .vmodal__dialog{ grid-template-columns:1fr; } }
 
 /* Left */
-.vmodal__left{ background: #fff; padding:16px; display:grid; grid-template-rows: 1fr auto; gap:12px; }
-.vmodal__main{ background: #fff; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.vmodal__main img{ width:100%; max-height:360px; object-fit:contain; background: #fff; display:block; }
+.vmodal__left{ background: var(--cream); padding:16px; display:grid; grid-template-rows: 1fr auto; gap:12px; }
+.vmodal__main{ background: var(--cream); border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.vmodal__main img{ width:100%; max-height:360px; object-fit:contain; background: var(--cream); display:block; }
 .vmodal__thumbs{ display:flex; gap:10px; padding:2px; }
 .vmodal__thumb{ width:56px; height:56px; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#fff; }
 .vmodal__thumb.is-active{ border-color: var(--mustard); }
@@ -776,17 +776,10 @@ document.addEventListener('DOMContentLoaded', () => {
       window.dispatchEvent(ev);
       handled = true;
     }
-    
-    // If not handled yet, try to use the CTA button inside the product card to get the product id
-    if (!handled && card){
-      const cta = card.querySelector('[data-action="add-to-cart"]');
-      const pid = cta?.dataset?.id || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
-      if (pid && typeof window.addToCart === 'function'){
-        try { window.addToCart(pid); handled = true; } catch {}
-      } else if (cta){
-        try { cta.click(); handled = true; } catch {}
-      }
-    }
+    // Quick feedback
+    const prev = btnAdd.textContent;
+    btnAdd.textContent = 'Added!';
+    setTimeout(()=> btnAdd.textContent = prev, 1200);
   });
 })();
 
