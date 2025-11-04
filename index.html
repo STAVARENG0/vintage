@@ -325,9 +325,9 @@ header{ text-align:center; }
 @media (max-width: 860px){ .vmodal__dialog{ grid-template-columns:1fr; } }
 
 /* Left */
-.vmodal__left{ background:#111; padding:16px; display:grid; grid-template-rows: 1fr auto; gap:12px; }
-.vmodal__main{ background:#111; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.vmodal__main img{ width:100%; max-height:360px; object-fit:contain; background:#111; display:block; }
+.vmodal__left{ background:var(--card); padding:16px; display:grid; grid-template-rows: 1fr auto; gap:12px; }
+.vmodal__main{ background:var(--card); border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.vmodal__main img{ width:100%; max-height:360px; object-fit:contain; background:transparent; display:block; }
 .vmodal__thumbs{ display:flex; gap:10px; padding:2px; }
 .vmodal__thumb{ width:56px; height:56px; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#fff; }
 .vmodal__thumb.is-active{ border-color: var(--mustard); }
@@ -750,6 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add to Cart — robust integration
   btnAdd?.addEventListener('click', ()=>{
+    // cart integrations ++
     let handled = false;
     if (card){
       // 1) Try form submit
@@ -768,6 +769,40 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pid && typeof window.addToCart === 'function'){ try{ window.addToCart(pid); handled = true; }catch{} }
       }
     }
+
+    // Try product id discovery
+    let pid = null;
+    if (card){
+      pid = card.getAttribute('data-product-id') || card.dataset?.productId ||
+            card.querySelector('[data-product-id]')?.getAttribute('data-product-id') ||
+            card.querySelector('input[name="product_id"]')?.value ||
+            card.querySelector('[data-id]')?.getAttribute('data-id');
+    }
+    // 3b) WooCommerce AJAX (if available)
+    if (!handled && pid && window.wc_add_to_cart_params){
+      try{
+        const url = window.wc_add_to_cart_params.wc_ajax_url.replace('%%endpoint%%','add_to_cart');
+        const fd = new FormData();
+        fd.append('product_id', pid);
+        fd.append('quantity', 1);
+        fetch(url, { method:'POST', body: fd, credentials: 'same-origin' })
+          .then(r=>r.json()).then(()=>{
+            handled = true;
+            document.dispatchEvent(new CustomEvent('added_to_cart', { detail:{ product_id: pid }}));
+          }).catch(()=>{});
+      }catch{}
+    }
+    // 3c) Shopify AJAX (if available)
+    if (!handled && pid && window.Shopify){
+      try{
+        fetch('/cart/add.js', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ items:[{ id: parseInt(pid,10)||pid, quantity:1 }] })
+        }).then(r=>r.json()).then(()=>{ handled = true; });
+      }catch{}
+    }
+
     // 4) Fallback: CustomEvent
     if (!handled){
       const ev = new CustomEvent('add-to-cart', { detail: {
