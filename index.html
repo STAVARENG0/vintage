@@ -313,6 +313,134 @@ header{ text-align:center; }
   filter: drop-shadow(0 0 6px rgba(255,255,255,.14));
 }
 
+
+
+/* ==== Product Modal Styles (added) ==== */
+
+:root{
+  --pm-backdrop: rgba(0,0,0,.55);
+  --pm-card: var(--card);
+  --pm-text: var(--text);
+  --pm-muted: var(--muted);
+  --pm-accent: var(--accent);
+  --pm-olive: var(--olive);
+  --pm-mustard: var(--mustard);
+  --pm-terracotta: var(--terracotta);
+}
+
+/* Overlay */
+.product-modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: var(--pm-backdrop);
+  z-index: 6000;
+  align-items: center; justify-content: center;
+  padding: 18px;
+}
+
+/* Dialog */
+.product-modal__dialog {
+  background: var(--pm-card);
+  color: var(--pm-text);
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.08);
+  max-width: 980px; width: 100%;
+  box-shadow: 0 18px 48px rgba(0,0,0,.22);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 58% 42%;
+}
+@media (max-width: 860px){
+  .product-modal__dialog { grid-template-columns: 1fr; max-height: 90vh; }
+}
+
+/* Gallery (Stories-like) */
+.pm-gallery {
+  position: relative; background: #000; min-height: 380px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pm-slide {
+  position: absolute; inset: 0; display: none;
+}
+.pm-slide.is-active { display: block; }
+.pm-slide img{
+  width: 100%; height: 100%; object-fit: contain; background: #000;
+}
+
+/* Progress bars on top, like Stories */
+.pm-progress {
+  position: absolute; left: 0; right: 0; top: 10px;
+  display: grid; grid-auto-flow: column; gap: 6px;
+  padding: 0 12px; z-index: 10;
+}
+.pm-progress .bar {
+  height: 4px; border-radius: 999px; overflow: hidden;
+  background: rgba(255,255,255,.22);
+}
+.pm-progress .bar > span{
+  display:block; height:100%; width:0%;
+  background: linear-gradient(90deg, var(--pm-mustard), var(--pm-terracotta));
+  transition: width .45s ease;
+}
+
+/* Thumbnails */
+.pm-thumbs {
+  position: absolute; left: 0; right: 0; bottom: 10px;
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+  padding: 0 12px; z-index: 10;
+}
+.pm-thumb {
+  width: 50px; height: 50px; border-radius: 10px;
+  overflow: hidden; border: 2px solid transparent; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,.35);
+}
+.pm-thumb.is-active { border-color: var(--pm-mustard); }
+.pm-thumb img{ width: 100%; height: 100%; object-fit: cover; display:block; }
+
+/* Arrows */
+.pm-arrow {
+  position:absolute; top:50%; transform: translateY(-50%);
+  width:44px; height:44px; border-radius:50%;
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.35);
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:900; font-size:18px; cursor:pointer;
+  backdrop-filter: blur(6px);
+}
+.pm-arrow:hover{ background: rgba(255,255,255,.26); }
+.pm-arrow--prev{ left:12px } .pm-arrow--next{ right:12px }
+
+/* Details column */
+.pm-details {
+  padding: 16px 16px 18px;
+  display: grid; grid-template-rows: auto 1fr auto;
+  gap: 10px; background: var(--pm-card);
+}
+.pm-title { margin:0; font-size: 20px; font-weight: 800; color: var(--pm-text); }
+.pm-meta { font-size: 13px; color: var(--pm-muted); line-height: 1.5; }
+.pm-price{ font-weight: 900; color: var(--pm-terracotta); font-size: 18px; }
+.pm-location{ font-size: 13px; color: var(--pm-text); font-weight: 700; }
+.pm-desc { font-size: 14px; color: var(--pm-text); }
+
+.pm-actions { display:flex; gap:10px; margin-top: 6px; }
+.pm-actions .btn-primary{
+  flex:1; padding:12px 14px; border-radius: 999px; border:none; cursor:pointer;
+  background: linear-gradient(90deg,var(--pm-olive), var(--pm-mustard));
+  color:#fff; font-weight: 900;
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+.pm-actions .btn-ghost{
+  padding:12px 14px; border-radius: 999px; border:1px dashed rgba(0,0,0,.12); cursor:pointer;
+  background:#fff; color: var(--pm-text); font-weight: 800;
+}
+
+/* Close button */
+.pm-close {
+  position: absolute; top: 10px; right: 10px;
+  background: var(--pm-terracotta); border:none; color:#fff;
+  font-weight:900; padding: 8px 12px; border-radius: 10px; cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,.18);
+}
 </style>
 </head>
 <body>
@@ -324,8 +452,8 @@ header{ text-align:center; }
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
-<a class="pill-btn" href="women.html">Woman</a>
-<a class="pill-btn" href="men.html">Man</a>
+<a class="pill-btn" href="woman.html"">Woman</a>
+<a class="pill-btn" href="man.html"">Man</a>
 </div>
 </div>
 </header>
@@ -600,79 +728,28 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
-<style>
-/* === HS Product Modal (scoped to #hs-product-modal) — Vintage palette === */
-:root{
-  --hs-backdrop: rgba(0,0,0,0.5);
-  --hs-surface: #ffffff;
-  --hs-text: var(--text, #1a1a1a);
-  --hs-subtext: rgba(0,0,0,0.7);
-  --hs-border: rgba(0,0,0,0.08);
-  --hs-accent-a: var(--olive, #6b7b2a);
-  --hs-accent-b: var(--mustard, #d2b04c);
-}
-#hspm-backdrop{
-  position: fixed; inset:0; background: var(--hs-backdrop);
-  display:none; opacity:0; transition: opacity .2s ease;
-  z-index: 50;
-}
-#hs-product-modal{
-  position: fixed; inset:0; display:none; place-items:center; z-index: 51;
-}
-#hs-product-modal .hs-modal{
-  width:min(960px, 92vw); background: var(--hs-surface); color: var(--hs-text);
-  border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.25);
-  overflow:hidden; border:1px solid var(--hs-border);
-}
-.hs-row{ display:grid; grid-template-columns: 1.1fr 1fr; gap: 24px; padding: 20px; }
-@media (max-width: 820px){ .hs-row{ grid-template-columns:1fr; } }
-.hs-media{ background:#fff; display:grid; grid-template-rows:auto 88px; gap: 12px; }
-.hs-media .hs-hero{
-  width:100%; aspect-ratio: 4/3; object-fit:cover; border-radius: 12px;
-  border:1px solid var(--hs-border);
-}
-.hs-thumbs{ display:flex; gap:10px; overflow:auto; }
-.hs-thumbs img{
-  height:80px; aspect-ratio: 1/1; object-fit:cover; border-radius: 10px;
-  border:1px solid var(--hs-border); cursor:pointer;
-}
-.hs-content{ display:flex; flex-direction:column; gap:14px; }
-.hs-title{ font-size: clamp(20px, 2.4vw, 28px); font-weight:700; line-height:1.1; }
-.hs-price{ font-size: 18px; font-weight:600; opacity:.9; }
-.hs-desc{ color: var(--hs-subtext); font-size: 15px; line-height:1.6; }
-.hs-cta{ display:flex; gap:12px; align-items:center; margin-top: 6px; }
-.hs-btn{
-  padding: 12px 18px; border-radius: 999px; border:0; cursor:pointer;
-  background: linear-gradient(90deg, var(--hs-accent-a), var(--hs-accent-b));
-  color:#fff; font-weight:600; box-shadow: 0 10px 24px rgba(107,123,42,0.25);
-}
-.hs-btn.secondary{ background:#f5f5f0; color: var(--hs-text); box-shadow:none; border:1px solid var(--hs-border); }
-.hs-close{
-  position:absolute; top:10px; right:12px; display:grid; place-items:center;
-  width:36px; height:36px; border-radius: 10px; border:1px solid var(--hs-border);
-  background:#fff; cursor:pointer; font-size:18px;
-}
-#hs-product-modal.is-open, #hspm-backdrop.is-open{ display:grid; }
-#hspm-backdrop.is-open{ opacity:1; }
-</style>
 
-<div id="hspm-backdrop" aria-hidden="true"></div>
-<div id="hs-product-modal" role="dialog" aria-modal="true" aria-label="Detalhes do produto">
-  <div class="hs-modal">
-    <button class="hs-close" type="button" aria-label="Fechar">×</button>
-    <div class="hs-row">
-      <div class="hs-media">
-        <img class="hs-hero" src="" alt="Imagem do produto">
-        <div class="hs-thumbs"></div>
-      </div>
-      <div class="hs-content">
-        <div class="hs-title"></div>
-        <div class="hs-price"></div>
-        <div class="hs-desc"></div>
-        <div class="hs-cta">
-          <button class="hs-btn" type="button">Adicionar ao carrinho</button>
-          <button class="hs-btn secondary" type="button">Fechar</button>
-        </div>
+
+<!-- ==== Product Modal (auto-injected) ==== -->
+<div class="product-modal" id="productModal" aria-hidden="true">
+  <div class="product-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <div class="pm-gallery">
+      <div class="pm-progress" id="pmProgress"></div>
+      <button class="pm-arrow pm-arrow--prev" id="pmPrev" aria-label="Anterior">&#10094;</button>
+      <button class="pm-arrow pm-arrow--next" id="pmNext" aria-label="Próxima">&#10095;</button>
+      <div id="pmSlides"></div>
+      <div class="pm-thumbs" id="pmThumbs"></div>
+    </div>
+    <div class="pm-details">
+      <button class="pm-close" id="pmClose" aria-label="Fechar">Fechar ✕</button>
+      <h3 class="pm-title" id="pmTitle"></h3>
+      <div class="pm-meta" id="pmMeta"></div>
+      <div class="pm-location" id="pmLocation"></div>
+      <div class="pm-price" id="pmPrice"></div>
+      <div class="pm-desc" id="pmDesc"></div>
+      <div class="pm-actions">
+        <button class="btn-primary" id="pmAddToCart">Adicionar ao carrinho</button>
+        <button class="btn-ghost" id="pmShare">Compartilhar</button>
       </div>
     </div>
   </div>
@@ -680,80 +757,199 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <script>
+
 (function(){
-  const backdrop = document.getElementById('hspm-backdrop');
-  const modal = document.getElementById('hs-product-modal');
-  if(!backdrop || !modal) return;
-  const hero = modal.querySelector('.hs-hero');
-  const thumbs = modal.querySelector('.hs-thumbs');
-  const titleEl = modal.querySelector('.hs-title');
-  const priceEl = modal.querySelector('.hs-price');
-  const descEl = modal.querySelector('.hs-desc');
-  const closeEls = [modal.querySelector('.hs-close'), modal.querySelector('.hs-btn.secondary')];
+  if (window.__productModalReady) return;
+  window.__productModalReady = true;
 
-  function openModal(data){
-    titleEl.textContent = data.title || '';
-    priceEl.textContent = data.price || '';
-    descEl.textContent = data.desc || '';
-    hero.src = data.image || '';
-    hero.alt = data.title || 'Produto';
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-    // thumbs
-    thumbs.innerHTML = '';
-    const imgs = (data.images && data.images.length ? data.images : [data.image]).filter(Boolean);
-    imgs.forEach(src => {
-      const t = document.createElement('img');
-      t.src = src; t.alt = data.title || 'thumb';
-      t.addEventListener('click', () => { hero.src = src; });
-      thumbs.appendChild(t);
+  // Create modal if missing
+  if (!$('#productModal')) {
+    document.body.insertAdjacentHTML('beforeend', `
+<!-- ==== Product Modal (auto-injected) ==== -->
+<div class="product-modal" id="productModal" aria-hidden="true">
+  <div class="product-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <div class="pm-gallery">
+      <div class="pm-progress" id="pmProgress"></div>
+      <button class="pm-arrow pm-arrow--prev" id="pmPrev" aria-label="Anterior">&#10094;</button>
+      <button class="pm-arrow pm-arrow--next" id="pmNext" aria-label="Próxima">&#10095;</button>
+      <div id="pmSlides"></div>
+      <div class="pm-thumbs" id="pmThumbs"></div>
+    </div>
+    <div class="pm-details">
+      <button class="pm-close" id="pmClose" aria-label="Fechar">Fechar ✕</button>
+      <h3 class="pm-title" id="pmTitle"></h3>
+      <div class="pm-meta" id="pmMeta"></div>
+      <div class="pm-location" id="pmLocation"></div>
+      <div class="pm-price" id="pmPrice"></div>
+      <div class="pm-desc" id="pmDesc"></div>
+      <div class="pm-actions">
+        <button class="btn-primary" id="pmAddToCart">Adicionar ao carrinho</button>
+        <button class="btn-ghost" id="pmShare">Compartilhar</button>
+      </div>
+    </div>
+  </div>
+</div>
+`);
+  }
+
+  const modal = $('#productModal');
+  const slidesEl = $('#pmSlides');
+  const thumbsEl = $('#pmThumbs');
+  const progressEl = $('#pmProgress');
+  const titleEl = $('#pmTitle');
+  const metaEl = $('#pmMeta');
+  const priceEl = $('#pmPrice');
+  const locationEl = $('#pmLocation');
+  const descEl = $('#pmDesc');
+  const btnClose = $('#pmClose');
+  const btnPrev = $('#pmPrev');
+  const btnNext = $('#pmNext');
+  const btnCart = $('#pmAddToCart');
+  const btnShare = $('#pmShare');
+
+  let current = 0;
+  let imgs = [];
+  let autoTimer = null;
+  const AUTO_MS = 4200; // autoplay like Stories
+
+  function stopAuto(){ if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; } }
+  function startAuto(){
+    stopAuto();
+    autoTimer = setTimeout(()=> goTo(current+1), AUTO_MS);
+  }
+
+  function buildProgress(n){
+    progressEl.innerHTML = '';
+    for (let i=0;i<n;i++){
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      const inner = document.createElement('span');
+      bar.appendChild(inner);
+      progressEl.appendChild(bar);
+    }
+  }
+
+  function render(){
+    slidesEl.innerHTML = '';
+    thumbsEl.innerHTML = '';
+    imgs.forEach((src, i)=>{
+      const slide = document.createElement('div');
+      slide.className = 'pm-slide' + (i===current ? ' is-active':'');
+      slide.innerHTML = `<img src="${src}" alt="">`;
+      slidesEl.appendChild(slide);
+
+      const th = document.createElement('button');
+      th.className = 'pm-thumb' + (i===current ? ' is-active':'');
+      th.innerHTML = `<img src="${src}" alt="">`;
+      th.addEventListener('click', ()=> goTo(i));
+      thumbsEl.appendChild(th);
     });
 
-    backdrop.classList.add('is-open');
-    modal.classList.add('is-open');
-    document.documentElement.style.overflow = 'hidden';
+    // Update progress bars
+    buildProgress(imgs.length);
+    updateProgress();
+  }
+
+  function updateProgress(){
+    const bars = $$('.pm-progress .bar > span');
+    bars.forEach((b, i)=>{
+      b.style.width = (i < current) ? '100%' : (i === current ? '0%' : '0%');
+      if (i === current){ // animate current
+        setTimeout(()=>{ b.style.width = '100%'; }, 20);
+      }
+    });
+  }
+
+  function goTo(i){
+    if (!imgs.length) return;
+    current = (i + imgs.length) % imgs.length;
+    $$('.pm-slide').forEach((s, idx)=> s.classList.toggle('is-active', idx===current));
+    $$('.pm-thumb').forEach((t, idx)=> t.classList.toggle('is-active', idx===current));
+    updateProgress();
+    startAuto();
+  }
+
+  function openFromProduct(card){
+    // Collect data
+    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
+    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
+    const meta  = card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '';
+    const loc   = card.getAttribute('data-location') || '';
+    const desc  = card.getAttribute('data-description') || '';
+
+    // Images: data-images separated by comma, or any imgs inside the card, else the main card img
+    const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const foundImgs = $$('img', card).map(img=>img.src).filter(Boolean);
+    imgs = (dataImgs.length ? dataImgs : (foundImgs.length ? foundImgs : [])).filter((src, idx, arr)=>arr.indexOf(src)===idx);
+
+    if (!imgs.length && window.placeholderImage){
+      imgs = [window.placeholderImage];
+    }
+
+    titleEl.textContent = title;
+    metaEl.textContent = meta;
+    priceEl.textContent = price;
+    locationEl.textContent = loc ? `Local: ${loc}` : '';
+    descEl.textContent = desc;
+
+    current = 0;
+    render();
+    goTo(0);
+
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
   }
 
   function closeModal(){
-    backdrop.classList.remove('is-open');
-    modal.classList.remove('is-open');
-    document.documentElement.style.overflow = '';
+    stopAuto();
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
   }
 
-  closeEls.forEach(btn => btn && btn.addEventListener('click', closeModal));
-  backdrop.addEventListener('click', closeModal);
-  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+  // Controls
+  btnClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
+  btnPrev.addEventListener('click', ()=> goTo(current-1));
+  btnNext.addEventListener('click', ()=> goTo(current+1));
+  document.addEventListener('keydown', (e)=>{
+    if (modal.getAttribute('aria-hidden') === 'false'){
+      if (e.key === 'Escape') closeModal();
+      if (e.key === 'ArrowLeft') goTo(current-1);
+      if (e.key === 'ArrowRight') goTo(current+1);
+    }
+  });
 
-  // Delegate clicks from product tiles
-  // Works with elements containing .product-card (image/title/button).
-  // Extracts data from data-* attributes if present, else from common selectors.
-  document.addEventListener('click', function(e){
-    const trigger = e.target.closest('[data-modal="product"], .product-card img, .product-card .product-title, .product-card .product-link');
-    if(!trigger) return;
-    const card = trigger.closest('.product-card') || trigger.closest('[data-product]') || trigger;
+  // Share / Cart (placeholder hooks)
+  btnShare.addEventListener('click', async ()=>{
+    try{
+      await navigator.share?.({ title: titleEl.textContent, text: descEl.textContent });
+    }catch(e){ /* ignore */ }
+  });
+  btnCart.addEventListener('click', ()=>{
+    // If there's already a cart system, trigger a custom event
+    const ev = new CustomEvent('add-to-cart', { detail: { title: titleEl.textContent, price: priceEl.textContent } });
+    window.dispatchEvent(ev);
+    btnCart.textContent = 'Adicionado!';
+    setTimeout(()=> btnCart.textContent = 'Adicionar ao carrinho', 1400);
+  });
 
-    const data = {
-      title: card.getAttribute('data-title') ||
-             (card.querySelector('.product-title') ? card.querySelector('.product-title').textContent.trim() : ''),
-      price: card.getAttribute('data-price') ||
-             (card.querySelector('.product-price') ? card.querySelector('.product-price').textContent.trim() : ''),
-      desc: card.getAttribute('data-desc') ||
-            (card.querySelector('.product-desc') ? card.querySelector('.product-desc').textContent.trim() : ''),
-      image: card.getAttribute('data-image') ||
-             (card.querySelector('img') ? card.querySelector('img').getAttribute('src') : ''),
-      images: (()=>{
-        const nodes = card.querySelectorAll('[data-gallery] img, .gallery img');
-        return Array.from(nodes).map(n => n.getAttribute('src'));
-      })()
-    };
-
-    // Avoid following links if inside an <a>
-    const maybeLink = e.target.closest('a');
-    if(maybeLink) e.preventDefault();
-    openModal(data);
-  }, { capture: true });
+  // Delegate clicks on product image or title
+  document.addEventListener('click', (e)=>{
+    const imgClick = e.target.closest('.product img');
+    const titleClick = e.target.closest('.product h3');
+    const clickable = imgClick || titleClick;
+    if (clickable){
+      const card = clickable.closest('.product');
+      if (card){ e.preventDefault?.(); openFromProduct(card); }
+    }
+  });
 })();
+
 </script>
-
-
 </body>
 </html>
