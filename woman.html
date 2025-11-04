@@ -949,5 +949,30 @@ document.addEventListener('DOMContentLoaded', () => {
 });})();
 
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // Make existing .card items compatible with man.html's modal script:
+  document.querySelectorAll('.card').forEach(function(c){
+    if(!c.classList.contains('product')) c.classList.add('product');
+    // ensure data-images exists
+    try {
+      if(!c.getAttribute('data-images')){
+        const img = c.querySelector('img');
+        if(img && img.src) c.setAttribute('data-images', img.src);
+      }
+      if(!c.getAttribute('data-description')){
+        const descEl = c.querySelector('.description, .product-description, p');
+        if(descEl) c.setAttribute('data-description', descEl.textContent.trim());
+      }
+      if(!c.getAttribute('data-id')){
+        const btn = c.querySelector('[data-id],[data-product-id]');
+        if(btn) c.setAttribute('data-id', btn.dataset.id || btn.dataset.productId || '');
+      }
+    } catch(e){}
+  });
+});
+</script>
+
 </body>
 </html>
