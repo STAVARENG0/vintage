@@ -313,9 +313,6 @@ header{ text-align:center; }
   filter: drop-shadow(0 0 6px rgba(255,255,255,.14));
 }
 
-
-/* Make product images and titles show pointer so users know they are clickable */
-.product img, .product h3 { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -343,89 +340,6 @@ header{ text-align:center; }
 <div class="cart-ico">🛒</div>
 <div class="cart-count" id="cartCount"></div>
 </div>
-
-
-
-<script>
-(function(){
-  function getCartSubtotal(){
-    const items = Array.from(document.querySelectorAll('.cart-item'));
-    let sum = 0;
-    items.forEach(item => {
-      const priceEl = item.querySelector('[data-price]');
-      const qtyEl = item.querySelector('input[type="number"]');
-      let price = 0;
-      let qty = 1;
-      if (priceEl){
-        price = parseFloat((priceEl.getAttribute('data-price')||'0').replace(',', '.'));
-      } else {
-        const m = (item.textContent||'').match(/€\s*([\d,.]+)/);
-        if (m) price = parseFloat(m[1].replace(',', '.'));
-      }
-      if (qtyEl) qty = parseInt(qtyEl.value || '1', 10);
-      if (!isNaN(price) && !isNaN(qty)) sum += price * qty;
-    });
-    return sum;
-  }
-  function updateTotals(){
-    const subtotal = getCartSubtotal();
-    const method = (document.querySelector('input[name="deliveryMethod"]:checked')||{}).value || 'shipping';
-    const shipping = method === 'shipping' ? 9 : 0;
-
-    const shipRow = document.getElementById('shipping-row');
-    const shipVal = document.getElementById('shipping-value');
-    if (shipRow){
-      shipRow.style.display = (method === 'shipping') ? 'flex' : 'none';
-    }
-    if (shipVal){
-      shipVal.textContent = '€' + shipping.toFixed(0);
-    }
-
-    const grand = subtotal + shipping;
-
-    let totalValueEl = document.querySelector('#cart-grand-total');
-    if (!totalValueEl){
-      const totalEl = document.querySelector('.cart-total span:last-child');
-      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
-    }
-    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
-  }
-
-  // listeners
-  document.addEventListener('change', function(e){
-    if (e.target && e.target.name === 'deliveryMethod') updateTotals();
-    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')) updateTotals();
-  });
-
-  const ready = () => updateTotals();
-  if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', ready); } else { ready(); }
-
-  window.updateCartTotalsWithShipping = updateTotals;
-})();
-</script>
-
-
-<script>
-// Ensure product articles have data-description and data-images for the vModal to read
-document.addEventListener('DOMContentLoaded', function(){
-  document.querySelectorAll('.product').forEach(function(el){
-    try{
-      if(!el.getAttribute('data-description')){
-        const d = el.querySelector('.description');
-        if(d) el.setAttribute('data-description', d.textContent.trim());
-      }
-      if(!el.getAttribute('data-images')){
-        const imgs = Array.from(el.querySelectorAll('img')).map(i=>i.src).filter(Boolean);
-        if(imgs.length) el.setAttribute('data-images', imgs.join(','));
-      }
-      // make title clickable cursor too
-      const h3 = el.querySelector('h3');
-      if(h3) h3.style.cursor = 'pointer';
-    }catch(e){}
-  });
-});
-</script>
-
 <div class="modal" id="cartModal">
 <div class="modal-content cart-content" style="max-width:520px;text-align:left;">
 <button class="modal-close" onclick="closeCart()">×</button>
@@ -500,13 +414,248 @@ function render(list){
   }
   list.forEach(p=>{
     const el = document.createElement('article'); el.className='product';
-    // attach description & gallery for vmodal to read
+    if(Number(p.stock) <= 0){
+      const badge = document.createElement('div'); badge.className = 'oos-ribbon'; badge.textContent = 'OUT OF STOCK'; el.appendChild(badge);
+    }
+    const img = document.createElement('img'); img.src = p.image; img.alt = p.title; el.appendChild(img);
+    const body = document.createElement('div'); body.className='product-body';
+    const brand = p.brand ? `<div class="meta">${p.brand}</div>` : '';
+    body.innerHTML = `<h3>${p.title}</h3>${brand}<div class='meta'>Stock: ${p.stock}</div><div class='price'>${fmtEUR(p.price)}</div>`;
+    el.appendChild(body);
+    const cta = document.createElement('div'); cta.className='cta';
+    const a = document.createElement('a');
+    a.className='btn'; a.href='#'; a.textContent = Number(p.stock) > 0 ? "Add to cart" : "Out of Stock";
+    if(Number(p.stock) > 0){ a.dataset.action = 'add-to-cart'; a.dataset.id = p.id; } else { a.classList.add('disabled'); }
+    cta.appendChild(a); el.appendChild(cta); grid.appendChild(el);
+  });
+}
+function searchProducts(){
+  const term = document.getElementById('search').value.toLowerCase();
+  const filtered = currentList.filter(p =>
+    p.title.toLowerCase().includes(term) ||
+    (p.brand && p.brand.toLowerCase().includes(term)) ||
+    (p.category && p.category.toLowerCase().includes(term))
+  );
+  render(filtered);
+}
+/* Cart */
+const CART_KEY='vw_cart';
+function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
+function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+let cart = loadCart();
+function addToCart(productId){
+  const product = currentList.find(p => String(p.id) === String(productId));
+  if(!product) return;
+  const existing = cart.find(item => item.id === product.id);
+  if(existing){ existing.qty++; } else { cart.push({...product, qty: 1}); }
+  saveCart(cart);
+  updateCartIcon();
+}
+function updateCartIcon(){
+  const countEl = document.getElementById('cartCount');
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+  countEl.textContent = totalItems ? String(totalItems) : '';
+}
+function getSelectedShipping(){
+  return document.querySelector('input[name="shipping"]:checked');
+}
+function openCart(){
+  const cartModal = document.getElementById('cartModal');
+  const list = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  list.innerHTML = '';
+  if(cart.length === 0){
+    list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
+    totalEl.textContent = '€ 0.00';
+  } else {
+    let total = 0;
+    cart.forEach(item => {
+      total += Number(item.price) * item.qty;
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML = `
+        <div class="cart-item-left">
+          <img class="cart-thumb" src="${item.image}" alt="${item.title}">
+          <div>
+            <strong>${item.title}</strong><br>
+            <small>${fmtEUR(item.price)}</small>
+          </div>
+        </div>
+        <div class="cart-qty">
+          <button onclick="changeQty('${item.id}', -1)" style="padding:4px 8px;">−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty('${item.id}', 1)" style="padding:4px 8px;">+</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+    const selected = getSelectedShipping();
+    const shipping = selected ? Number(selected.value) : 0;
+    totalEl.textContent = fmtEUR(total + shipping);
+  }
+  cartModal.style.display = 'flex';
+}
+function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
+function changeQty(id, delta){
+  const item = cart.find(p => p.id === id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  saveCart(cart);
+  openCart();
+  updateCartIcon();
+}
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action="add-to-cart"]');
+  if(!btn) return;
+  e.preventDefault();
+  const id = btn.dataset.id;
+  if(id){ addToCart(id); }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const radios = document.querySelectorAll('input[name="shipping"]');
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.querySelector('.cart-checkout');
+  function calcBaseTotal() {
+    return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
+  }
+  function updateDisplayTotal() {
+    const base = calcBaseTotal();
+    const sel = document.querySelector('input[name="shipping"]:checked');
+    const shippingVal = sel ? Number(sel.value) : 0;
+    totalEl.textContent = fmtEUR(base + shippingVal);
+  }
+  radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
+  const _openCart = openCart;
+  openCart = function() {
+    _openCart();
+    updateDisplayTotal();
+  };
+  checkoutBtn.addEventListener('click', () => {
+    // Default shipping: none/0. Keep downstream pages happy if they expect this key.
+    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
+    window.location.href = 'checkout.html';
+  });
+});
+(async function init(){
+  currentList = await readPublic();
+  currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  render(currentList);
+  document.getElementById('year').textContent = new Date().getFullYear();
+  updateCartIcon();
+})();
+</script>
+
+<script>
+(function(){
+  function getCartSubtotal(){
+    const items = Array.from(document.querySelectorAll('.cart-item'));
+    let sum = 0;
+    items.forEach(item => {
+      const priceEl = item.querySelector('[data-price]');
+      const qtyEl = item.querySelector('input[type="number"]');
+      let price = 0;
+      let qty = 1;
+      if (priceEl){
+        price = parseFloat((priceEl.getAttribute('data-price')||'0').replace(',', '.'));
+      } else {
+        const m = (item.textContent||'').match(/€\s*([\d,.]+)/);
+        if (m) price = parseFloat(m[1].replace(',', '.'));
+      }
+      if (qtyEl) qty = parseInt(qtyEl.value || '1', 10);
+      if (!isNaN(price) && !isNaN(qty)) sum += price * qty;
+    });
+    return sum;
+  }
+  function updateTotals(){
+    const subtotal = getCartSubtotal();
+    const method = (document.querySelector('input[name="deliveryMethod"]:checked')||{}).value || 'shipping';
+    const shipping = method === 'shipping' ? 9 : 0;
+
+    const shipRow = document.getElementById('shipping-row');
+    const shipVal = document.getElementById('shipping-value');
+    if (shipRow){
+      shipRow.style.display = (method === 'shipping') ? 'flex' : 'none';
+    }
+    if (shipVal){
+      shipVal.textContent = '€' + shipping.toFixed(0);
+    }
+
+    const grand = subtotal + shipping;
+
+    let totalValueEl = document.querySelector('#cart-grand-total');
+    if (!totalValueEl){
+      const totalEl = document.querySelector('.cart-total span:last-child');
+      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
+    }
+    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
+  }
+
+  // listeners
+  document.addEventListener('change', function(e){
+    if (e.target && e.target.name === 'deliveryMethod') updateTotals();
+    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')) updateTotals();
+  });
+
+  const ready = () => updateTotals();
+  if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', ready); } else { ready(); }
+
+  window.updateCartTotalsWithShipping = updateTotals;
+})();
+</script>
+
+<div class="vmodal" id="vModal" aria-hidden="true">
+  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
+    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
+    <div class="vmodal__left">
+      <div class="vmodal__main"><img id="vmMain" alt=""></div>
+<script>
+const PUBLIC_JSON = './products.json';
+const grid = document.getElementById('products');
+let currentList = [];
+function fmtEUR(n){
+  const v = Number(n);
+  if(Number.isNaN(v)) return '€ ' + (n ?? '');
+  if(Number.isInteger(v)) return '€ ' + v;
+  return '€ ' + String(v);
+}
+function sanitizeList(list){
+  if(!Array.isArray(list)) return [];
+  return list.map(p => ({
+    id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
+    title: p.title || '',
+    brand: p.brand || '',
+    price: Number(p.price || 0),
+    image: p.image || 'LOGO.png',
+    description: p.description || '',
+    gallery: Array.isArray(p.gallery)? p.gallery : [],
+    category: p.category || '',
+    createdAt: p.createdAt || 0,
+    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
+  }));
+}
+async function readPublic(){
+  try{
+    const r = await fetch(PUBLIC_JSON + '?t=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    return sanitizeList(data);
+  }catch(e){ return []; }
+}
+function render(list){
+  grid.innerHTML = '';
+  if(!list.length){
+    grid.innerHTML = '<div class="meta" style="text-align:center;padding:20px;">No products available.</div>';
+    return;
+  }
+  list.forEach(p=>{
+    const el = document.createElement('article'); el.className='product';
+    // attach description & gallery data so vModal can read them
     try {
       el.setAttribute('data-description', String(p.description || ''));
       const imgsForAttr = Array.isArray(p.gallery) && p.gallery.length ? p.gallery.join(',') : (p.image || '');
       el.setAttribute('data-images', imgsForAttr);
-    } catch(e) {}
-
+    } catch(e){}
     if(Number(p.stock) <= 0){
       const badge = document.createElement('div'); badge.className = 'oos-ribbon'; badge.textContent = 'OUT OF STOCK'; el.appendChild(badge);
     }
@@ -549,6 +698,9 @@ function updateCartIcon(){
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   countEl.textContent = totalItems ? String(totalItems) : '';
 }
+function getSelectedShipping(){
+  return document.querySelector('input[name="shipping"]:checked');
+}
 function openCart(){
   const cartModal = document.getElementById('cartModal');
   const list = document.getElementById('cartItems');
@@ -579,7 +731,9 @@ function openCart(){
       `;
       list.appendChild(row);
     });
-    totalEl.textContent = fmtEUR(total);
+    const selected = getSelectedShipping();
+    const shipping = selected ? Number(selected.value) : 0;
+    totalEl.textContent = fmtEUR(total + shipping);
   }
   cartModal.style.display = 'flex';
 }
@@ -601,6 +755,7 @@ document.addEventListener('click', function(e){
   if(id){ addToCart(id); }
 });
 document.addEventListener('DOMContentLoaded', () => {
+  const radios = document.querySelectorAll('input[name="shipping"]');
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.querySelector('.cart-checkout');
   function calcBaseTotal() {
@@ -608,8 +763,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function updateDisplayTotal() {
     const base = calcBaseTotal();
-    totalEl.textContent = fmtEUR(base);
+    const sel = document.querySelector('input[name="shipping"]:checked');
+    const shippingVal = sel ? Number(sel.value) : 0;
+    totalEl.textContent = fmtEUR(base + shippingVal);
   }
+  radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
   const _openCart = openCart;
   openCart = function() {
     _openCart();
@@ -629,6 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartIcon();
 })();
 </script>
+
 <script>
 (function(){
   function getCartSubtotal(){
@@ -692,6 +851,25 @@ document.addEventListener('DOMContentLoaded', () => {
   window.updateCartTotalsWithShipping = updateTotals;
 })();
 </script>
+
+
+<div class="vmodal" id="vModal" aria-hidden="true">
+  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
+    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
+    <div class="vmodal__left">
+      <div class="vmodal__main"><img id="vmMain" alt=""></div>
+      <div class="vmodal__thumbs" id="vmThumbs"></div>
+    </div>
+    <div class="vmodal__right">
+      <h3 class="vmodal__title" id="vmTitle"></h3>
+      <div class="vmodal__price" id="vmPrice"></div>
+      <div class="vmodal__meta" id="vmMeta"></div>
+      <div class="vmodal__desc" id="vmDesc"></div>
+      <div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
+    </div>
+  </div>
+</div>
+
 <script>
 
 // ==== VModal behavior (clean) ====
