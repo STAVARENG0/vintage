@@ -314,150 +314,48 @@ header{ text-align:center; }
 }
 
 
-
-/* ==== Vintage Product Modal (Stories-style) ==== */
-:root{
-  --pm-backdrop: rgba(0,0,0,.55);
-}
-.vg-modal{ display:none; position:fixed; inset:0; background:var(--pm-backdrop);
-  z-index:7000; align-items:center; justify-content:center; padding:18px; }
-.vg-dialog{ background:var(--card); color:var(--text); border:1px solid rgba(0,0,0,.08);
-  border-radius:18px; max-width:980px; width:100%; overflow:hidden;
-  box-shadow:0 18px 48px rgba(0,0,0,.22); display:grid; grid-template-columns:58% 42%; }
-@media (max-width:860px){ .vg-dialog{ grid-template-columns:1fr; max-height:90vh; } }
-.vg-view{ position:relative; background:#000; min-height:360px; display:flex; align-items:center; justify-content:center; }
-.vg-slide{ position:absolute; inset:0; display:none; }
-.vg-slide.is-active{ display:block; }
-.vg-slide img{ width:100%; height:100%; object-fit:contain; background:#000; }
-.vg-progress{ position:absolute; left:12px; right:12px; top:10px; display:grid; grid-auto-flow:column; gap:6px; z-index:10; }
-.vg-progress .bar{ height:4px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.22); }
-.vg-progress .bar > span{ display:block; height:100%; width:0%; background: linear-gradient(90deg, var(--mustard), var(--terracotta)); transition: width .45s ease; }
-.vg-thumbs{ position:absolute; left:0; right:0; bottom:10px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; padding:0 12px; z-index:10; }
-.vg-thumb{ width:50px; height:50px; border-radius:10px; overflow:hidden; border:2px solid transparent; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.35); }
-.vg-thumb.is-active{ border-color: var(--mustard); }
-.vg-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-.vg-arrow{ position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%;
-  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); display:flex; align-items:center; justify-content:center;
-  color:#fff; font-weight:900; font-size:18px; cursor:pointer; backdrop-filter: blur(6px); }
-.vg-arrow:hover{ background:rgba(255,255,255,.26); }
-.vg-arrow--prev{ left:12px } .vg-arrow--next{ right:12px }
-.vg-details{ padding:16px; display:grid; grid-template-rows:auto 1fr auto; gap:10px; background:var(--card); }
-.vg-title{ margin:0; font-size:20px; font-weight:800; color:var(--text); }
-.vg-meta{ font-size:13px; color:var(--muted); line-height:1.5; }
-.vg-price{ font-weight:900; color:var(--terracotta); font-size:18px; }
-.vg-location{ font-size:13px; color:var(--text); font-weight:700; }
-.vg-desc{ font-size:14px; color:var(--text); }
-.vg-actions{ display:flex; gap:10px; margin-top:6px; }
-.vg-actions .btn-primary{ flex:1; padding:12px 14px; border-radius:999px; border:none; cursor:pointer;
-  background:linear-gradient(90deg,var(--olive), var(--mustard)); color:#fff; font-weight:900; box-shadow:0 8px 20px rgba(0,0,0,.15); }
-.vg-actions .btn-ghost{ padding:12px 14px; border-radius:999px; border:1px dashed rgba(0,0,0,.12); cursor:pointer; background:#fff; color:var(--text); font-weight:800; }
-.vg-close{ position:absolute; top:10px; right:10px; background:var(--terracotta); border:none; color:#fff; font-weight:900; padding:8px 12px; border-radius:10px; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.18); }
-
-
-/* ==== Vintage Modal — UI polish (added) ==== */
+/* ==== Vintage Modal — exact layout ==== */
 .product img, .product h3 { cursor: pointer; }
 
-.vg-modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.7);
+.vmodal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
   z-index: 10000; align-items:center; justify-content:center; padding:18px; }
-
-.vg-dialog{ background:var(--card); color:var(--text); border-radius:16px;
-  border:1px solid rgba(255,255,255,.06); max-width:900px; width:100%;
+.vmodal__dialog{ position:relative; background:var(--card); color:var(--text); border-radius:16px;
+  border:1px solid rgba(255,255,255,.06); max-width:980px; width:100%;
   display:grid; grid-template-columns: 58% 42%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.35); }
-@media (max-width: 860px){ .vg-dialog{ grid-template-columns:1fr; } }
+@media (max-width: 860px){ .vmodal__dialog{ grid-template-columns:1fr; } }
 
-.vg-view{ position:relative; background:#111; display:flex; align-items:center; justify-content:center; min-height:320px; }
-.vg-slide{ position:absolute; inset:0; display:none; }
-.vg-slide.is-active{ display:block; }
-.vg-slide img{ width:100%; height:100%; object-fit:contain; background:#111; }
+/* Left */
+.vmodal__left{ background:#111; padding:16px; display:grid; grid-template-rows: 1fr auto; gap:12px; }
+.vmodal__main{ background:#111; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.vmodal__main img{ width:100%; max-height:360px; object-fit:contain; background:#111; display:block; }
+.vmodal__thumbs{ display:flex; gap:10px; padding:2px; }
+.vmodal__thumb{ width:56px; height:56px; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#fff; }
+.vmodal__thumb.is-active{ border-color: var(--mustard); }
+.vmodal__thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
 
-.vg-progress{ position:absolute; left:12px; right:12px; top:10px; display:grid; grid-auto-flow:column; gap:6px; z-index:10; }
-.vg-progress .bar{ height:4px; border-radius:999px; background:rgba(255,255,255,.22); overflow:hidden; }
-.vg-progress .bar > span{ display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--mustard), var(--terracotta)); transition:width .45s ease; }
+/* Right */
+.vmodal__right{ padding:18px; display:flex; flex-direction:column; gap:10px; background:var(--card); }
+.vmodal__title{ margin:0; font-size:20px; font-weight:800; color:var(--text); }
+.vmodal__price{ font-weight:900; color:var(--terracotta); font-size:18px; }
+.vmodal__meta{ font-size:12px; color:var(--muted); }
+.vmodal__desc{ font-size:14px; color:var(--text); }
 
-.vg-thumbs{ position:absolute; left:0; right:0; bottom:10px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; padding:0 12px; z-index:10; }
-.vg-thumb{ width:56px; height:56px; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#fff; }
-.vg-thumb.is-active{ border-color: var(--mustard); }
-.vg-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-
-.vg-arrow{ position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%;
-  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.3);
-  display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:18px; cursor:pointer; }
-
-.vg-arrow:hover{ background:rgba(255,255,255,.22); }
-.vg-arrow--prev{ left:12px; } .vg-arrow--next{ right:12px; }
-
-.vg-details{ padding:18px; display:grid; grid-template-rows:auto 1fr auto; gap:10px; background:var(--card); }
-.vg-title{ margin:0; font-size:20px; font-weight:800; color:var(--text); }
-.vg-meta{ font-size:13px; color:var(--muted); line-height:1.5; }
-.vg-price{ font-weight:900; color:var(--terracotta); font-size:18px; }
-.vg-location{ font-size:13px; color:var(--text); font-weight:700; }
-.vg-desc{ font-size:14px; color:var(--text); }
-
-.vg-actions{ display:flex; gap:12px; margin-top:8px; }
-.vg-actions .btn-primary{
-  flex:1; padding:12px 16px; border-radius:999px; border:none; cursor:pointer;
-  background:linear-gradient(135deg, #ff7a1a, #ffb35a);
-  color:#fff; font-weight:900; box-shadow:0 10px 24px rgba(255,122,26,.28);
-}
-.vg-actions .btn-primary:active{ transform: translateY(1px); }
-.vg-actions .btn-ghost{
-  padding:12px 16px; border-radius:999px; border:1px dashed rgba(255,255,255,.18); cursor:pointer;
-  background:transparent; color:var(--text); font-weight:800;
-}
-
-/* Close button — orange badge on top-right, like your example */
-.vg-close{
-  position:absolute; top:10px; right:10px; width:28px; height:28px;
-  display:flex; align-items:center; justify-content:center;
-  background:#ff7a1a; color:#fff; border:none; border-radius:8px; cursor:pointer;
-  font-weight:900; line-height:1; box-shadow: 0 8px 18px rgba(255,122,26,.35);
-}
-.vg-close:hover{ filter:brightness(1.1); }
-
-
-/* ==== Vintage Modal — like the screenshot ==== */
-.product img, .product h3 { cursor: pointer; }
-
-.vg-modal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.7);
-  z-index: 10000; align-items:center; justify-content:center; padding:18px; }
-.vg-dialog{ position:relative; background:var(--card); color:var(--text); border-radius:16px;
-  border:1px solid rgba(255,255,255,.06); max-width:900px; width:100%;
-  display:grid; grid-template-columns: 58% 42%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.35); }
-@media (max-width: 860px){ .vg-dialog{ grid-template-columns:1fr; } }
-
-/* Left: main image + small thumbs below */
-.vg-left{ background:#111; padding:16px; display:grid; grid-template-rows: 1fr auto; gap:12px; }
-.vg-left .vg-main{ background:#111; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.vg-left .vg-main img{ width:100%; max-height:360px; object-fit:contain; display:block; background:#111; }
-.vg-thumbs{ display:flex; gap:10px; padding:2px; }
-.vg-thumb{ width:56px; height:56px; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#fff; }
-.vg-thumb.is-active{ border-color: var(--mustard); }
-.vg-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-
-/* Right: details */
-.vg-details{ padding:18px; display:flex; flex-direction:column; gap:10px; }
-.vg-title{ margin:0; font-size:20px; font-weight:800; color:var(--text); }
-.vg-price{ font-weight:900; color:var(--terracotta); font-size:18px; }
-.vg-meta{ font-size:12px; color:var(--muted); }
-.vg-desc{ font-size:14px; color:var(--text); }
-
-/* CTA exactly like the print: full, rounded, orange gradient */
-.vg-actions{ margin-top:8px; }
-.vg-actions .btn-primary{
+.vmodal__actions{ margin-top:8px; }
+.vmodal__cta{
   width:100%; padding:12px 16px; border-radius:999px; border:none; cursor:pointer;
   background:linear-gradient(135deg, #ff7a1a, #ffb35a);
   color:#fff; font-weight:900; box-shadow:0 10px 24px rgba(255,122,26,.28);
 }
-.vg-actions .btn-primary:active{ transform: translateY(1px); }
+.vmodal__cta:active{ transform: translateY(1px); }
 
-/* Close button as small orange rounded square inside the card (top-right of dialog) */
-.vg-close{
+/* Close badge inside dialog (top-right) */
+.vmodal__close{
   position:absolute; top:10px; right:10px; width:28px; height:28px;
   display:flex; align-items:center; justify-content:center;
   background:#ff7a1a; color:#fff; border:none; border-radius:8px; cursor:pointer;
   font-weight:900; line-height:1; box-shadow: 0 8px 18px rgba(255,122,26,.35);
 }
-.vg-close:hover{ filter:brightness(1.1); }
+.vmodal__close:hover{ filter:brightness(1.1); }
 
 </style>
 </head>
@@ -747,417 +645,99 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-<!-- ==== Vintage Modal Markup (auto) ==== -->
-<div class="vg-modal" id="vgModal" aria-hidden="true">
-  
-
-<div class="vg-modal" id="vgModal" aria-hidden="true">
-  <div class="vg-dialog" role="dialog" aria-modal="true" aria-labelledby="vgTitle">
-    <button class="vg-close" id="vgClose" aria-label="Fechar">✕</button>
-    <div class="vg-left">
-      <div class="vg-main"><img id="vgMainImg" alt=""></div>
-      <div class="vg-thumbs" id="vgThumbs"></div>
+<!-- ==== VModal (clean build) ==== -->
+<div class="vmodal" id="vModal" aria-hidden="true">
+  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
+    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
+    <div class="vmodal__left">
+      <div class="vmodal__main"><img id="vmMain" alt=""></div>
+      <div class="vmodal__thumbs" id="vmThumbs"></div>
     </div>
-    <div class="vg-details">
-      <h3 class="vg-title" id="vgTitle"></h3>
-      <div class="vg-price" id="vgPrice"></div>
-      <div class="vg-meta" id="vgMeta"></div>
-      <div class="vg-desc" id="vgDesc"></div>
-      <div class="vg-actions"><button class="btn-primary" id="vgAddToCart">Add to Cart</button></div>
-    </div>
-  </div>
-</div>
-
-    <div class="vg-details">
-      <button class="vg-close" id="vgClose" aria-label="Fechar">Fechar ✕</button>
-      <h3 class="vg-title" id="vgTitle"></h3>
-      <div class="vg-meta" id="vgMeta"></div>
-      <div class="vg-location" id="vgLocation"></div>
-      <div class="vg-price" id="vgPrice"></div>
-      <div class="vg-desc" id="vgDesc"></div>
-      <div class="vg-actions">
-        <button class="btn-primary" id="vgAddToCart">Adicionar ao carrinho</button>
-        <button class="btn-ghost" id="vgShare">Compartilhar</button>
-      </div>
+    <div class="vmodal__right">
+      <h3 class="vmodal__title" id="vmTitle"></h3>
+      <div class="vmodal__price" id="vmPrice"></div>
+      <div class="vmodal__meta" id="vmMeta"></div>
+      <div class="vmodal__desc" id="vmDesc"></div>
+      <div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
     </div>
   </div>
 </div>
 
 <script>
 
-// ==== Vintage Modal Controller (auto) ====
+// ==== VModal behavior (clean) ====
 (function(){
-  if (window.__vgModalReady) return; window.__vgModalReady = true;
+  if (window.__vmodal) return; window.__vmodal = true;
   const $ = (s, r=document)=> r.querySelector(s);
   const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
 
-  // Ensure markup exists
-  if (!$('#vgModal')) { console.warn('vgModal not found'); return; }
-
-  const modal = $('#vgModal');
-  const slidesEl = $('#vgSlides');
-  const thumbsEl = $('#vgThumbs');
-  const progressEl = $('#vgProgress');
-  const titleEl = $('#vgTitle');
-  const metaEl = $('#vgMeta');
-  const priceEl = $('#vgPrice');
-  const locationEl = $('#vgLocation');
-  const descEl = $('#vgDesc');
-  const btnClose = $('#vgClose');
-  const btnPrev = $('#vgPrev');
-  const btnNext = $('#vgNext');
-  const btnCart = $('#vgAddToCart');
-  const btnShare = $('#vgShare');
-
-  let current = 0;
+  const modal = $('#vModal');
+  const mainImg = $('#vmMain');
+  const thumbs = $('#vmThumbs');
+  const titleEl = $('#vmTitle');
+  const priceEl = $('#vmPrice');
+  const metaEl = $('#vmMeta');
+  const descEl = $('#vmDesc');
+  const btnClose = $('#vmClose');
+  const btnAdd = $('#vmAdd');
+  let card = null;
   let imgs = [];
-  let autoTimer = null;
-  const AUTO_MS = 4200;
-
-  function stopAuto(){ if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; } }
-  function startAuto(){ stopAuto(); autoTimer = setTimeout(()=> goTo(current+1), AUTO_MS); }
-
-  function buildProgress(n){
-    progressEl.innerHTML = '';
-    for (let i=0;i<n;i++){
-      const bar = document.createElement('div');
-      bar.className = 'bar'; const span = document.createElement('span');
-      bar.appendChild(span); progressEl.appendChild(bar);
-    }
-  }
-  function updateProgress(){
-    const spans = $$('.vg-progress .bar > span');
-    spans.forEach((b, i)=>{
-      b.style.width = (i < current) ? '100%' : (i === current ? '0%' : '0%');
-      if (i === current) requestAnimationFrame(()=> b.style.width = '100%');
-    });
-  }
-
-  function render(){
-    slidesEl.innerHTML = ''; thumbsEl.innerHTML = '';
-    imgs.forEach((src, i)=>{
-      const slide = document.createElement('div');
-      slide.className = 'vg-slide' + (i===current ? ' is-active':'');
-      slide.innerHTML = `<img src="${src}" alt="">`;
-      slidesEl.appendChild(slide);
-      const th = document.createElement('button');
-      th.className = 'vg-thumb' + (i===current ? ' is-active':'');
-      th.innerHTML = `<img src="${src}" alt="">`;
-      th.addEventListener('click', ()=> goTo(i));
-      thumbsEl.appendChild(th);
-    });
-    buildProgress(imgs.length);
-    updateProgress();
-  }
-  function goTo(i){
-    if (!imgs.length) return;
-    current = (i + imgs.length) % imgs.length;
-    $$('.vg-slide').forEach((s, idx)=> s.classList.toggle('is-active', idx===current));
-    $$('.vg-thumb').forEach((t, idx)=> t.classList.toggle('is-active', idx===current));
-    updateProgress(); startAuto();
-  }
-
-  function openFromCard(card){
-    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
-    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
-    const meta  = card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '';
-    const loc   = card.getAttribute('data-location') || '';
-    const desc  = card.getAttribute('data-description') || '';
-
-    // images: prefer data-images, else any img in card, else src in anchors
-    const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
-    const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
-    const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
-    imgs = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
-
-    titleEl.textContent = title;
-    metaEl.textContent = meta;
-    priceEl.textContent = price;
-    locationEl.textContent = loc ? `Local: ${loc}` : '';
-    descEl.textContent = desc;
-
-    current = 0; render(); goTo(0);
-    modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden','false');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeModal(){
-    stopAuto();
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden','true');
-    document.body.style.overflow = '';
-  }
-
-  // Events
-  btnClose.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
-  btnPrev.addEventListener('click', ()=> goTo(current-1));
-  btnNext.addEventListener('click', ()=> goTo(current+1));
-  document.addEventListener('keydown', (e)=>{
-    if (modal.getAttribute('aria-hidden') === 'false'){
-      if (e.key === 'Escape') closeModal();
-      if (e.key === 'ArrowLeft') goTo(current-1);
-      if (e.key === 'ArrowRight') goTo(current+1);
-    }
-  });
-  // Share / cart hooks
-  btnShare.addEventListener('click', async ()=>{
-    try{ await navigator.share?.({ title: titleEl.textContent, text: descEl.textContent }); }catch{}
-  });
-  btnCart.addEventListener('click', ()=>{
-    const ev = new CustomEvent('add-to-cart', { detail: { title: titleEl.textContent, price: priceEl.textContent } });
-    window.dispatchEvent(ev);
-    btnCart.textContent = 'Adicionado!';
-    setTimeout(()=> btnCart.textContent = 'Adicionar ao carrinho', 1400);
-  });
-
-  // Delegated clicks for Vintage cards
-  document.addEventListener('click', (e)=>{
-    const imgClick = e.target.closest('.product img');
-    const titleClick = e.target.closest('.product h3');
-    const clickable = imgClick || titleClick;
-    if (clickable){
-      const card = clickable.closest('.product');
-      if (card){ e.preventDefault?.(); openFromCard(card); }
-    }
-  });
-
-  // Touch swipe on viewer
-  (function(){
-    const viewer = $('.vg-view'); if(!viewer) return;
-    let startX=0, dx=0, touching=false;
-    viewer.addEventListener('touchstart', (ev)=>{ touching=true; startX=ev.touches[0].clientX; dx=0; stopAuto(); }, {passive:true});
-    viewer.addEventListener('touchmove', (ev)=>{ if(!touching) return; dx=ev.touches[0].clientX - startX; }, {passive:true});
-    viewer.addEventListener('touchend', ()=>{ touching=false; if(Math.abs(dx)>40) goTo(current + (dx<0?1:-1)); startAuto(); }, {passive:true});
-  })();
-})();
-
-</script>
-<script>
-
-// ==== Vintage Modal — behavior polish (added) ====
-(function(){
-  if (window.__vgPolish) return; window.__vgPolish = true;
-  const $ = (s, r=document)=> r.querySelector(s);
-  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
-
-  const modal = $('#vgModal');
-  if (!modal) return;
-
-  const slidesEl = $('#vgSlides');
-  const thumbsEl = $('#vgThumbs');
-  const progressEl = $('#vgProgress');
-  const titleEl = $('#vgTitle');
-  const metaEl = $('#vgMeta');
-  const priceEl = $('#vgPrice');
-  const locationEl = $('#vgLocation');
-  const descEl = $('#vgDesc');
-  const btnClose = $('#vgClose');
-  const btnPrev = $('#vgPrev');
-  const btnNext = $('#vgNext');
-  const btnCart = $('#vgAddToCart');
-  const btnShare = $('#vgShare');
-  let currentCard = null;
-
-  let current = 0;
-  let imgs = [];
-  let autoTimer = null;
-  const AUTO_MS = 4200;
-
-  function stopAuto(){ if(autoTimer){ clearTimeout(autoTimer); autoTimer = null; } }
-  function startAuto(){ stopAuto(); autoTimer = setTimeout(()=> goTo(current+1), AUTO_MS); }
-
-  function buildProgress(n){
-    progressEl.innerHTML='';
-    for (let i=0;i<n;i++){ const bar=document.createElement('div'); bar.className='bar';
-      const span=document.createElement('span'); bar.appendChild(span); progressEl.appendChild(bar); }
-  }
-  function updateProgress(){
-    const spans = $$('.vg-progress .bar > span');
-    spans.forEach((b,i)=>{
-      b.style.width = (i<current)?'100%':(i===current?'0%':'0%');
-      if(i===current) requestAnimationFrame(()=> b.style.width='100%');
-    });
-  }
-  function render(){
-    slidesEl.innerHTML=''; thumbsEl.innerHTML='';
-    imgs.forEach((src,i)=>{
-      const slide=document.createElement('div'); slide.className='vg-slide'+(i===current?' is-active':'');
-      slide.innerHTML=`<img src="${src}" alt="">`; slidesEl.appendChild(slide);
-      const th=document.createElement('button'); th.className='vg-thumb'+(i===current?' is-active':'');
-      th.innerHTML=`<img src="${src}" alt="">`; th.addEventListener('click', ()=> goTo(i)); thumbsEl.appendChild(th);
-    });
-    buildProgress(imgs.length); updateProgress();
-  }
-  function goTo(i){
-    if(!imgs.length) return;
-    current = (i + imgs.length) % imgs.length;
-    $$('.vg-slide').forEach((s,idx)=> s.classList.toggle('is-active', idx===current));
-    $$('.vg-thumb').forEach((t,idx)=> t.classList.toggle('is-active', idx===current));
-    updateProgress(); startAuto();
-  }
-
-  function openFromCard(card){
-    currentCard = card;
-    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
-    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
-    const meta  = card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '';
-    const loc   = card.getAttribute('data-location') || '';
-    const desc  = card.getAttribute('data-description') || '';
-
-    const dataImgs = (card.getAttribute('data-images')||'').split(',').map(s=>s.trim()).filter(Boolean);
-    const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
-    const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
-    imgs = (dataImgs.length?dataImgs:(imgsIn.length?imgsIn:linkImgs)).filter((src,idx,arr)=>arr.indexOf(src)===idx);
-
-    titleEl.textContent = title;
-    metaEl.textContent = meta;
-    priceEl.textContent = price;
-    locationEl.textContent = loc ? `Local: ${loc}` : '';
-    descEl.textContent = desc;
-
-    current = 0; render(); goTo(0);
-    modal.style.display = 'flex'; modal.setAttribute('aria-hidden','false');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal(){ stopAuto(); modal.style.display='none'; modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
-
-  // Open on image/title click with visible pointer
-  document.addEventListener('click', (e)=>{
-    const img = e.target.closest('.product img');
-    const title = e.target.closest('.product h3');
-    const node = img || title;
-    if (node){
-      const card = node.closest('.product');
-      if (card){ e.preventDefault?.(); openFromCard(card); }
-    }
-  });
-
-  // Close interactions
-  btnClose?.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
-  document.addEventListener('keydown', (e)=>{
-    if(modal.getAttribute('aria-hidden')==='false'){
-      if(e.key==='Escape') closeModal();
-      if(e.key==='ArrowLeft') goTo(current-1);
-      if(e.key==='ArrowRight') goTo(current+1);
-    }
-  });
-  $('#vgPrev')?.addEventListener('click', ()=> goTo(current-1));
-  $('#vgNext')?.addEventListener('click', ()=> goTo(current+1));
-
-  // Swipe on viewer
-  (function(){
-    const viewer = document.querySelector('.vg-view'); if(!viewer) return;
-    let startX=0, dx=0, touching=false;
-    viewer.addEventListener('touchstart',(ev)=>{ touching=true; startX=ev.touches[0].clientX; dx=0; stopAuto(); },{passive:true});
-    viewer.addEventListener('touchmove',(ev)=>{ if(!touching) return; dx=ev.touches[0].clientX - startX; },{passive:true});
-    viewer.addEventListener('touchend',()=>{ touching=false; if(Math.abs(dx)>40) goTo(current+(dx<0?1:-1)); startAuto(); },{passive:true});
-  })();
-
-  // Share + Add to Cart
-  btnShare?.addEventListener('click', async ()=>{
-    try{ await navigator.share?.({ title: titleEl.textContent, text: descEl.textContent }); }catch{}
-  });
-
-  btnCart?.addEventListener('click', ()=>{
-    // 1) If the product card has its own add-to-cart button, click it.
-    if (currentCard){
-      const nativeBtn = currentCard.querySelector('[data-add-to-cart], .add-to-cart, button[name="add-to-cart"], button[aria-label*="Carrinho"], button[aria-label*="cart" i]');
-      if (nativeBtn){ nativeBtn.click(); }
-    }
-    // 2) Fire a custom event as a fallback (sites podem ouvir isso)
-    const ev = new CustomEvent('add-to-cart', { detail: {
-      title: titleEl.textContent, price: priceEl.textContent, imgs, currentIndex: current
-    }});
-    window.dispatchEvent(ev);
-
-    // 3) Feedback visual
-    const prev = btnCart.textContent;
-    btnCart.textContent = 'Added!';
-    setTimeout(()=> btnCart.textContent = prev, 1400);
-  });
-})();
-
-</script>
-<script>
-
-// ==== Vintage Modal (screenshot behavior) ====
-(function(){
-  if (window.__vgShot) return; window.__vgShot = true;
-  const $ = (s, r=document)=> r.querySelector(s);
-  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
-
-  const modal = $('#vgModal');
-  const dialog = modal?.querySelector('.vg-dialog');
-  const mainImg = $('#vgMainImg');
-  const thumbs = $('#vgThumbs');
-  const titleEl = $('#vgTitle');
-  const priceEl = $('#vgPrice');
-  const metaEl = $('#vgMeta');
-  const descEl = $('#vgDesc');
-  const btnClose = $('#vgClose');
-  const btnCart = $('#vgAddToCart');
-  let currentCard = null;
-  let images = [];
   let idx = 0;
 
   function renderThumbs(){
     thumbs.innerHTML = '';
-    images.forEach((src, i)=>{
+    imgs.forEach((src, i)=>{
       const b = document.createElement('button');
-      b.className = 'vg-thumb' + (i===idx ? ' is-active' : '');
+      b.className = 'vmodal__thumb' + (i===idx ? ' is-active' : '');
       b.innerHTML = `<img src="${src}" alt="">`;
       b.addEventListener('click', ()=> go(i));
       thumbs.appendChild(b);
     });
   }
   function go(i){
-    if(!images.length) return;
-    idx = (i + images.length) % images.length;
-    mainImg.src = images[idx];
-    $$('.vg-thumb', thumbs).forEach((t, j)=> t.classList.toggle('is-active', j===idx));
+    if(!imgs.length) return;
+    idx = (i + imgs.length) % imgs.length;
+    mainImg.src = imgs[idx];
+    $$('.vmodal__thumb', thumbs).forEach((t, j)=> t.classList.toggle('is-active', j===idx));
   }
 
-  function openFromCard(card){
-    currentCard = card;
+  function openFromCard(c){
+    card = c;
     const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
     const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
-    const meta  = card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '';
-    const desc  = card.getAttribute('data-description') || '';
+    const meta  = (card.querySelector('.stock')?.textContent?.trim() || card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '');
+    const desc  = card.getAttribute('data-description') || card.querySelector('.description')?.textContent?.trim() || '';
 
     const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
     const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
     const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
-    images = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
-    if (!images.length) { images = ['/assets/placeholder.png']; }
+    imgs = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
+    if (!imgs.length) { imgs = ['/assets/placeholder.png']; }
 
-    titleEl.textContent = title;
+    titleEl.textContent = title.toUpperCase();
     priceEl.textContent = price;
-    metaEl.textContent = card.querySelector('.stock')?.textContent?.trim() || ''; // ex: "Stock: 30"
-    descEl.textContent = desc || card.querySelector('.description')?.textContent?.trim() || '';
+    metaEl.textContent = meta;
+    descEl.textContent = desc;
 
     renderThumbs(); go(0);
     modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden', 'false');
+    modal.setAttribute('aria-hidden','false');
     document.body.style.overflow = 'hidden';
   }
-
   function closeModal(){
     modal.style.display = 'none';
-    modal.setAttribute('aria-hidden', 'true');
+    modal.setAttribute('aria-hidden','true');
     document.body.style.overflow = '';
   }
 
-  // Open: click on product image/title (cursor pointer is in CSS)
+  // Delegated open on img/title click
   document.addEventListener('click', (e)=>{
     const img = e.target.closest('.product img');
     const title = e.target.closest('.product h3');
     const clickable = img || title;
     if (clickable){
-      const card = clickable.closest('.product');
-      if (card){ e.preventDefault?.(); openFromCard(card); }
+      const c = clickable.closest('.product');
+      if (c){ e.preventDefault?.(); openFromCard(c); }
     }
   });
 
@@ -1165,45 +745,41 @@ document.addEventListener('DOMContentLoaded', () => {
   btnClose?.addEventListener('click', closeModal);
   modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', (e)=>{
-    if (modal.getAttribute('aria-hidden') === 'false'){
-      if (e.key === 'Escape') closeModal();
-      if (e.key === 'ArrowLeft') go(idx-1);
-      if (e.key === 'ArrowRight') go(idx+1);
-    }
+    if (modal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeModal();
   });
 
   // Add to Cart — robust integration
-  btnCart?.addEventListener('click', ()=>{
+  btnAdd?.addEventListener('click', ()=>{
     let handled = false;
-    if (currentCard){
-      // 1) Try a form submit
-      const form = currentCard.closest('form') || currentCard.querySelector('form');
-      if (form && (form.querySelector('[name="add-to-cart"], [name="quantity"], [type="submit"]') || form.action)){
-        try { form.requestSubmit ? form.requestSubmit() : form.submit(); handled = True; } catch {}
+    if (card){
+      // 1) Try form submit
+      const form = card.closest('form') || card.querySelector('form');
+      if (form){
+        try{ form.requestSubmit ? form.requestSubmit() : form.submit(); handled = true; }catch{}
       }
-      // 2) Try native buttons
+      // 2) Try native add-to-cart buttons
       if (!handled){
-        const nativeBtn = currentCard.querySelector('[data-add-to-cart], .add-to-cart, button[name="add-to-cart"], button[aria-label*="Carrinho"], button[aria-label*="cart" i]');
+        const nativeBtn = card.querySelector('[data-add-to-cart], .add-to-cart, button[name="add-to-cart"], button[aria-label*="Carrinho"], button[aria-label*="cart" i]');
         if (nativeBtn){ nativeBtn.click(); handled = true; }
       }
-      // 3) Try global addToCart(productId)
+      // 3) Try a global addToCart(productId)
       if (!handled){
-        const pid = currentCard.getAttribute('data-product-id') || currentCard.dataset?.productId;
-        if (pid && typeof window.addToCart === 'function'){ window.addToCart(pid); handled = true; }
+        const pid = card.getAttribute('data-product-id') || card.dataset?.productId;
+        if (pid && typeof window.addToCart === 'function'){ try{ window.addToCart(pid); handled = true; }catch{} }
       }
     }
     // 4) Fallback: CustomEvent
     if (!handled){
       const ev = new CustomEvent('add-to-cart', { detail: {
-        title: titleEl.textContent, price: priceEl.textContent, image: images[idx], productCard: currentCard
+        title: titleEl.textContent, price: priceEl.textContent, image: imgs[idx], productCard: card
       }});
       window.dispatchEvent(ev);
       handled = true;
     }
-    // Feedback like the print (quick confirmation)
-    const prev = btnCart.textContent;
-    btnCart.textContent = 'Added!';
-    setTimeout(()=> btnCart.textContent = prev, 1200);
+    // Quick feedback
+    const prev = btnAdd.textContent;
+    btnAdd.textContent = 'Added!';
+    setTimeout(()=> btnAdd.textContent = prev, 1200);
   });
 })();
 
