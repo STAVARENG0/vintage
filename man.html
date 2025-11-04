@@ -96,7 +96,7 @@ header{ text-align:center; margin-bottom:18px }
   box-shadow:0 10px 28px rgba(0,0,0,.08);
   position:relative;
 }
-.product img{ width:100%; aspect-ratio:1/1; object-fit:cover; background:#fafafa; display:block }
+.cart-thumb{ width:100%; aspect-ratio:1/1; object-fit:cover; background:#fafafa; display:block }
 .product-body{ padding:14px 16px 10px }
 .product h3{ margin:0 0 6px; font-weight:700; font-size:16px; color:var(--text); }
 .meta{ color:var(--muted); font-size:13px; line-height:1.4; margin-bottom:8px }
@@ -650,7 +650,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnNext   = root.getElementById('prodNext');
 
   // NodeList of product images (openers)
-  const imgs = Array.from(root.querySelectorAll('.product img'));
+  const imgs = Array.from(root.querySelectorAll('.cart-thumb'));
   let idx = -1;
 
   function bodyLock(lock){
@@ -658,7 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getCard(el){
-    return el?.closest?.('.product') || null;
+    return el?.closest?.('.cart-item-left') || null;
   }
 
   function extractFromCard(card){
@@ -717,7 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Open on clicking ONLY the product images (no visual changes)
   root.addEventListener('click', function(e){
     const t = e.target;
-    if (t && t.matches && t.matches('.product img')){
+    if (t && t.matches && t.matches('.cart-thumb')){
       e.preventDefault();
       e.stopPropagation();
       openFromImg(t);
