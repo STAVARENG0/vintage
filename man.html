@@ -96,7 +96,7 @@ header{ text-align:center; margin-bottom:18px }
   box-shadow:0 10px 28px rgba(0,0,0,.08);
   position:relative;
 }
-.cart-thumb{ width:100%; aspect-ratio:1/1; object-fit:cover; background:#fafafa; display:block }
+.product img{ width:100%; aspect-ratio:1/1; object-fit:cover; background:#fafafa; display:block }
 .product-body{ padding:14px 16px 10px }
 .product h3{ margin:0 0 6px; font-weight:700; font-size:16px; color:var(--text); }
 .meta{ color:var(--muted); font-size:13px; line-height:1.4; margin-bottom:8px }
@@ -611,166 +611,76 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-<!-- === Product Quick-View Modal (added) === -->
-<div id="prodModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none;">
-  <div class="modal-content" style="max-width: 820px;">
-    <button class="modal-close" id="prodModalClose" aria-label="Fechar">×</button>
-    <div id="prodModalBody" style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-      <div style="flex:1 1 360px; min-width:300px;">
-        <img id="prodModalImg" src="" alt="" style="width:100%; height:auto; border-radius:12px; border:1px solid rgba(0,0,0,0.06); object-fit:cover;" />
-        <div style="display:flex; justify-content:space-between; margin-top:8px;">
-          <button id="prodPrev" class="btn" style="width:auto; padding:8px 14px;">◀</button>
-          <button id="prodNext" class="btn" style="width:auto; padding:8px 14px;">▶</button>
-        </div>
-      </div>
-      <div style="flex:1 1 260px; min-width:260px;">
-        <h3 id="prodModalTitle" style="margin:0 0 6px;"></h3>
-        <div id="prodModalMeta" class="meta"></div>
-        <div id="prodModalPrice" class="price"></div>
-        <div class="cta" style="padding-left:0;">
-          <button id="prodModalAdd" class="btn">Adicionar ao carrinho</button>
-        </div>
-      </div>
+<!-- Product Modal from index -->
+<div class="vmodal" id="vModal" aria-hidden="true">
+  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
+    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
+    <div class="vmodal__left">
+      <div class="vmodal__main"><img id="vmMain" alt=""></div>
+      <div class="vmodal__thumbs" id="vmThumbs"></div>
     </div>
-  </div>
-</div>
-<!-- === /Product Quick-View Modal === -->
 <script>
-(function(){
-  // Cache DOM
-  const root      = document;
-  const modal     = root.getElementById('prodModal');
-  const mClose    = root.getElementById('prodModalClose');
-  const mImg      = root.getElementById('prodModalImg');
-  const mTitle    = root.getElementById('prodModalTitle');
-  const mMeta     = root.getElementById('prodModalMeta');
-  const mPrice    = root.getElementById('prodModalPrice');
-  const mAdd      = root.getElementById('prodModalAdd');
-  const btnPrev   = root.getElementById('prodPrev');
-  const btnNext   = root.getElementById('prodNext');
-
-  // NodeList of product images (openers)
-  const imgs = Array.from(root.querySelectorAll('.cart-thumb'));
-  let idx = -1;
-
-  function bodyLock(lock){
-    try { document.body.style.overflow = lock ? 'hidden' : ''; } catch(_){}
-  }
-
-  function getCard(el){
-    return el?.closest?.('.cart-item-left') || null;
-  }
-
-  function extractFromCard(card){
-    if (!card) return {};
-    const img   = card.querySelector('img');
-    const title = card.querySelector('h3')?.textContent?.trim() || '';
-    const meta  = card.querySelector('.meta')?.textContent?.trim() || '';
-    const price = card.querySelector('.price')?.textContent?.trim() || '';
-    // Try to infer product id
-    const pid =
-      card.getAttribute('data-id') ||
-      card.getAttribute('data-product-id') ||
-      card.dataset?.productId ||
-      card.dataset?.id ||
-      card.querySelector('[data-id]')?.getAttribute('data-id') ||
-      '';
-
-    return { img: img?.getAttribute('src') || '', title, meta, price, pid };
-  }
-
-  function render(card){
-    const data = extractFromCard(card);
-    if (data.img)  { mImg.src = data.img; mImg.alt = data.title || 'Produto'; }
-    if (data.title){ mTitle.textContent = data.title; }
-    if (data.meta) { mMeta.textContent  = data.meta; } else { mMeta.textContent = ''; }
-    if (data.price){ mPrice.textContent = data.price; } else { mPrice.textContent = ''; }
-    // Store pid in the Add button
-    if (data.pid)  { mAdd.dataset.id = String(data.pid); } else { delete mAdd.dataset.id; }
-  }
-
-  function openFromImg(imageEl){
-    const position = imgs.indexOf(imageEl);
-    if (position === -1) return;
-    idx = position;
-    const card = getCard(imageEl);
-    render(card);
-    modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden', 'false');
-    bodyLock(true);
-  }
-
-  function closeModal(){
+function closeModal(){
     modal.style.display = 'none';
-    modal.setAttribute('aria-hidden', 'true');
-    bodyLock(false);
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
   }
 
-  function go(delta){
-    if (!imgs.length) return;
-    idx = (idx + delta + imgs.length) % imgs.length;
-    const imageEl = imgs[idx];
-    const card = getCard(imageEl);
-    render(card);
+  
+
+function go(i){
+    if(!imgs.length) return;
+    idx = (i + imgs.length) % imgs.length;
+    mainImg.src = imgs[idx];
+    $$('.vmodal__thumb', thumbs).forEach((t, j)=> t.classList.toggle('is-active', j===idx));
   }
 
-  // Open on clicking ONLY the product images (no visual changes)
-  root.addEventListener('click', function(e){
-    const t = e.target;
-    if (t && t.matches && t.matches('.cart-thumb')){
-      e.preventDefault();
-      e.stopPropagation();
-      openFromImg(t);
-    }
-  }, true);
+  
 
-  // Close handlers
-  mClose?.addEventListener('click', closeModal);
-  modal?.addEventListener('click', (e)=>{
-    if (e.target === modal) closeModal();
-  });
-  root.addEventListener('keydown', (e)=>{
-    if (modal.style.display !== 'flex') return;
-    if (e.key === 'Escape') closeModal();
-    if (e.key === 'ArrowLeft') go(-1);
-    if (e.key === 'ArrowRight') go(1);
-  });
+function render(list){
+  grid.innerHTML = '';
+  if(!list.length){
+    grid.innerHTML = '<div class="meta" style="text-align:center;padding:20px;">No products available.</div>';
+    return;
+  }
+  
 
-  // Prev/Next
-  btnPrev?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); go(-1); });
-  btnNext?.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); go(1); });
+function openFromCard(c){
+    card = c;
+    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
+    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
+    const meta  = (card.querySelector('.stock')?.textContent?.trim() || card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '');
+    const desc  = card.getAttribute('data-description') || card.querySelector('.description')?.textContent?.trim() || '';
 
-  // Add to cart (EXATAMENTE 1) + devolve o índice
-  mAdd?.addEventListener('click', (e)=>{
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-    const card = getCard(imgs[idx]);
-    const pid =
-      mAdd.dataset?.id ||
-      card?.getAttribute('data-id') ||
-      card?.getAttribute('data-product-id') ||
-      card?.dataset?.productId ||
-      card?.dataset?.id ||
-      '';
+    const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
+    const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
+    imgs = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
+    if (!imgs.length) { imgs = ['/assets/placeholder.png']; }
 
-    if (pid) {
-      let did = false;
-      try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch (_){}
-      if (!did) {
-        try { if (typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch (_){}
-      }
-    }
+    
 
-    // expõe o índice atual
-    try {
-      mAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles:false, detail:{ index: idx }}));
-    } catch(_){}
-
-    return idx;
-  });
-
-})();
+btnAdd?.addEventListener('click', (e)=>{
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  if (!card) return idx;
+  const pid =
+    btnAdd.dataset?.id ||
+    card.getAttribute('data-id') ||
+    card.getAttribute('data-product-id') ||
+    card.dataset?.productId;
+  if (pid) {
+  let did = false;
+  try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch (_) {}
+  if (!did) {
+    try { if (typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch (_) {}
+  }
+}
+  try {
+    btnAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles: false, detail: { index: idx } }));
+  } catch (_) {}
+  return idx;
+});
 </script>
-
 </body>
 </html>
