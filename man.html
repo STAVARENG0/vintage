@@ -313,6 +313,32 @@ header{ text-align:center; }
   filter: drop-shadow(0 0 6px rgba(255,255,255,.14));
 }
 
+/* ==== Vintage Modal — exact layout ==== */
+.product img, .product h3 { cursor: pointer; }
+
+.vmodal{ display:none; position:fixed; inset:0; background: transparent;
+  z-index: 10000; align-items:center; justify-content:center; padding:18px; }
+.vmodal__dialog{ position:relative; background: #fff; color:var(--text); border-radius:16px;
+  border:1px solid rgba(255,255,255,.06); max-width:980px; width:100%;
+  display:grid; grid-template-columns: 58% 42%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.35); }
+@media (max-width: 860px){ .vmodal__dialog{ grid-template-columns:1fr; } }
+
+/* Left */
+.vmodal__left{ background: #fff; padding:16px; display:grid; grid-template-rows: 1fr auto; gap:12px; }
+.vmodal__main{ background: #fff; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.vmodal__main img{ width:100%; max-height:360px; object-fit:contain; background: #fff; display:block; }
+.vmodal__thumbs{ display:flex; gap:10px; padding:2px; }
+.vmodal__thumb{ width:56px; height:56px; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#fff; }
+.vmodal__thumb.is-active{ border-color: var(--mustard); }
+.vmodal__thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Right */
+.vmodal__right{ padding:18px; display:flex; flex-direction:column; gap:10px; background:var(--card); }
+.vmodal__title{ margin:0; font-size:20px; font-weight:800; color:var(--text); }
+.vmodal__price{ font-weight:900; color:var(--terracotta); font-size:18px; }
+.vmodal__meta{ font-size:12px; color:var(--muted); }
+.vmodal__desc{ font-size:14px; color:var(--text); }
+
 </style>
 </head>
 <body>
@@ -611,80 +637,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-<!-- Injected Product Modal from index (HTML) -->
-<div class="vmodal" id="vModal" aria-hidden="true">
-  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
-    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
-    <div class="vmodal__left">
-      <div class="vmodal__main"><img id="vmMain" alt=""></div>
-      <div class="vmodal__thumbs" id="vmThumbs"></div>
-    </div>
-<!-- /Injected -->
-<script>
-(function(){
-  function getCartSubtotal(){
-    const items = Array.from(document.querySelectorAll('.cart-item'));
-    let sum = 0;
-    items.forEach(item => {
-      const priceEl = item.querySelector('[data-price]');
-      const qtyEl = item.querySelector('input[type="number"]');
-      let price = 0;
-      let qty = 1;
-      if (priceEl){
-        price = parseFloat((priceEl.getAttribute('data-price')||'0').replace(',', '.'));
-      } else {
-        const m = (item.textContent||'').match(/€\s*([\d,.]+)/);
-        if (m) price = parseFloat(m[1].replace(',', '.'));
-      }
-      if (qtyEl) qty = parseInt(qtyEl.value || '1', 10);
-      if (!isNaN(price) && !isNaN(qty)) sum += price * qty;
-    });
-    return sum;
-  }
-  function updateTotals(){
-    let subtotal = getCartSubtotal();
-    const method = (document.querySelector('input[name="deliveryMethod"]:checked')||{}).value || 'shipping';
-    let shipping = method === 'shipping' ? 9 : 0;
-
-    const shipRow = document.getElementById('shipping-row');
-    const shipVal = document.getElementById('shipping-value');
-    if (shipRow){
-      shipRow.style.display = (method === 'shipping') ? 'flex' : 'none';
-    }
-    if (shipVal){
-      shipVal.textContent = '€' + shipping.toFixed(0);
-    }
-
-    const grand = subtotal + shipping;
-
-    let totalValueEl = document.querySelector('#cart-grand-total');
-    if (!totalValueEl){
-      const totalEl = document.querySelector('.cart-total span:last-child');
-      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
-    }
-    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
-  }
-
-  document.addEventListener('change', function(e){
-    if (e.target && e.target.name === 'deliveryMethod'){
-      updateTotals();
-    }
-    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
-      updateTotals();
-    }
-  });
-
-  const ready = () => { updateTotals(); };
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', ready);
-  } else {
-    ready();
-  }
-  window.updateCartTotalsWithShipping = updateTotals;
-})();
-</script>
-
-
 <!-- ==== VModal (clean build) ==== -->
 <div class="vmodal" id="vModal" aria-hidden="true">
   <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
@@ -701,10 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
     </div>
   </div>
-</div>
-
 <script>
-
 // ==== VModal behavior (clean) ====
 (function(){
   if (window.__vmodal) return; window.__vmodal = true;
