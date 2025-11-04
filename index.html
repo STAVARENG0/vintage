@@ -324,8 +324,8 @@ header{ text-align:center; }
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
-<a class="pill-btn" href="woman.html"">Woman</a>
-<a class="pill-btn" href="man.html"">Man</a>
+<a class="pill-btn" href="women.html">Woman</a>
+<a class="pill-btn" href="men.html">Man</a>
 </div>
 </div>
 </header>
@@ -599,6 +599,161 @@ document.addEventListener('DOMContentLoaded', () => {
   window.updateCartTotalsWithShipping = updateTotals;
 })();
 </script>
+
+<style>
+/* === HS Product Modal (scoped to #hs-product-modal) — Vintage palette === */
+:root{
+  --hs-backdrop: rgba(0,0,0,0.5);
+  --hs-surface: #ffffff;
+  --hs-text: var(--text, #1a1a1a);
+  --hs-subtext: rgba(0,0,0,0.7);
+  --hs-border: rgba(0,0,0,0.08);
+  --hs-accent-a: var(--olive, #6b7b2a);
+  --hs-accent-b: var(--mustard, #d2b04c);
+}
+#hspm-backdrop{
+  position: fixed; inset:0; background: var(--hs-backdrop);
+  display:none; opacity:0; transition: opacity .2s ease;
+  z-index: 50;
+}
+#hs-product-modal{
+  position: fixed; inset:0; display:none; place-items:center; z-index: 51;
+}
+#hs-product-modal .hs-modal{
+  width:min(960px, 92vw); background: var(--hs-surface); color: var(--hs-text);
+  border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  overflow:hidden; border:1px solid var(--hs-border);
+}
+.hs-row{ display:grid; grid-template-columns: 1.1fr 1fr; gap: 24px; padding: 20px; }
+@media (max-width: 820px){ .hs-row{ grid-template-columns:1fr; } }
+.hs-media{ background:#fff; display:grid; grid-template-rows:auto 88px; gap: 12px; }
+.hs-media .hs-hero{
+  width:100%; aspect-ratio: 4/3; object-fit:cover; border-radius: 12px;
+  border:1px solid var(--hs-border);
+}
+.hs-thumbs{ display:flex; gap:10px; overflow:auto; }
+.hs-thumbs img{
+  height:80px; aspect-ratio: 1/1; object-fit:cover; border-radius: 10px;
+  border:1px solid var(--hs-border); cursor:pointer;
+}
+.hs-content{ display:flex; flex-direction:column; gap:14px; }
+.hs-title{ font-size: clamp(20px, 2.4vw, 28px); font-weight:700; line-height:1.1; }
+.hs-price{ font-size: 18px; font-weight:600; opacity:.9; }
+.hs-desc{ color: var(--hs-subtext); font-size: 15px; line-height:1.6; }
+.hs-cta{ display:flex; gap:12px; align-items:center; margin-top: 6px; }
+.hs-btn{
+  padding: 12px 18px; border-radius: 999px; border:0; cursor:pointer;
+  background: linear-gradient(90deg, var(--hs-accent-a), var(--hs-accent-b));
+  color:#fff; font-weight:600; box-shadow: 0 10px 24px rgba(107,123,42,0.25);
+}
+.hs-btn.secondary{ background:#f5f5f0; color: var(--hs-text); box-shadow:none; border:1px solid var(--hs-border); }
+.hs-close{
+  position:absolute; top:10px; right:12px; display:grid; place-items:center;
+  width:36px; height:36px; border-radius: 10px; border:1px solid var(--hs-border);
+  background:#fff; cursor:pointer; font-size:18px;
+}
+#hs-product-modal.is-open, #hspm-backdrop.is-open{ display:grid; }
+#hspm-backdrop.is-open{ opacity:1; }
+</style>
+
+<div id="hspm-backdrop" aria-hidden="true"></div>
+<div id="hs-product-modal" role="dialog" aria-modal="true" aria-label="Detalhes do produto">
+  <div class="hs-modal">
+    <button class="hs-close" type="button" aria-label="Fechar">×</button>
+    <div class="hs-row">
+      <div class="hs-media">
+        <img class="hs-hero" src="" alt="Imagem do produto">
+        <div class="hs-thumbs"></div>
+      </div>
+      <div class="hs-content">
+        <div class="hs-title"></div>
+        <div class="hs-price"></div>
+        <div class="hs-desc"></div>
+        <div class="hs-cta">
+          <button class="hs-btn" type="button">Adicionar ao carrinho</button>
+          <button class="hs-btn secondary" type="button">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  const backdrop = document.getElementById('hspm-backdrop');
+  const modal = document.getElementById('hs-product-modal');
+  if(!backdrop || !modal) return;
+  const hero = modal.querySelector('.hs-hero');
+  const thumbs = modal.querySelector('.hs-thumbs');
+  const titleEl = modal.querySelector('.hs-title');
+  const priceEl = modal.querySelector('.hs-price');
+  const descEl = modal.querySelector('.hs-desc');
+  const closeEls = [modal.querySelector('.hs-close'), modal.querySelector('.hs-btn.secondary')];
+
+  function openModal(data){
+    titleEl.textContent = data.title || '';
+    priceEl.textContent = data.price || '';
+    descEl.textContent = data.desc || '';
+    hero.src = data.image || '';
+    hero.alt = data.title || 'Produto';
+
+    // thumbs
+    thumbs.innerHTML = '';
+    const imgs = (data.images && data.images.length ? data.images : [data.image]).filter(Boolean);
+    imgs.forEach(src => {
+      const t = document.createElement('img');
+      t.src = src; t.alt = data.title || 'thumb';
+      t.addEventListener('click', () => { hero.src = src; });
+      thumbs.appendChild(t);
+    });
+
+    backdrop.classList.add('is-open');
+    modal.classList.add('is-open');
+    document.documentElement.style.overflow = 'hidden';
+  }
+
+  function closeModal(){
+    backdrop.classList.remove('is-open');
+    modal.classList.remove('is-open');
+    document.documentElement.style.overflow = '';
+  }
+
+  closeEls.forEach(btn => btn && btn.addEventListener('click', closeModal));
+  backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+
+  // Delegate clicks from product tiles
+  // Works with elements containing .product-card (image/title/button).
+  // Extracts data from data-* attributes if present, else from common selectors.
+  document.addEventListener('click', function(e){
+    const trigger = e.target.closest('[data-modal="product"], .product-card img, .product-card .product-title, .product-card .product-link');
+    if(!trigger) return;
+    const card = trigger.closest('.product-card') || trigger.closest('[data-product]') || trigger;
+
+    const data = {
+      title: card.getAttribute('data-title') ||
+             (card.querySelector('.product-title') ? card.querySelector('.product-title').textContent.trim() : ''),
+      price: card.getAttribute('data-price') ||
+             (card.querySelector('.product-price') ? card.querySelector('.product-price').textContent.trim() : ''),
+      desc: card.getAttribute('data-desc') ||
+            (card.querySelector('.product-desc') ? card.querySelector('.product-desc').textContent.trim() : ''),
+      image: card.getAttribute('data-image') ||
+             (card.querySelector('img') ? card.querySelector('img').getAttribute('src') : ''),
+      images: (()=>{
+        const nodes = card.querySelectorAll('[data-gallery] img, .gallery img');
+        return Array.from(nodes).map(n => n.getAttribute('src'));
+      })()
+    };
+
+    // Avoid following links if inside an <a>
+    const maybeLink = e.target.closest('a');
+    if(maybeLink) e.preventDefault();
+    openModal(data);
+  }, { capture: true });
+})();
+</script>
+
 
 </body>
 </html>
