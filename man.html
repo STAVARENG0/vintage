@@ -339,6 +339,17 @@ header{ text-align:center; }
 .vmodal__meta{ font-size:12px; color:var(--muted); }
 .vmodal__desc{ font-size:14px; color:var(--text); }
 
+
+/* VModal overrides to avoid conflicts on Man page */
+.vmodal{ z-index: 99999 !important; }
+.vmodal__dialog{ position:relative; z-index: 100000; }
+html.vm-open .modal, body.vm-open .modal,
+html.vm-open #cartModal, body.vm-open #cartModal{
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
 </style>
 </head>
 <body>
@@ -677,8 +688,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let idx = 0;
   let activeCard = null;
 
-  function open(){ v.style.display='flex'; document.documentElement.classList.add('no-scroll'); }
-  function close(){ v.style.display='none'; document.documentElement.classList.remove('no-scroll'); }
+  function open(){ v.style.display='flex'; document.documentElement.classList.add('vm-open'); document.body.style.overflow='hidden'; }
+  function close(){ v.style.display='none'; document.documentElement.classList.remove('vm-open'); document.body.style.overflow=''; try{document.getElementById('cartModal').style.display='none';}catch(_){}}
   closeBtn?.addEventListener('click', close);
   v?.addEventListener('click', (e)=>{ if(e.target === v) close(); });
 
