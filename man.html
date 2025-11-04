@@ -654,120 +654,117 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 <script>
-// ==== VModal behavior (clean) ====
+
+// ==== VModal behavior (man page fix) ====
 (function(){
-  if (window.__vmodal) return; window.__vmodal = true;
   const $ = (s, r=document)=> r.querySelector(s);
   const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
 
-  const modal = $('#vModal');
-  const mainImg = $('#vmMain');
+  // If already wired, skip
+  if (window.__vmodalMan) return; window.__vmodalMan = true;
+
+  const v = $('#vModal');
+  const dlg = v?.querySelector('.vmodal__dialog');
+  const main = $('#vmMain');
   const thumbs = $('#vmThumbs');
   const titleEl = $('#vmTitle');
   const priceEl = $('#vmPrice');
   const metaEl = $('#vmMeta');
   const descEl = $('#vmDesc');
-  const btnClose = $('#vmClose');
-  const btnAdd = $('#vmAdd');
-  let card = null;
+  const addBtn = $('#vmAdd');
+  const closeBtn = $('#vmClose');
   let imgs = [];
   let idx = 0;
+  let activeCard = null;
 
+  function open(){ v.style.display='flex'; document.documentElement.classList.add('no-scroll'); }
+  function close(){ v.style.display='none'; document.documentElement.classList.remove('no-scroll'); }
+  closeBtn?.addEventListener('click', close);
+  v?.addEventListener('click', (e)=>{ if(e.target === v) close(); });
+
+  function setImg(i){
+    idx = Math.max(0, Math.min(i, imgs.length-1));
+    if (imgs[idx]) main.src = imgs[idx];
+    $$('.vmodal__thumb', thumbs).forEach((t,j)=> t.classList.toggle('is-active', j===idx));
+  }
   function renderThumbs(){
     thumbs.innerHTML = '';
-    imgs.forEach((src, i)=>{
+    imgs.forEach((src,i)=>{
       const b = document.createElement('button');
       b.className = 'vmodal__thumb' + (i===idx ? ' is-active' : '');
       b.innerHTML = `<img src="${src}" alt="">`;
-      b.addEventListener('click', ()=> go(i));
+      b.addEventListener('click', ()=> setImg(i));
       thumbs.appendChild(b);
     });
   }
-  function go(i){
-    if(!imgs.length) return;
-    idx = (i + imgs.length) % imgs.length;
-    mainImg.src = imgs[idx];
-    $$('.vmodal__thumb', thumbs).forEach((t, j)=> t.classList.toggle('is-active', j===idx));
+
+  function openFrom(card){
+    activeCard = card;
+
+    // read content
+    const title = (card.querySelector('h3')?.textContent || card.getAttribute('data-title') || '').trim();
+    const price = (card.querySelector('.price')?.textContent || card.getAttribute('data-price') || '').trim();
+    const meta  = (card.querySelector('.stock')?.textContent || card.getAttribute('data-meta') || '').trim();
+    const desc  = (card.querySelector('.description')?.textContent || card.getAttribute('data-description') || '').trim();
+
+    // collect images (data-images, imgs in card, links to images)
+    const dataImgs = (card.getAttribute('data-images')||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const imgsIn   = $$('img', card).map(i=>i.currentSrc || i.src).filter(Boolean);
+    const linkImgs = $$('a', card).map(a=>a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
+    imgs = (dataImgs.length? dataImgs : (imgsIn.length? imgsIn : linkImgs))
+           .filter((s,i,a)=> a.indexOf(s)===i);
+    if (!imgs.length) imgs = ['/assets/placeholder.png'];
+    idx = 0;
+    setImg(0); renderThumbs();
+
+    titleEl.textContent = (title||'').toUpperCase();
+    priceEl.textContent = price || '';
+    metaEl.textContent = meta || '';
+    descEl.textContent = desc || '';
+
+    // sync product id for Add to Cart
+    const pid =
+      card.getAttribute('data-id') ||
+      card.getAttribute('data-product-id') ||
+      card.dataset?.id || card.dataset?.productId ||
+      card.querySelector('[data-action="add-to-cart"]')?.dataset?.id ||
+      '';
+    if (pid) addBtn.dataset.id = String(pid);
+
+    // close any site modals accidentally opened by click bubbling
+    try { $$('.modal').forEach(m=> m.style.display='none'); } catch(_){}
+
+    open();
   }
 
-  function openFromCard(c){
-    card = c;
-    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
-    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
-    const meta  = (card.querySelector('.stock')?.textContent?.trim() || card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '');
-    const desc  = card.getAttribute('data-description') || card.querySelector('.description')?.textContent?.trim() || '';
+  // Delegate clicks on product grid to open our modal on image/title
+  const grid = $('#products') || document;
+  grid.addEventListener('click', function(e){
+    const t = e.target;
+    // CTA: let site own handler run when button has data-action
+    const isCTA = t.closest('[data-action="add-to-cart"]');
+    if (isCTA) return;
 
-    const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
-    const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
-    const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
-    imgs = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
-    if (!imgs.length) { imgs = ['/assets/placeholder.png']; }
+    const imgOrTitle = t.closest('img, h3');
+    if (!imgOrTitle) return;
+    const card = t.closest('[data-id], [data-product-id], .product, .card, .item, article, li, .grid > *');
+    if (!card) return;
 
-    titleEl.textContent = title.toUpperCase();
-    priceEl.textContent = price;
-    metaEl.textContent = meta;
-    descEl.textContent = desc;
+    e.preventDefault(); e.stopPropagation();
+    openFrom(card);
+  }, true);
 
-    
-    // sync CTA with site cart handler
-    try {
-      const ctaBtn = card.querySelector('[data-action="add-to-cart"]');
-      const pidFromBtn = ctaBtn?.dataset?.id;
-      const pidGuess = pidFromBtn || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
-      if (pidGuess) btnAdd.dataset.id = String(pidGuess);
-    } catch(e) {}
-    renderThumbs(); go(0);
-    modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden','false');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeModal(){
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden','true');
-    document.body.style.overflow = '';
-  }
-
-  // Delegated open on img/title click
-  document.addEventListener('click', (e)=>{
-    const img = e.target.closest('.product img');
-    const title = e.target.closest('.product h3');
-    const clickable = img || title;
-    if (clickable){
-      const c = clickable.closest('.product');
-      if (c){ e.preventDefault?.(); openFromCard(c); }
-    }
+  // Add to cart integration
+  addBtn?.addEventListener('click', function(e){
+    e.preventDefault(); e.stopPropagation();
+    const pid = this.dataset?.id;
+    let did = false;
+    try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch(_){}
+    try { if (!did && typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch(_){}
+    // optional: toast event
+    try { this.dispatchEvent(new CustomEvent('vmodal:add', {bubbles:false, detail:{id:pid}})); } catch(_){}
   });
-
-  // Close
-  btnClose?.addEventListener('click', closeModal);
-  modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
-  document.addEventListener('keydown', (e)=>{
-    if (modal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeModal();
-  });
-
-  // Add to Cart — robust integration
-  btnAdd?.addEventListener('click', (e)=>{
-  e?.preventDefault?.();
-  e?.stopPropagation?.();
-  if (!card) return idx;
-  const pid =
-    btnAdd.dataset?.id ||
-    card.getAttribute('data-id') ||
-    card.getAttribute('data-product-id') ||
-    card.dataset?.productId;
-  if (pid) {
-  let did = false;
-  try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch (_) {}
-  if (!did) {
-    try { if (typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch (_) {}
-  }
-}
-  try {
-    btnAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles: false, detail: { index: idx } }));
-  } catch (_) {}
-  return idx;
-});})();
-
+})();
 </script>
 </body>
 </html>
