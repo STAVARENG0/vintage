@@ -357,6 +357,28 @@ header{ text-align:center; }
 }
 .vmodal__close:hover{ filter:brightness(1.1); }
 
+/* pointer for product click */
+.product img, .product h3 { cursor: pointer; }
+
+/* ==== VModal (Vintage, clean) ==== */
+.vmodal{ display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:10000; align-items:center; justify-content:center; padding:18px; }
+.vmodal__dialog{ position:relative; background:var(--card); color:var(--text); border-radius:16px; border:1px solid rgba(0,0,0,.08); max-width:980px; width:100%; display:grid; grid-template-columns:58% 42%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+@media (max-width:860px){ .vmodal__dialog{ grid-template-columns:1fr; } }
+.vmodal__left{ background:var(--card); padding:16px; display:grid; grid-template-rows:1fr auto; gap:12px; }
+.vmodal__main{ background:var(--card); border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.vmodal__main img{ width:100%; max-height:360px; object-fit:contain; background:transparent; display:block; }
+.vmodal__thumbs{ display:flex; gap:10px; padding:2px; }
+.vmodal__thumb{ width:56px; height:56px; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#fff; }
+.vmodal__thumb.is-active{ border-color: var(--mustard); }
+.vmodal__thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+.vmodal__right{ padding:18px; display:flex; flex-direction:column; gap:10px; background:var(--card); }
+.vmodal__title{ margin:0; font-size:20px; font-weight:800; color:var(--text); }
+.vmodal__price{ font-weight:900; color:var(--terracotta); font-size:18px; }
+.vmodal__meta{ font-size:12px; color:var(--muted); }
+.vmodal__desc{ font-size:14px; color:var(--text); }
+.vmodal__actions .vmodal__cta{ width:100%; padding:12px 16px; border-radius:999px; border:none; cursor:pointer; background:linear-gradient(135deg, #ff7a1a, #ffb35a); color:#fff; font-weight:900; box-shadow:0 10px 24px rgba(255,122,26,.28); }
+.vmodal__close{ position:absolute; top:10px; right:10px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:#ff7a1a; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:900; line-height:1; box-shadow:0 8px 18px rgba(255,122,26,.35); }
+
 </style>
 </head>
 <body>
@@ -646,13 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <!-- ==== VModal (clean build) ==== -->
-<div class="vmodal" id="vModal" aria-hidden="true">
-  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
-    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
-    <div class="vmodal__left">
-      <div class="vmodal__main"><img id="vmMain" alt=""></div>
-      <div class="vmodal__thumbs" id="vmThumbs"></div>
-    </div>
+
     <div class="vmodal__right">
       <h3 class="vmodal__title" id="vmTitle"></h3>
       <div class="vmodal__price" id="vmPrice"></div>
@@ -819,5 +835,113 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 
 </script>
+
+<div class="vmodal" id="vModal" aria-hidden="true">
+  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
+    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
+    <div class="vmodal__left">
+      <div class="vmodal__main"><img id="vmMain" alt=""></div>
+      <div class="vmodal__thumbs" id="vmThumbs"></div>
+    </div>
+    <div class="vmodal__right">
+      <h3 class="vmodal__title" id="vmTitle"></h3>
+      <div class="vmodal__price" id="vmPrice"></div>
+      <div class="vmodal__meta" id="vmMeta"></div>
+      <div class="vmodal__desc" id="vmDesc"></div>
+      <div class="vmodal__actions"><a class="vmodal__cta btn" id="vmAdd" href="#">Add to Cart</a></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ==== VModal behavior (clean) ====
+(function(){
+  if (window.__vmodal) return; window.__vmodal = true;
+  const $ = (s, r=document)=> r.querySelector(s);
+  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
+  const modal = $('#vModal');
+  const mainImg = $('#vmMain');
+  const thumbs = $('#vmThumbs');
+  const titleEl = $('#vmTitle');
+  const priceEl = $('#vmPrice');
+  const metaEl = $('#vmMeta');
+  const descEl = $('#vmDesc');
+  const btnClose = $('#vmClose');
+  const btnAdd = $('#vmAdd');
+  let card = null, imgs = [], idx = 0;
+
+  function renderThumbs(){
+    thumbs.innerHTML='';
+    imgs.forEach((src,i)=>{
+      const b=document.createElement('button');
+      b.className='vmodal__thumb'+(i===idx?' is-active':'');
+      b.innerHTML=`<img src="${src}" alt="">`;
+      b.addEventListener('click',()=>go(i));
+      thumbs.appendChild(b);
+    });
+  }
+  function go(i){
+    if(!imgs.length) return;
+    idx=(i+imgs.length)%imgs.length;
+    mainImg.src=imgs[idx];
+    $$('.vmodal__thumb',thumbs).forEach((t,j)=>t.classList.toggle('is-active',j===idx));
+  }
+
+  function openFromCard(c){
+    card=c;
+    const title=c.querySelector('h3')?.textContent?.trim()||c.getAttribute('data-title')||'Produto';
+    const price=c.querySelector('.price')?.textContent?.trim()||c.getAttribute('data-price')||'';
+    const meta=(c.querySelector('.stock')?.textContent?.trim()||c.querySelector('.meta')?.textContent?.trim()||c.getAttribute('data-meta')||'');
+    const desc=c.getAttribute('data-description')||c.querySelector('.description')?.textContent?.trim()||'';
+    const dataImgs=(c.getAttribute('data-images')||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const imgsIn=$$('img',c).map(i=>i.src).filter(Boolean);
+    const linkImgs=$$('a',c).map(a=>a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
+    imgs=(dataImgs.length?dataImgs:(imgsIn.length?imgsIn:linkImgs)).filter((src,ii,arr)=>arr.indexOf(src)===ii);
+    if(!imgs.length){ imgs=['/assets/placeholder.png']; }
+    titleEl.textContent=title.toUpperCase();
+    priceEl.textContent=price;
+    metaEl.textContent=meta;
+    descEl.textContent=desc;
+
+    // Mirror native add-to-cart
+    const nativeBtn=c.querySelector('[data-action="add-to-cart"]');
+    const productId=nativeBtn?.dataset?.id||c.getAttribute('data-product-id')||c.dataset?.productId;
+    if (productId && btnAdd){
+      btnAdd.setAttribute('data-action','add-to-cart');
+      btnAdd.setAttribute('data-id', productId);
+    }
+
+    renderThumbs(); go(0);
+    modal.style.display='flex';
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+  }
+  function closeModal(){
+    modal.style.display='none';
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+  }
+
+  // Delegated open
+  document.addEventListener('click', (e)=>{
+    const img=e.target.closest('.product img');
+    const title=e.target.closest('.product h3');
+    const clickable=img||title;
+    if(clickable){
+      const c=clickable.closest('.product');
+      if(c){ e.preventDefault?.(); openFromCard(c); }
+    }
+  });
+
+  // Close
+  btnClose?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown', (e)=>{ if(modal.getAttribute('aria-hidden')==='false' && e.key==='Escape') closeModal(); });
+
+  // No extra click handler on btnAdd; it uses site's global listener.
+})();
+</script>
+
 </body>
 </html>
