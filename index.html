@@ -717,8 +717,18 @@ document.addEventListener('DOMContentLoaded', () => {
     titleEl.textContent = title.toUpperCase();
     priceEl.textContent = price;
     metaEl.textContent = meta;
-    descEl.textContent = desc;
-
+    \1
+    // wire CTA to site handler
+    try{
+      const nativeBtn = card.querySelector('[data-action="add-to-cart"]');
+      const productId = nativeBtn?.dataset?.id || card.getAttribute('data-product-id') || card.dataset?.productId;
+      if (productId){
+        const addBtn = document.getElementById('vmAdd');
+        addBtn.dataset.action = 'add-to-cart';
+        addBtn.dataset.id = productId;
+        addBtn.textContent = 'Add to Cart';
+      }
+    }catch(e){}
     renderThumbs(); go(0);
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden','false');
@@ -749,13 +759,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Add to Cart — robust integration
-  btnAdd?.addEventListener('click', ()=>{
-    // cart integrations ++
-    let handled = false;
-    if (card){
-      // 1) Try form submit
-      const form = card.closest('form') || card.querySelector('form');
-      if (form){
+  /* vmAdd click handled via global [data-action="add-to-cart"] listener */
+if (form){
         try{ form.requestSubmit ? form.requestSubmit() : form.submit(); handled = true; }catch{}
       }
       // 2) Try native add-to-cart buttons
