@@ -1,17 +1,1 @@
-[
-  {
-    "id": "demo-1",
-    "title": "Produto de Exemplo",
-    "brand": "Brazucas",
-    "price": 19.9,
-    "description": "Item de exemplo para testar o modal.",
-    "department": "marketplace",
-    "category": "geral",
-    "stock": 5,
-    "image": "logo.png",
-    "gallery": [],
-    "createdAt": 1761052079453,
-    "status": "publicado",
-    "whatsapp": "353899999999"
-  }
-]
+[]
