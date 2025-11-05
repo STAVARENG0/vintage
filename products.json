@@ -12,5 +12,17 @@
     ],
     "createdAt": 1762349822455,
     "status": "published"
+  },
+  {
+    "id": "1762350278175",
+    "title": "Adidas hoodie",
+    "price": 25,
+    "description": "Adidas hoodie -size L",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762350278175/IMG_3064.png",
+    "gallery": [],
+    "createdAt": 1762350280214,
+    "status": "published"
   }
 ]
