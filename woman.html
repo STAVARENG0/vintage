@@ -360,6 +360,11 @@ header{ text-align:center; }
 
 </style>
 
+
+<style>
+/* make product cards appear clickable */
+.product { cursor: pointer; }
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -460,13 +465,19 @@ function render(list){
   }
   list.forEach(p=>{
     const el = document.createElement('article'); el.className='product';
+    // attach description & gallery data so vModal can read them
+    try {
+      el.setAttribute('data-description', String(p.description || ''));
+      const imgsForAttr = Array.isArray(p.gallery) && p.gallery.length ? p.gallery.join(',') : (p.image || '');
+      el.setAttribute('data-images', imgsForAttr);
+    } catch(e){}
     if(Number(p.stock) <= 0){
       const badge = document.createElement('div'); badge.className = 'oos-ribbon'; badge.textContent = 'OUT OF STOCK'; el.appendChild(badge);
     }
     const img = document.createElement('img'); img.src = p.image; img.alt = p.title; el.appendChild(img);
     const body = document.createElement('div'); body.className='product-body';
     const brand = p.brand ? `<div class="meta">${p.brand}</div>` : '';
-    body.innerHTML = `<h3>${p.title}</h3>${brand}<div class='meta'>Stock: ${p.stock}</div><div class='price'>${fmtEUR(p.price)}</div>`;
+    body.innerHTML = `<h3>${p.title}</h3>${brand}<div class='meta'>Stock: ${p.stock}</div><div class='price'>${fmtEUR(p.price)}</div><div class='description' style='display:none'>${p.description}</div>`;
     el.appendChild(body);
     const cta = document.createElement('div'); cta.className='cta';
     const a = document.createElement('a');
