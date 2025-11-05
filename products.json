@@ -1,104 +1,50 @@
 [
   {
-    "id": "1760907390950",
-    "title": "shorte",
-    "price": 25,
-    "description": "shorte masculino ",
-    "category": "men",
-    "stock": 23,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1760907390950/Gemini_Generated_Image_athp0tathp0tathp.png",
+    "id": "1",
+    "title": "Whey Protein 2kg",
+    "brand": "HS Nutrition",
+    "price": "59.90",
+    "image": "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=600",
+    "description": "High-quality whey protein to support muscle growth and recovery.",
     "gallery": [],
-    "createdAt": 1760907393902,
-    "status": "published"
+    "category": "supplements",
+    "createdAt": 1733318400,
+    "stock": 12
   },
   {
-    "id": "1760907609313",
-    "title": "shots feminino ",
-    "price": 3,
-    "description": "shortes femino tamamafoaslnfasjlkf",
-    "category": "women",
-    "stock": 12,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1760907609313/Gemini_Generated_Image_n7k61sn7k61sn7k6.png",
+    "id": "2",
+    "title": "Creatine Monohydrate 300g",
+    "brand": "HS Nutrition",
+    "price": "24.50",
+    "image": "https://images.unsplash.com/photo-1612200931903-9c6b9b7e2a15?w=600",
+    "description": "Pure creatine monohydrate to enhance strength and performance.",
     "gallery": [],
-    "createdAt": 1760907611955,
-    "status": "published"
+    "category": "supplements",
+    "createdAt": 1733232000,
+    "stock": 20
   },
   {
-    "id": "1762195975208",
-    "title": "BOLSA VINTAGE  DE COURO ",
-    "price": 25,
-    "description": "BOLSA MUITO LINDA QUE VAI FAZE VC BRILHAR NO ROLE",
-    "category": "women",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762195975208/Imagem do WhatsApp de 2025-11-03 à(s) 18.51.30_5300e250.jpg",
+    "id": "3",
+    "title": "Vitamin D3 5000 IU",
+    "brand": "HS Nutrition",
+    "price": "14.90",
+    "image": "https://images.unsplash.com/photo-1616401784845-185ff3f5b5f2?w=600",
+    "description": "Essential vitamin D3 for immune and bone health support.",
     "gallery": [],
-    "createdAt": 1762195976348,
-    "status": "published"
+    "category": "supplements",
+    "createdAt": 1733145600,
+    "stock": 30
   },
   {
-    "id": "1762294035187",
-    "title": "CREATINA EM CAPISULA ",
-    "price": 15,
-    "description": "testanto as descricao",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762294035187/creatina.png",
+    "id": "4",
+    "title": "Collagen Peptides 400g",
+    "brand": "HS Nutrition",
+    "price": "39.90",
+    "image": "https://images.unsplash.com/photo-1615484477211-9b1d8d2e3d5c?w=600",
+    "description": "Collagen peptides for skin, joints, and hair health.",
     "gallery": [],
-    "createdAt": 1762294037086,
-    "status": "published"
-  },
-  {
-    "id": "1762329245623",
-    "title": "BLUSA DE FRIO ",
-    "price": 30,
-    "description": "BLUSA VINTAGE LINDONA ",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329245623/Imagem do WhatsApp de 2025-11-04 à(s) 15.02.59_e5c77cd9.jpg",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329245623/Imagem do WhatsApp de 2025-11-04 à(s) 15.02.59_2f06ded5.jpg"
-    ],
-    "createdAt": 1762329247735,
-    "status": "published"
-  },
-  {
-    "id": "1762329451862",
-    "title": "KIT CREATINA ",
-    "price": 50,
-    "description": "KIT COM TODOS OS TIPOS ",
-    "category": "men",
-    "stock": 20,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329451862/cratina em saco.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329451862/cratina grande.png",
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329451862/creatina em capisula.png",
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329451862/creatina.png"
-    ],
-    "createdAt": 1762329462740,
-    "status": "published"
-  },
-  {
-    "id": "1762331798300",
-    "title": "PERFUME EGEO ",
-    "price": 17,
-    "description": "PERFUME ",
-    "category": "women",
-    "stock": 2,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762331798300/ChatGPT Image 4 de out. de 2025, 17_20_27.png",
-    "gallery": [],
-    "createdAt": 1762331808126,
-    "status": "published"
-  },
-  {
-    "id": "1762333257773",
-    "title": "CREME DE MULHER",
-    "price": 1,
-    "description": "CREMES CHEIROSO ",
-    "category": "women",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762333257773/BOTI_C03_ECOMM_MELHORIASIMGPRODUTONSPA-49.webp",
-    "gallery": [],
-    "createdAt": 1762333259199,
-    "status": "published"
+    "category": "cosmetics",
+    "createdAt": 1733059200,
+    "stock": 15
   }
 ]
