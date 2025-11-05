@@ -593,7 +593,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 (async function init(){
+  // Load public products then filter to only show 'Man' category on this page
   currentList = await readPublic();
+  // Accept common variants (man / men / male / mane), case-insensitive
+  currentList = currentList.filter(p => {
+    const cat = String(p.category || '').trim().toLowerCase();
+    return cat === 'man' || cat === 'men' || cat === 'male' || cat === 'mane';
+  });
   currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
   render(currentList);
   document.getElementById('year').textContent = new Date().getFullYear();
