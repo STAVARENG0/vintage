@@ -46,5 +46,19 @@
     "gallery": [],
     "createdAt": 1762294037086,
     "status": "published"
+  },
+  {
+    "id": "1762329245623",
+    "title": "BLUSA DE FRIO ",
+    "price": 30,
+    "description": "BLUSA VINTAGE LINDONA ",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329245623/Imagem do WhatsApp de 2025-11-04 à(s) 15.02.59_e5c77cd9.jpg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329245623/Imagem do WhatsApp de 2025-11-04 à(s) 15.02.59_2f06ded5.jpg"
+    ],
+    "createdAt": 1762329247735,
+    "status": "published"
   }
 ]
