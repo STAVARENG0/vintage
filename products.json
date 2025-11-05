@@ -62,22 +62,6 @@
     "status": "published"
   },
   {
-    "id": "1762329451862",
-    "title": "KIT CREATINA ",
-    "price": 50,
-    "description": "KIT COM TODOS OS TIPOS ",
-    "category": "men",
-    "stock": 20,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329451862/cratina em saco.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329451862/cratina grande.png",
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329451862/creatina em capisula.png",
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762329451862/creatina.png"
-    ],
-    "createdAt": 1762329462740,
-    "status": "published"
-  },
-  {
     "id": "1762349817957",
     "title": "Tommy Hilfiger Hooded Jacket ",
     "price": 50,
