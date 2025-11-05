@@ -460,7 +460,10 @@ function render(list){
     // attach description & gallery for vmodal to read
     try {
       el.setAttribute('data-description', String(p.description || ''));
-      const imgsForAttr = Array.isArray(p.gallery) && p.gallery.length ? p.gallery.join(',') : (p.image || '');
+      const imgsArr = [];
+      if(p.image) imgsArr.push(p.image);
+      if(Array.isArray(p.gallery) && p.gallery.length) imgsArr.push(...p.gallery);
+      const imgsForAttr = imgsArr.filter(Boolean).join(',');
       el.setAttribute('data-images', imgsForAttr);
     } catch(e) {}
 
