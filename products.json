@@ -76,5 +76,17 @@
     ],
     "createdAt": 1762329462740,
     "status": "published"
+  },
+  {
+    "id": "1762331798300",
+    "title": "PERFUME EGEO ",
+    "price": 17,
+    "description": "PERFUME ",
+    "category": "women",
+    "stock": 2,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762331798300/ChatGPT Image 4 de out. de 2025, 17_20_27.png",
+    "gallery": [],
+    "createdAt": 1762331808126,
+    "status": "published"
   }
 ]
