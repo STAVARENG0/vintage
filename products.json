@@ -1,17 +1,5 @@
 [
   {
-    "id": "1762294035187",
-    "title": "CREATINA EM CAPISULA ",
-    "price": 15,
-    "description": "testanto as descricao",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762294035187/creatina.png",
-    "gallery": [],
-    "createdAt": 1762294037086,
-    "status": "published"
-  },
-  {
     "id": "1762329245623",
     "title": "BLUSA DE FRIO ",
     "price": 30,
