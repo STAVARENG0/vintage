@@ -88,5 +88,17 @@
     "gallery": [],
     "createdAt": 1762331808126,
     "status": "published"
+  },
+  {
+    "id": "1762333257773",
+    "title": "CREME DE MULHER",
+    "price": 1,
+    "description": "CREMES CHEIROSO ",
+    "category": "women",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762333257773/BOTI_C03_ECOMM_MELHORIASIMGPRODUTONSPA-49.webp",
+    "gallery": [],
+    "createdAt": 1762333259199,
+    "status": "published"
   }
 ]
