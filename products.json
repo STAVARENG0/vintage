@@ -1,16 +1,1 @@
-[
-  {
-    "id": "1762336687271",
-    "title": "Jacket Tommy",
-    "price": 1,
-    "description": "Size L",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762336687271/IMG_3031.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762336687271/IMG_3032.png"
-    ],
-    "createdAt": 1762336699348,
-    "status": "published"
-  }
-]
+[]
