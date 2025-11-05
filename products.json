@@ -36,5 +36,17 @@
     "gallery": [],
     "createdAt": 1762350692754,
     "status": "published"
+  },
+  {
+    "id": "1762350943839",
+    "title": "Puma hoodie",
+    "price": 25,
+    "description": "Puma hoodie-size UK 14",
+    "category": "women",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762350943839/IMG_3062.png",
+    "gallery": [],
+    "createdAt": 1762350945406,
+    "status": "published"
   }
 ]
