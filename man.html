@@ -393,26 +393,8 @@ header{ text-align:center; }
 <div id="cartItems" style="margin:12px 0;"></div>
 <hr class="cart-divider" style="margin:12px 0;"/>
 
-    <div id="shipping-options" style="margin:12px 0 10px; padding:10px; border:1px dashed rgba(0,0,0,0.12); border-radius:10px;">
-      <div style="font-weight:800; margin-bottom:8px;">Delivery / Pickup</div>
-      <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;">
-        <input type="radio" name="deliveryMethod" value="shipping" checked />
-        <span data-price="9">Shipping (€9)</span>
-      </label>
-      <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
-        <input type="radio" name="deliveryMethod" value="pickup" />
-        <span>
-          Pickup<br/>
-          <small style="display:block; color:#555;">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</small>
-        </span>
-      </label>
-    </div>
-    
-      <div class="cart-total" id="shipping-row" style="font-weight:600;">
-        <span>Shipping </span>
-        <span id="shipping-value" data-price="9">€9</span>
-      </div>
-    <div class="cart-total">
+
+<div class="cart-total">
 <span>Total:</span>
 <span id="cartTotal">€ --</span>
 </div>
@@ -521,7 +503,7 @@ function openCart(){
   list.innerHTML = '';
   if(cart.length === 0){
     list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
-    totalEl.textContent = '€ 0.00';
+    if(totalEl){ totalEl.textContent = '€ 0.00'; }
   } else {
     let total = 0;
     cart.forEach(item => {
@@ -546,7 +528,7 @@ function openCart(){
     });
     const selected = getSelectedShipping();
     const shipping = selected ? Number(selected.value) : 0;
-    totalEl.textContent = fmtEUR(total + shipping);
+    if(totalEl){ totalEl.textContent = fmtEUR(total + shipping); }
   }
   cartModal.style.display = 'flex';
 }
@@ -566,47 +548,7 @@ document.addEventListener('click', function(e){
   e.preventDefault();
   const id = btn.dataset.id;
   if(id){ addToCart(id); }
-});
-document.addEventListener('DOMContentLoaded', () => {
-  const radios = document.querySelectorAll('input[name="shipping"]');
-  const totalEl = document.getElementById('cartTotal');
-  const checkoutBtn = document.querySelector('.cart-checkout');
-  function calcBaseTotal() {
-    return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
-  }
-  function updateDisplayTotal() {
-    const base = calcBaseTotal();
-    const sel = document.querySelector('input[name="shipping"]:checked');
-    const shippingVal = sel ? Number(sel.value) : 0;
-    totalEl.textContent = fmtEUR(base + shippingVal);
-  }
-  radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
-  const _openCart = openCart;
-  openCart = function() {
-    _openCart();
-    updateDisplayTotal();
-  };
-  checkoutBtn.addEventListener('click', () => {
-    // Default shipping: none/0. Keep downstream pages happy if they expect this key.
-    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
-    window.location.href = 'checkout.html';
-  });
-});
-(async function init(){
-  // Load public products then filter to only show 'Man' category on this page
-  currentList = await readPublic();
-  // Accept common variants (man / men / male / mane), case-insensitive
-  currentList = currentList.filter(p => {
-    const cat = String(p.category || '').trim().toLowerCase();
-    return cat === 'man' || cat === 'men' || cat === 'male' || cat === 'mane';
-  });
-  currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-  render(currentList);
-  document.getElementById('year').textContent = new Date().getFullYear();
-  updateCartIcon();
-})();
-</script>
-
+});</script>
 <script>
 (function(){
   function getCartSubtotal(){
@@ -629,66 +571,28 @@ document.addEventListener('DOMContentLoaded', () => {
     return sum;
   }
   function updateTotals(){
-    let subtotal = getCartSubtotal();
-    const method = (document.querySelector('input[name="deliveryMethod"]:checked')||{}).value || 'shipping';
-    let shipping = method === 'shipping' ? 9 : 0;
-
-    const shipRow = document.getElementById('shipping-row');
-    const shipVal = document.getElementById('shipping-value');
-    if (shipRow){
-      shipRow.style.display = (method === 'shipping') ? 'flex' : 'none';
-    }
-    if (shipVal){
-      shipVal.textContent = '€' + shipping.toFixed(0);
-    }
-
-    const grand = subtotal + shipping;
-
-    let totalValueEl = document.querySelector('#cart-grand-total');
-    if (!totalValueEl){
-      const totalEl = document.querySelector('.cart-total span:last-child');
-      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
-    }
-    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
-  }
-
-  document.addEventListener('change', function(e){
-    if (e.target && e.target.name === 'deliveryMethod'){
-      updateTotals();
-    }
-    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
-      updateTotals();
-    }
-  });
-
-  const ready = () => { updateTotals(); };
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', ready);
-  } else {
-    ready();
-  }
-  window.updateCartTotalsWithShipping = updateTotals;
+  let subtotal = getCartSubtotal();
+  const totalEl = document.getElementById('cartTotal');
+  if(totalEl){ totalEl.textContent = fmtEUR(subtotal); }
+}
 })();
 </script>
-
-
-<div class="vmodal" id="vModal" aria-hidden="true">
-  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
-    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
-    <div class="vmodal__left">
-      <div class="vmodal__main"><img id="vmMain" alt=""></div>
-      <div class="vmodal__thumbs" id="vmThumbs"></div>
-    </div>
-    <div class="vmodal__right">
-      <h3 class="vmodal__title" id="vmTitle"></h3>
-      <div class="vmodal__price" id="vmPrice"></div>
-      <div class="vmodal__meta" id="vmMeta"></div>
-      <div class="vmodal__desc" id="vmDesc"></div>
-      <div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
-    </div>
-  </div>
+<div aria-hidden="true" class="vmodal" id="vModal">
+<div aria-labelledby="vmTitle" aria-modal="true" class="vmodal__dialog" role="dialog">
+<button aria-label="Fechar" class="vmodal__close" id="vmClose">✕</button>
+<div class="vmodal__left">
+<div class="vmodal__main"><img alt="" id="vmMain"/></div>
+<div class="vmodal__thumbs" id="vmThumbs"></div>
 </div>
-
+<div class="vmodal__right">
+<h3 class="vmodal__title" id="vmTitle"></h3>
+<div class="vmodal__price" id="vmPrice"></div>
+<div class="vmodal__meta" id="vmMeta"></div>
+<div class="vmodal__desc" id="vmDesc"></div>
+<div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
+</div>
+</div>
+</div>
 <script>
 
 // ==== VModal behavior (clean) ====
@@ -805,6 +709,21 @@ document.addEventListener('DOMContentLoaded', () => {
   return idx;
 });})();
 
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.querySelector('.cart-checkout');
+  function calcBaseTotal(){ return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0); }
+  function updateDisplayTotal(){ if(totalEl){ totalEl.textContent = fmtEUR(calcBaseTotal()); } }
+  const _openCart = openCart;
+  openCart = function(){ _openCart(); updateDisplayTotal(); };
+  if(checkoutBtn){ checkoutBtn.addEventListener('click', () => {
+    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
+    const cartJSON = JSON.stringify(cart);
+    window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
+  });}
+});
 </script>
 </body>
 </html>
