@@ -116,15 +116,35 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
     right: 8px;
   }
 }
+
+.policy-btn{
+  display:inline-block;
+  margin: 6px 0 16px;
+  background: var(--terracotta);
+  color:#fff;
+  padding:8px 12px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:13px;
+  text-decoration:none;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+  transition: transform .06s ease-in-out, box-shadow .2s ease;
+  line-height:1;
+}
+.policy-btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,.16); }
+.policy-btn:active{ transform: translateY(0); }
+@media (max-width: 480px){
+  .policy-btn{ padding:6px 10px; font-size:12px; }
+}
 </style>
 </head>
 <body>
 
 <div class="checkout-card">
-  <a class="modal-top-right-btn" href="return-refund-policy.html" aria-label="Return Policy">Return Policy</a>
-
-  <img src="LOGO.png" alt="Checkout" class="logo">
+<img src="LOGO.png" alt="Checkout" class="logo">
   <h1>Checkout</h1>
+  <a class="policy-btn" href="return-refund-policy.html" aria-label="Return & Refund Policy">Return Policy</a>
+
 
   <div class="items" id="cartList"></div>
 
