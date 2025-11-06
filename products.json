@@ -248,5 +248,17 @@
     "gallery": [],
     "createdAt": 1762444143338,
     "status": "published"
+  },
+  {
+    "id": "1762445435893",
+    "title": "  Vintage Lacoste navy blue V-neck t-shirt in size L.",
+    "price": 15,
+    "description": "Crafted from 100% cotton, featuring the iconic green crocodile logo on the chest. Soft and comfortable with natural signs of wear that add to its authentic vintage character.",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762445435893/4A658BF1-B91A-424D-ADDB-9046F1B0BC4D.png",
+    "gallery": [],
+    "createdAt": 1762445437372,
+    "status": "published"
   }
 ]
