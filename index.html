@@ -440,6 +440,12 @@ header{ text-align:center; }
 
 
 
+
+      <div class="cart-total">
+        <span>Total:</span>
+        <span id="cartTotal">€ --</span>
+      </div>
+      <button class="btn cart-checkout">Checkout</button>
 </div>
 </div>
 <script>
@@ -593,7 +599,17 @@ document.addEventListener('click', function(e){
   if(id){ addToCart(id); }
 });
 document.addEventListener('DOMContentLoaded', () => {
-  // totals/checkout removed
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.querySelector('.cart-checkout');
+  function calcBaseTotal(){ return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0); }
+  function updateDisplayTotal(){ if(totalEl){ totalEl.textContent = fmtEUR(calcBaseTotal()); } }
+  const _openCart = openCart;
+  openCart = function(){ _openCart(); updateDisplayTotal(); };
+  if(checkoutBtn){ checkoutBtn.addEventListener('click', () => {
+    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
+    const cartJSON = JSON.stringify(cart);
+    window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
+  });}
 });
 (async function init(){
   currentList = await readPublic();
@@ -627,8 +643,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateTotals(){
   let subtotal = getCartSubtotal();
   const totalEl = document.getElementById('cartTotal');
-  if(totalEl){ if(totalEl){ totalEl.textContent = fmtEUR(subtotal); } }
+  if(totalEl){ totalEl.textContent = fmtEUR(subtotal); }
 }
+
 
     if (shipVal){
       shipVal.textContent = '€' + shipping.toFixed(0);
