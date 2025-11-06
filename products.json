@@ -132,5 +132,19 @@
     ],
     "createdAt": 1762435187652,
     "status": "published"
+  },
+  {
+    "id": "1762435595952",
+    "title": "Ralph Lauren Quilted Shoulder Knit Sweater-size M",
+    "price": 25,
+    "description": "Vintage Ralph Lauren knit sweater featuring quilted suede shoulder patches in a timeless equestrian-inspired design. Made from soft ribbed cotton fabric, this sweater offers a comfortable fit and elegant casual style. The authentic vintage condition adds unique character, making it a perfect piece for classic wardrobe lovers.\nSize M",
+    "category": "women",
+    "stock": 2,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762435595952/75BFDA4D-98F1-4560-A689-2202F049F20B.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762435595952/9A92EBF0-45C8-40F4-BC5A-AFBC0B9E4D52.png"
+    ],
+    "createdAt": 1762435599299,
+    "status": "published"
   }
 ]
