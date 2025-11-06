@@ -25,24 +25,6 @@ body{
   color:var(--text);
   display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px;
 }
-/* Top-right Return Policy button */
-.top-actions{
-  position:fixed; top:14px; right:18px; z-index:1000;
-}
-.return-policy-btn{
-  background:var(--card);
-  border:1px solid rgba(0,0,0,.08);
-  padding:10px 14px;
-  border-radius:999px;
-  text-decoration:none;
-  font-size:13px;
-  font-weight:700;
-  color:var(--terracotta);
-  box-shadow:0 8px 20px rgba(0,0,0,.06);
-  transition:transform .08s ease, box-shadow .2s ease, background .2s ease;
-}
-.return-policy-btn:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.10); background:#fff; }
-
 .checkout-card{
   background:var(--card);
   border:1px solid rgba(0,0,0,.06);
@@ -73,11 +55,6 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 </head>
 <body>
 
-<!-- Top-right button -->
-<div class="top-actions">
-  <a class="return-policy-btn" href="return-policy.html" target="_self" rel="noopener">Return Policy</a>
-</div>
-
 <div class="checkout-card">
   <img src="LOGO.png" alt="Checkout" class="logo">
   <h1>Checkout</h1>
@@ -89,8 +66,7 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
     <div class="row total">Total: € <span id="totalAmount">0.00</span></div>
   </div>
 
-  <!-- Delivery message only appears when a shipping option is selected -->
-  <p id="deliveryMsg" class="hidden" style="margin-top:12px; font-size:13px; color:#6f6f6f;">
+  <p style="margin-top:12px; font-size:13px; color:#6f6f6f;">
     Estimated delivery time: 7 to 10 business days.
   </p>
 
@@ -127,42 +103,24 @@ function readCart(){
   return [];
 }
 
-/**
- * Shipping reader that also indicates whether a user actually selected a shipping option.
- * Selection is considered TRUE if:
- * - We find a shipping entry in localStorage under any of SHIP_KEYS_ORDER (object or numeric string)
- * - OR the URL contains a ?shipping= parameter (even if it's 0, for free shipping cases)
- * Otherwise, selection is FALSE.
- */
+// Shipping: first key that contains an object/number; else try ?shipping=; else 0
 function readShipping(){
-  // Check URL first
-  const url = new URL(location.href);
-  const hasParam = url.searchParams.has('shipping');
-  const q = url.searchParams.get('shipping');
-  const qNum = q !== null ? Number(q) : NaN;
-  if(hasParam){
-    const label = (qNum === 10) ? 'Tracked (€10)' : (qNum === 7) ? 'Untracked (€7)' : 'Shipping';
-    return { amount: Number.isNaN(qNum) ? 0 : qNum, label, selected: true };
-  }
-
-  // Check localStorage keys
   for(const k of SHIP_KEYS_ORDER){
-    const json = readJSON(k);
-    if(json && typeof json === 'object'){
-      const amt = Number(json.amount) || 0;
-      const label = json.label || 'Shipping';
-      return { amount: amt, label, selected: true };
+    const v = readJSON(k);
+    if(v && typeof v === 'object' && typeof v.amount === 'number'){
+      return { amount: Number(v.amount)||0, label: v.label || 'Shipping' };
     }
     const raw = localStorage.getItem(k);
-    if(raw !== null){ // key exists (could be "0" for free shipping)
-      const amt = Number(raw);
-      const isNum = !isNaN(amt);
-      return { amount: isNum ? amt : 0, label:'Shipping', selected: true };
+    if(raw && !isNaN(Number(raw))){
+      return { amount: Number(raw), label:'Shipping' };
     }
   }
-
-  // Nothing found = not selected
-  return { amount: 0, label: 'Shipping', selected: false };
+  const q = new URLSearchParams(location.search).get('shipping');
+  const qNum = q !== null ? Number(q) : NaN;
+  if(!Number.isNaN(qNum)){
+    return { amount: qNum, label: qNum === 10 ? 'Tracked (€10)' : (qNum === 7 ? 'Untracked (€7)' : 'Shipping') };
+  }
+  return { amount: 0, label: 'Shipping' };
 }
 
 // Normalize product fields (title/price/qty) for different cart formats
@@ -191,19 +149,10 @@ function renderSummary(){
               </div>`;
     }).join('');
   }
-
   const ship = readShipping();
   document.getElementById('subtotalValue').textContent = fmtEUR(subtotal);
   document.getElementById('shippingLabel').textContent = ship.label || 'Shipping';
   document.getElementById('shippingValue').textContent = fmtEUR(ship.amount || 0);
-
-  // Show/hide estimated delivery message depending on selection
-  const deliveryMsg = document.getElementById('deliveryMsg');
-  if(ship.selected){
-    deliveryMsg.classList.remove('hidden');
-  }else{
-    deliveryMsg.classList.add('hidden');
-  }
 
   let effectiveTotal = 0;
   const helper = document.getElementById('helperMsg');
@@ -226,7 +175,7 @@ function renderSummary(){
 
 const state = renderSummary();
 
-// Common config for PayPal Buttons
+// Função comum de config
 function commonConfig(){
   return {
     onClick: function(data, actions){
@@ -241,7 +190,7 @@ function commonConfig(){
       const { subtotal, shipping, total } = renderSummary();
       if(subtotal <= 0){ throw new Error('Empty subtotal'); }
 
-      // Build items for PayPal
+      // montar os items pro PayPal
       const items = cart.map(item => ({
         name: item.title,
         unit_amount: {
@@ -275,7 +224,7 @@ function commonConfig(){
     onApprove: function(data, actions){
       return actions.order.capture().then(function(details){
         alert('✅ Payment completed by ' + (details?.payer?.name?.given_name || 'customer') + '!');
-        // Clear cart
+        // limpar carrinho
         CART_KEYS_ORDER.forEach(k=>localStorage.removeItem(k));
         document.getElementById('cartList').innerHTML = '<p style="color:var(--olive);text-align:center;">Payment Approved!</p>';
         document.getElementById('subtotalValue').textContent = fmtEUR(0);
@@ -283,14 +232,13 @@ function commonConfig(){
         document.getElementById('totalAmount').textContent = '0.00';
         document.getElementById('paypal-button-paypal').classList.add('hidden');
         document.getElementById('paypal-button-card').classList.add('hidden');
-        document.getElementById('deliveryMsg').classList.add('hidden');
       });
     },
     onError: function(err){ console.error('PayPal error:', err); alert('❌ There was an issue with PayPal Checkout. Please try again.'); }
   };
 }
 
-// Render PayPal buttons
+// render dos botões
 if(typeof paypal !== 'undefined' && state.subtotal > 0){
   const btnPayPal = paypal.Buttons(Object.assign({}, commonConfig(), {
     fundingSource: paypal.FUNDING.PAYPAL,
