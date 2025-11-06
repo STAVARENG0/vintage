@@ -481,12 +481,26 @@ function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'
 function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
 let cart = loadCart();
 function addToCart(productId){
-  const product = currentList.find(p => String(p.id) === String(productId));
+const product = currentList && Array.isArray(currentList)
+    ? currentList.find(p => String(p.id) === String(productId))
+    : null;
   if(!product) return;
-  const existing = cart.find(item => item.id === product.id);
-  if(existing){ existing.qty++; } else { cart.push({...product, qty: 1}); }
+  const max = Number(product.stock) || 0;
+  if (max <= 0){ return; } // out of stock
+
+  if (!Array.isArray(cart)) window.cart = cart = [];
+  const existing = cart.find(it => String(it.id) == String(product.id));
+  if (existing){
+    if (existing.qty >= max){
+      try { alert('Limite de estoque atingido para este item.'); } catch(_) {}
+      return;
+    }
+    existing.qty += 1;
+  } else {
+    cart.push({ ...product, qty: 1 });
+  }
   saveCart(cart);
-  updateCartIcon();
+  if (typeof updateCartIcon === 'function'){ updateCartIcon(); }
 }
 function updateCartIcon(){
   const countEl = document.getElementById('cartCount');
@@ -534,13 +548,25 @@ function openCart(){
 }
 function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
 function changeQty(id, delta){
-  const item = cart.find(p => p.id === id);
+const item = cart && cart.find(p => p.id === id);
   if(!item) return;
+  const max = Number(item.stock) || 0;
+  if (delta > 0){
+    if (max <= 0){ return; }
+    if (item.qty >= max){
+      try { alert('Limite de estoque atingido para este item.'); } catch(_) {}
+      return;
+    }
+  }
   item.qty += delta;
-  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  if(item.qty <= 0){
+    cart = cart.filter(p => p.id !== id);
+  } else if (max > 0 && item.qty > max){
+    item.qty = max;
+  }
   saveCart(cart);
-  openCart();
-  updateCartIcon();
+  if (typeof openCart === 'function'){ openCart(); }
+  if (typeof updateCartIcon === 'function'){ updateCartIcon(); }
 }
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-action="add-to-cart"]');
