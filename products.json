@@ -284,5 +284,17 @@
     "gallery": [],
     "createdAt": 1762445916300,
     "status": "published"
+  },
+  {
+    "id": "1762449000028",
+    "title": "Vintage U.S. Polo Assn. t-shirt in size XL.",
+    "price": 15,
+    "description": "Vintage U.S. Polo Assn. t-shirt in size XL.\nNavy blue cotton tee featuring a distressed American flag print on the front. Soft, comfortable fabric with natural wear that gives it an authentic vintage look and casual charm.",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762449000028/F831F62F-66F6-4E4E-BA3D-865FD84E8777.png",
+    "gallery": [],
+    "createdAt": 1762449001769,
+    "status": "published"
   }
 ]
