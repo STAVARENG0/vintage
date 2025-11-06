@@ -146,5 +146,17 @@
     ],
     "createdAt": 1762435599299,
     "status": "published"
+  },
+  {
+    "id": "1762436098585",
+    "title": "Nightway Navy Blue Lace and Ruffle Cocktail Dress – Size 8",
+    "price": 25,
+    "description": "Elegant Nightway cocktail dress in navy blue, featuring a fitted lace bodice embellished with subtle sequins and a halter neckline with back tie detail. The voluminous ruffled skirt adds a dramatic and feminine touch, perfect for evening events or special occasions. Its vintage pre-owned condition gives it unique charm and authenticity.\nSpecifications:\n\t•\tBrand: Nightway\n\t•\tModel: Lace & Ruffle Cocktail Dress\n\t•\tSize: 8 (US)\n\t•\tColor: Navy Blue\n\t•\tMaterial: Polyester with lace and sequin detailing\n\t•\tCondition: Used / Vintage – in good condition\n",
+    "category": "women",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762436098585/0DE36BD1-9CA2-4260-BD56-C1FEBF5F3066.png",
+    "gallery": [],
+    "createdAt": 1762436100054,
+    "status": "published"
   }
 ]
