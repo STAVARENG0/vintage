@@ -449,12 +449,16 @@ header{ text-align:center; }
 </div>
 </div>
 <script>
-
-
 const PUBLIC_JSON = './products.json';
 const grid = document.getElementById('products');
 let currentList = [];
-function fmtEUR(n){
+function 
+
+
+  <!-- Social buttons (added above the search bar) -->
+  
+
+fmtEUR(n){
   const v = Number(n);
   if(Number.isNaN(v)) return '€ ' + (n ?? '');
   if(Number.isInteger(v)) return '€ ' + v;
@@ -531,10 +535,20 @@ function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'
 function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
 let cart = loadCart();
 function addToCart(productId){
-  const product = currentList.find(p => String(p.id) === String(productId));
+const product = currentList.find(p => String(p.id) === String(productId));
   if(!product) return;
+  const max = Number(product.stock) || 0;
+  if (max <= 0){ return; }
   const existing = cart.find(item => item.id === product.id);
-  if(existing){ existing.qty++; } else { cart.push({...product, qty: 1}); }
+  if(existing){
+    if (existing.qty >= max){
+      try { alert('Limite de estoque atingido para este item.'); } catch(_) {}
+      return;
+    }
+    existing.qty++;
+  } else {
+    cart.push({...product, qty: 1});
+  }
   saveCart(cart);
   updateCartIcon();
 }
@@ -579,7 +593,7 @@ function openCart(){
 }
 function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
 function changeQty(id, delta){
-  const item = cart.find(p => p.id === id);
+const item = cart.find(p => p.id === id);
   if(!item) return;
   const max = Number(item.stock) || 0;
   if (delta > 0){
@@ -590,16 +604,13 @@ function changeQty(id, delta){
     }
   }
   item.qty += delta;
-  if(item.qty <= 0){
-    cart = cart.filter(p => p.id !== id);
-  } else if (max > 0 && item.qty > max){
-    item.qty = max;
-  }
+  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  else if (max > 0 && item.qty > max){ item.qty = max; }
   saveCart(cart);
   openCart();
   updateCartIcon();
 }
-document.addEventListener('click'document.addEventListener('click', function(e){
+document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-action="add-to-cart"]');
   if(!btn) return;
   e.preventDefault();
@@ -628,29 +639,63 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 <script>
-// Safe minimal cart totals helper (replaces corrupted block)
 (function(){
-  function fmtEUR(n){
-    const v = Number(n);
-    if(Number.isNaN(v)) return '€ ' + (n ?? '');
-    if(Number.isInteger(v)) return '€ ' + v;
-    return '€ ' + String(v.toFixed ? v.toFixed(2) : v);
+  function getCartSubtotal(){
+    const items = Array.from(document.querySelectorAll('.cart-item'));
+    let sum = 0;
+    items.forEach(item => {
+      const priceEl = item.querySelector('[data-price]');
+      const qtyEl = item.querySelector('input[type="number"]');
+      let price = 0;
+      let qty = 1;
+      if (priceEl){
+        price = parseFloat((priceEl.getAttribute('data-price')||'0').replace(',', '.'));
+      } else {
+        const m = (item.textContent||'').match(/€\s*([\d,.]+)/);
+        if (m) price = parseFloat(m[1].replace(',', '.'));
+      }
+      if (qtyEl) qty = parseInt(qtyEl.value || '1', 10);
+      if (!isNaN(price) && !isNaN(qty)) sum += price * qty;
+    });
+    return sum;
   }
   function updateTotals(){
-    // compute subtotal from global 'cart' if available
-    try{
-      const subtotal = Array.isArray(window.cart) ? window.cart.reduce((m, it)=> m + Number(it.price||0)*Number(it.qty||0), 0) : 0;
-      const el = document.getElementById('cartTotal');
-      if(el){ el.textContent = fmtEUR(subtotal); }
-    }catch(e){}
+  let subtotal = getCartSubtotal();
+  const totalEl = document.getElementById('cartTotal');
+  if(totalEl){ totalEl.textContent = fmtEUR(subtotal); }
+}
+
+
+    if (shipVal){
+      shipVal.textContent = '€' + shipping.toFixed(0);
+    }
+
+    const grand = subtotal + shipping;
+
+    let totalValueEl = document.querySelector('#cart-grand-total');
+    if (!totalValueEl){
+      const totalEl = document.querySelector('.cart-total span:last-child');
+      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
+    }
+    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
   }
+
+  document.addEventListener('change', function(e){
+    /* delivery method removed */
+    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
+      updateTotals();
+    }
+  });
+
+  const ready = () => { updateTotals(); };
   if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', updateTotals);
+    document.addEventListener('DOMContentLoaded', ready);
   } else {
-    updateTotals();
+    ready();
   }
   window.updateCartTotalsWithShipping = updateTotals;
-})();</script>
+})();
+</script>
 <!-- ==== VModal (clean build) ==== -->
 <div aria-hidden="true" class="vmodal" id="vModal">
 <div aria-labelledby="vmTitle" aria-modal="true" class="vmodal__dialog" role="dialog">
@@ -669,8 +714,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 </div>
 <script>
-
-
 
 // ==== VModal behavior (clean) ====
 (function(){
