@@ -170,5 +170,17 @@
     "gallery": [],
     "createdAt": 1762436608064,
     "status": "published"
+  },
+  {
+    "id": "1762437503656",
+    "title": "Vintage Brown Leather Handbag",
+    "price": 75,
+    "description": "\nElegant vintage brown leather handbag crafted from genuine leather, featuring a structured design with a front flap pocket and a distinctive bow-shaped buckle detail. The rich patina and natural creases highlight its authentic vintage character. Designed with sturdy rolled handles and fine stitching, this piece combines timeless sophistication with the charm of a well-preserved leather finish",
+    "category": "women",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762437503656/197ACFEF-FD1D-42D6-8B58-129F7010E484.png",
+    "gallery": [],
+    "createdAt": 1762437505401,
+    "status": "published"
   }
 ]
