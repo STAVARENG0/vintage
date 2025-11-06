@@ -357,6 +357,38 @@ header{ text-align:center; }
 }
 .vmodal__close:hover{ filter:brightness(1.1); }
 
+
+/* === Social buttons above the search bar === */
+.social-buttons{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin:6px 0 4px; }
+.social-btn{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:9999px; font-weight:700; font-size:12px; text-decoration:none; border:1px solid rgba(0,0,0,.08); box-shadow:0 2px 8px rgba(0,0,0,.08); transition: transform .18s ease, filter .18s ease; color:#fff; }
+.social-btn:hover{ transform: translateY(-1px); filter: brightness(1.06); }
+.social-btn svg{ width:14px; height:14px; display:block; }
+
+/* Instagram uses site theme */
+.social-instagram{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: var(--text);
+}
+
+/* TikTok uses site theme */
+.social-tiktok{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-color: rgba(0,0,0,.06);
+  color: var(--text);
+}
+.social-tiktok .accent{ display:inline-block; width:6px; height:6px; border-radius:50%; background:#25F4EE; box-shadow: 10px 0 0 #FE2C55; margin-right:2px; }
+
+/* WhatsApp uses site theme */
+.social-whatsapp{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: var(--text);
+}
+
+/* Compact on small screens */
+@media (max-width: 600px){ .social-buttons{ margin-top:4px; gap:4px; } .social-btn{ padding:3px 7px; font-size:11px; } }
+  .social-btn{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:9999px; font-weight:700; font-size:12px; text-decoration:none; border:1px solid rgba(0,0,0,.08); box-shadow:0 2px 8px rgba(0,0,0,.08); transition: transform .18s ease, filter .18s ease; color:#fff; }
+}
+
 </style>
 </head>
 <body>
@@ -364,7 +396,22 @@ header{ text-align:center; }
 <div class="card">
 <div class="admin-btn-modal"><a href="login.html">Admin</a></div>
 <header>
-<div class="brand"><svg aria-label="WELCOME" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">WELCOME</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1><div class="tagline">clothes shop</div><div class="search-box">
+<div class="brand"><svg aria-label="WELCOME" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">WELCOME</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1><div class="tagline">clothes shop</div>
+<div class="social-buttons" aria-label="Redes sociais">
+    <a class="social-btn social-instagram" href="https://www.instagram.com/vintageclothes.ie?igsh=emtmYjV1NGF6ZGZk&utm_source=qr" target="_blank" rel="noopener noreferrer" aria-label="Instagram Vintage Clothes">
+      <!-- IG glyph -->
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="white" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.51 5.51 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zM18 6.75a1.25 1.25 0 1 1 1.25-1.25A1.25 1.25 0 0 1 18 6.75z"/></svg>
+      Instagram
+    </a>
+    <a class="social-btn social-tiktok" href="https://www.tiktok.com/@vintageclotheshop?_r=1&_t=ZN-91AXxCjWlmg" target="_blank" rel="noopener noreferrer" aria-label="TikTok Vintage Clothes">
+      <span class="accent" aria-hidden="true"></span> TikTok
+    </a>
+    <a class="social-btn social-whatsapp" href="https://wa.me/353873452167" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp Vintage Clothes">
+      <!-- WhatsApp glyph -->
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="white" d="M20.52 3.48A11.87 11.87 0 0 0 12.06 0C5.5 0 .21 5.29.21 11.85c0 2.09.55 4.14 1.59 5.95L0 24l6.36-1.74a11.83 11.83 0 0 0 5.7 1.46h.01c6.56 0 11.85-5.29 11.85-11.85 0-3.17-1.24-6.16-3.4-8.35zM12.07 21.3h-.01a9.5 9.5 0 0 1-4.85-1.33l-.35-.2-3.77 1.03 1.01-3.67-.23-.38a9.49 9.49 0 0 1-1.44-5.02c0-5.25 4.27-9.51 9.52-9.51 2.54 0 4.93.99 6.73 2.79a9.46 9.46 0 0 1 2.79 6.72c0 5.25-4.27 9.52-9.52 9.52zm5.5-7.01c-.3-.15-1.77-.87-2.05-.97-.27-.09-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.18.2-.35.22-.65.07-.3-.15-1.28-.47-2.44-1.49a9.12 9.12 0 0 1-1.68-2.07c-.18-.3 0-.46.13-.61.13-.13.3-.35.46-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.6-.92-2.2-.24-.58-.5-.5-.67-.5h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.07 2.9 1.22 3.1c.15.2 2.1 3.2 5.1 4.49.71.31 1.26.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.08-.12-.27-.2-.57-.35z"/></svg>
+      WhatsApp
+    </a>
+  </div><div class="search-box">
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
@@ -420,7 +467,13 @@ header{ text-align:center; }
 const PUBLIC_JSON = './products.json';
 const grid = document.getElementById('products');
 let currentList = [];
-function fmtEUR(n){
+function 
+
+
+  <!-- Social buttons (added above the search bar) -->
+  
+
+fmtEUR(n){
   const v = Number(n);
   if(Number.isNaN(v)) return '€ ' + (n ?? '');
   if(Number.isInteger(v)) return '€ ' + v;
