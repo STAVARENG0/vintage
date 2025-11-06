@@ -314,8 +314,6 @@ header{ text-align:center; }
 }
 
 </style>
-
-
 <style>
 .vmodal{ display:none; position:fixed; inset:0; background: transparent;
   z-index: 10000; align-items:center; justify-content:center; padding:18px; }
@@ -359,8 +357,6 @@ header{ text-align:center; }
 
 
 </style>
-
-
 <style>
 /* make product cards appear clickable */
 .product { cursor: pointer; }
@@ -375,9 +371,9 @@ header{ text-align:center; }
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
-<a class="pill-btn" href="index.html"">Home</a>
-<a class="pill-btn" href="woman.html"">Woman</a>
-<a class="pill-btn" href="man.html"">Man</a>
+<a "="" class="pill-btn" href="index.html">Home</a>
+<a "="" class="pill-btn" href="woman.html">Woman</a>
+<a "="" class="pill-btn" href="man.html">Man</a>
 </div>
 </div>
 </header>
@@ -397,27 +393,7 @@ header{ text-align:center; }
 <h2>Your Cart</h2>
 <div id="cartItems" style="margin:12px 0;"></div>
 <hr class="cart-divider" style="margin:12px 0;"/>
-
-    <div id="shipping-options" style="margin:12px 0 10px; padding:10px; border:1px dashed rgba(0,0,0,0.12); border-radius:10px;">
-      <div style="font-weight:800; margin-bottom:8px;">Delivery / Pickup</div>
-      <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px; cursor:pointer;">
-        <input type="radio" name="deliveryMethod" value="shipping" checked />
-        <span data-price="9">Shipping (€9)</span>
-      </label>
-      <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
-        <input type="radio" name="deliveryMethod" value="pickup" />
-        <span>
-          Pickup<br/>
-          <small style="display:block; color:#555;">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</small>
-        </span>
-      </label>
-    </div>
-    
-      <div class="cart-total" id="shipping-row" style="font-weight:600;">
-        <span>Shipping </span>
-        <span id="shipping-value" data-price="9">€9</span>
-      </div>
-    <div class="cart-total">
+<div class="cart-total">
 <span>Total:</span>
 <span id="cartTotal">€ --</span>
 </div>
@@ -598,20 +574,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 (async function init(){
-  // Load public products then filter to only show 'Woman' category on this page
   currentList = await readPublic();
-  // Accept common variants (woman / women), case-insensitive
-  currentList = currentList.filter(p => {
-    const cat = String(p.category || '').trim().toLowerCase();
-    return cat === 'woman' || cat === 'women';
-  });
   currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
   render(currentList);
   document.getElementById('year').textContent = new Date().getFullYear();
   updateCartIcon();
 })();
 </script>
-
 <script>
 (function(){
   function getCartSubtotal(){
@@ -669,24 +638,22 @@ document.addEventListener('DOMContentLoaded', () => {
   window.updateCartTotalsWithShipping = updateTotals;
 })();
 </script>
-
-<div class="vmodal" id="vModal" aria-hidden="true">
-  <div class="vmodal__dialog" role="dialog" aria-modal="true" aria-labelledby="vmTitle">
-    <button class="vmodal__close" id="vmClose" aria-label="Fechar">✕</button>
-    <div class="vmodal__left">
-      <div class="vmodal__main"><img id="vmMain" alt=""></div>
-      <div class="vmodal__thumbs" id="vmThumbs"></div>
-    </div>
-    <div class="vmodal__right">
-      <h3 class="vmodal__title" id="vmTitle"></h3>
-      <div class="vmodal__price" id="vmPrice"></div>
-      <div class="vmodal__meta" id="vmMeta"></div>
-      <div class="vmodal__desc" id="vmDesc"></div>
-      <div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
-    </div>
-  </div>
+<div aria-hidden="true" class="vmodal" id="vModal">
+<div aria-labelledby="vmTitle" aria-modal="true" class="vmodal__dialog" role="dialog">
+<button aria-label="Fechar" class="vmodal__close" id="vmClose">✕</button>
+<div class="vmodal__left">
+<div class="vmodal__main"><img alt="" id="vmMain"/></div>
+<div class="vmodal__thumbs" id="vmThumbs"></div>
 </div>
-
+<div class="vmodal__right">
+<h3 class="vmodal__title" id="vmTitle"></h3>
+<div class="vmodal__price" id="vmPrice"></div>
+<div class="vmodal__meta" id="vmMeta"></div>
+<div class="vmodal__desc" id="vmDesc"></div>
+<div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
+</div>
+</div>
+</div>
 <script>
 
 // ==== VModal behavior (clean) ====
@@ -804,6 +771,35 @@ document.addEventListener('DOMContentLoaded', () => {
 });})();
 
 </script>
-
 </body>
-</html>
+</html><script>
+(function(){
+  function _fmt(n){ try{ return '€ ' + Number(n).toFixed(2).replace('.00',''); }catch(e){ return '€ ' + n; } }
+  const _open = window.openCart;
+  window.openCart = function(){
+    try{ _open(); }catch(e){ /* ignore */ }
+    var totalEl = document.getElementById('cartTotal');
+    if(totalEl){
+      // Try to recompute subtotal from current rows if available
+      var sum = 0;
+      document.querySelectorAll('.cart-item [data-price]').forEach(function(el){
+        var price = parseFloat((el.getAttribute('data-price')||'0').replace(',', '.')) || 0;
+        var qtyEl = el.closest('.cart-item').querySelector('input[type="number"]');
+        var qty = qtyEl ? parseInt(qtyEl.value||'1',10) : 1;
+        sum += price * qty;
+      });
+      totalEl.textContent = _fmt(sum);
+    }
+    var modal = document.getElementById('cartModal');
+    if(modal){ modal.style.display = 'flex'; }
+  };
+  var checkoutBtn = document.querySelector('.cart-checkout');
+  if(checkoutBtn){
+    checkoutBtn.addEventListener('click', function(){
+      try{ localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() })); }catch(e){}
+      var cartJSON = JSON.stringify(window.cart || []);
+      window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
+    });
+  }
+})();
+</script>
