@@ -196,5 +196,19 @@
     ],
     "createdAt": 1762438436947,
     "status": "published"
+  },
+  {
+    "id": "1762439360686",
+    "title": "Guess Black Faux Fur Hooded Parka – Fits Sizes S/M",
+    "price": 65,
+    "description": "Stylish Guess winter parka in black, featuring a detachable faux fur hood and a distinctive branded inner lining with “Guess Los Angeles” lettering. Designed with a front zipper and snap button closure, multiple flap and zip pockets, and ribbed cuffs for added warmth and comfort. This vintage parka offers both practicality and timeless urban style, with light signs of wear that highlight its authentic character.",
+    "category": "women",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762439360686/AB0A7CE1-E04D-4E65-AAB9-7A3CB4E491F0.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762439360686/CA5CB594-FD9B-4F33-8461-E34A0216214B.png"
+    ],
+    "createdAt": 1762439363930,
+    "status": "published"
   }
 ]
