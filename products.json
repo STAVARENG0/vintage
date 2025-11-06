@@ -196,5 +196,19 @@
     ],
     "createdAt": 1762439363930,
     "status": "published"
+  },
+  {
+    "id": "1762439923098",
+    "title": "The North Face Navy USA Graphic Hoodie – Size M",
+    "price": 25,
+    "description": "Vintage The North Face navy hoodie with bold USA print on the sleeve and graphic design on the back. Made from soft fleece cotton blend, featuring a relaxed fit, drawstring hood, and kangaroo pocket. A comfortable streetwear piece with authentic vintage character.",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762439923098/5BA10CEF-4B4D-47B8-8408-070C3BEC60D1.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762439923098/C94AA639-1B86-4C74-92D7-A211CA7E8810.png"
+    ],
+    "createdAt": 1762439928774,
+    "status": "published"
   }
 ]
