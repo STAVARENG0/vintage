@@ -1,12 +1,13 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Checkout</title>
-<link rel="icon" href="data:,">
-<link rel="shortcut icon" href="data:,">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="data:," rel="icon"/>
+<link href="data:," rel="shortcut icon"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
 <style>
 :root{
   --cream:#f6f1e7;
@@ -54,32 +55,24 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 </style>
 </head>
 <body>
-
 <div class="checkout-card">
-  <img src="LOGO.png" alt="Checkout" class="logo">
-  <h1>Checkout</h1>
+<img alt="Checkout" class="logo" src="LOGO.png"/>
+<h1>Checkout</h1>
+<div class="items" id="cartList"></div>
+<div class="summary">
+<div class="row"><span class="label">Products Subtotal</span><span class="value" id="subtotalValue">€ 0.00</span></div>
+<div class="row"><span class="label" id="shippingLabel">Shipping</span><span class="value" id="shippingValue">€ 0.00</span></div>
+<div class="row total">Total: € <span id="totalAmount">0.00</span></div>
+</div><div id="deliveryPickup" style="margin:14px 0; text-align:left; border:1px dashed rgba(0,0,0,.12); border-radius:10px; padding:12px;"><div style="font-weight:800; margin-bottom:8px;">Delivery / Pickup</div><label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:8px;"><input name="deliveryMethod" type="radio" value="shipping"/><span>Shipping (€9)<br/><div style="font-size:12px; color:#6f6f6f;">Estimated delivery time: 7 to 10 business days.</div></span></label><label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;"><input name="deliveryMethod" type="radio" value="pickup"/><span>Pickup<br/><div style="font-size:12px; color:#6f6f6f;">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</div></span></label></div>
 
-  <div class="items" id="cartList"></div>
-  <div class="summary">
-    <div class="row"><span class="label">Products Subtotal</span><span class="value" id="subtotalValue">€ 0.00</span></div>
-    <div class="row"><span class="label" id="shippingLabel">Shipping</span><span class="value" id="shippingValue">€ 0.00</span></div>
-    <div class="row total">Total: € <span id="totalAmount">0.00</span></div>
-  </div>
-
-  <p style="margin-top:12px; font-size:13px; color:#6f6f6f;">
-    Estimated delivery time: 7 to 10 business days.
-  </p>
-
-  <div id="paypal-section">
-    <div id="paypal-button-paypal"></div>
-    <div id="paypal-button-card"></div>
-    <div id="helperMsg" class="helper hidden">Add products to your cart to enable payment.</div>
-  </div>
-
-  <footer>© <span id="year"></span> Checkout</footer>
+<div id="paypal-section">
+<div id="paypal-button-paypal"></div>
+<div id="paypal-button-card"></div>
+<div class="helper hidden" id="helperMsg">Add products to your cart to enable payment.</div>
 </div>
-
-<script src="https://www.paypal.com/sdk/js?client-id=AfTde7kvXeDpijvvMVxUcfb7b-XIQgWMnQ8W2rcUd8PX5wyHAddc-Xf0_VG_wLUVl0dNw_9HXAzpo6dt&currency=EUR&intent=capture&commit=true&locale=en_IE&components=buttons,funding-eligibility&enable-funding=card"></script>
+<footer>© <span id="year"></span> Checkout</footer>
+</div>
+<script src="https://www.paypal.com/sdk/js?client-id=AfTde7kvXeDpijvvMVxUcfb7b-XIQgWMnQ8W2rcUd8PX5wyHAddc-Xf0_VG_wLUVl0dNw_9HXAzpo6dt¤cy=EUR&amp;intent=capture&amp;commit=true&amp;locale=en_IE&amp;components=buttons,funding-eligibility&amp;enable-funding=card"></script>
 <script>
 // ===== Keys used by the site =====
 const CART_KEYS_ORDER = ['vw_cart','hs_cart','cart','v_cart','cartItems','cart_items','cartData'];
@@ -253,6 +246,35 @@ if(typeof paypal !== 'undefined' && state.subtotal > 0){
   if(btnCard.isEligible()) btnCard.render('#paypal-button-card');
 }
 </script>
-
-</body>
+<script>
+(function(){
+  function setShipping(amount, label){
+    try {
+      localStorage.setItem('vw_shipping', JSON.stringify({ amount: amount, label: label, ts: Date.now() }));
+    } catch(e){}
+  }
+  function initRadios(){
+    var shipAmount = 0;
+    try {
+      var v = JSON.parse(localStorage.getItem('vw_shipping'));
+      if (v && typeof v.amount === 'number') shipAmount = v.amount;
+    } catch(e){}
+    var q = new URLSearchParams(location.search).get('shipping');
+    var qNum = q !== null ? Number(q) : NaN;
+    if(!Number.isNaN(qNum)) shipAmount = qNum;
+    var shipInput = document.querySelector('input[name="deliveryMethod"][value="shipping"]');
+    var pickInput = document.querySelector('input[name="deliveryMethod"][value="pickup"]');
+    if(shipAmount >= 9 && shipInput){ shipInput.checked = true; }
+    else if(pickInput){ pickInput.checked = true; }
+  }
+  document.addEventListener('change', function(e){
+    if(e.target && e.target.name === 'deliveryMethod'){
+      if(e.target.value === 'shipping'){ setShipping(9, 'Shipping (€9)'); }
+      else { setShipping(0, 'Pickup'); }
+      try { if(typeof renderSummary === 'function') renderSummary(); } catch(err){}
+    }
+  });
+  document.addEventListener('DOMContentLoaded', initRadios);
+})();
+</script></body>
 </html>
