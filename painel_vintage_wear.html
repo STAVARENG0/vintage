@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Vintage Wear — Admin Panel</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  :root { --black:#0d0d0d; --white:#ffffff; --orange:#f1b332; --card:#1a1a1a; --dark:#0f1a1c; --green:#28a745; --red:#c0392b; }
+  :root { --black:#0d0d0d; --white:#ffffff; --orange:#f1b332; --card:#1a1a1a; --dark:#0f1a1c; --green:#28a745; }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
   body { background: var(--black); color: var(--white); padding: 20px; }
   h1 { text-align: center; margin-bottom: 20px; color: var(--orange); }
@@ -43,9 +43,7 @@
   .preview input[type="radio"] { position: absolute; top: 4px; left: 4px; transform: scale(1.2); }
 
   .alert { margin-top: 10px; padding: 10px; border-radius: 6px; text-align: center; display: none; }
-  .alert.success { background: var(--green); color: white; display: none; }
-  .alert.info { background: var(--orange); color: #000; display: none; }
-  .alert.error { background: var(--red); color: white; display: none; }
+  .alert.success { background: var(--green); color: white; }
 
   .config-btn {
     display:block; margin:0 auto 20px; background:var(--orange); border:none; color:#fff;
@@ -93,8 +91,7 @@
       <input accept="image/*" id="fotos" multiple type="file"/>
       <div class="preview-container" id="preview"></div>
 
-      <button type="submit" id="addBtn">Add Product</button>
-      <div class="alert info" id="statusMessage">⏳ Enviando...</div>
+      <button type="submit">Add Product</button>
       <div class="alert success" id="alertBox">✅ Product saved to GitHub!</div>
     </form>
   </div>
@@ -129,7 +126,7 @@
         for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
         return new TextDecoder().decode(bytes);
       }
-      return decodeURIComponent(escape(atob(b64 || '')));
+      return decodeURIComponent(escape(atob(b64)));
     }catch(e){ return atob(b64 || ''); }
   }
   function encodeBase64Utf8(str){
@@ -197,7 +194,7 @@
     const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
     if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){
       alert("GitHub configuration is incomplete!");
-      return false;
+      return;
     }
     const url = `https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}`;
     let sha = null;
@@ -229,34 +226,26 @@
     const body = { message: "Update products.json via panel", branch: cfg.branch, content: novoConteudo };
     if(sha) body.sha = sha;
 
-    try {
-      const putRes = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${cfg.token}`,
-          "Accept": "application/vnd.github+json",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
+    const putRes = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Authorization": `token ${cfg.token}`,
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
 
-      if(putRes.ok){
-        // show success briefly (caller may also show)
-        const box = document.getElementById("alertBox");
-        box.textContent = "✅ Enviado — publicação concluída!";
-        box.classList.add("success");
-        box.style.display = "block";
-        setTimeout(()=> box.style.display="none", 3000);
-        try { await carregarProdutosGitHub(); } catch(_) {}
-        return true;
-      } else {
-        const txt = await putRes.text().catch(()=> "");
-        alert("Error saving to GitHub: " + putRes.status + (txt ? "\n" + txt : ""));
-        return false;
-      }
-    } catch(e){
-      alert("Error saving to GitHub: " + e.message);
-      return false;
+    if(putRes.ok){
+      const box = document.getElementById("alertBox");
+      box.textContent = "✅ Product saved to GitHub!";
+      box.classList.add("success");
+      box.style.display = "block";
+      setTimeout(()=> box.style.display="none", 3000);
+      try { await carregarProdutosGitHub(); } catch(_) {}
+    } else {
+      const txt = await putRes.text().catch(()=> "");
+      alert("Error saving to GitHub: " + putRes.status + (txt ? "\n" + txt : ""));
     }
   }
 
@@ -288,45 +277,8 @@
     return uploadedLinks;
   }
 
-  // download current products.json (from memory or GitHub) and trigger browser download
-  async function downloadProductsJson(){
-    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
-    let content = null;
-    if(produtos && produtos.length){
-      content = JSON.stringify(produtos, null, 2);
-    } else if(cfg.repo && cfg.branch && cfg.path && cfg.token){
-      try{
-        const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, {
-          headers: { Authorization: `token ${cfg.token}` }
-        });
-        if(res.ok){
-          const data = await res.json();
-          content = decodeBase64Utf8(data.content || '');
-        } else {
-          content = '[]';
-        }
-      }catch(e){ content = '[]'; }
-    } else {
-      content = '[]';
-    }
-
-    const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'products.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=> URL.revokeObjectURL(url), 1000);
-  }
-
   document.getElementById('formProduto').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const addBtn = document.getElementById('addBtn');
-    const statusMessage = document.getElementById('statusMessage');
-    const alertBox = document.getElementById('alertBox');
-
     const titulo = document.getElementById('titulo').value;
     const valor = Number(document.getElementById('valor').value || 0);
     const descricao = document.getElementById('descricao').value;
@@ -337,65 +289,31 @@
     const produtoId = Date.now().toString();
     const fotos = fotosInput.files;
     const capaIndex = parseInt(document.querySelector('input[name="capa"]:checked')?.value || 0);
+    const uploaded = await uploadImagens(produtoId, fotos);
 
-    // UI: show sending message and disable button
-    statusMessage.textContent = '⏳ Enviando...';
-    statusMessage.classList.remove('error','success');
-    statusMessage.classList.add('info');
-    statusMessage.style.display = 'block';
-    alertBox.style.display = 'none';
-    addBtn.disabled = true;
-    addBtn.textContent = 'Enviando...';
+    const cover = uploaded[capaIndex] || "";
+    const galleryClean = (uploaded || [])
+      .filter(Boolean)
+      .filter((u, i) => i !== capaIndex)
+      .filter((u, idx, arr) => arr.indexOf(u) === idx);
+    const produto = {
+      id: produtoId,
+      title: titulo,
+      price: valor,
+      description: descricao,
+      category: categoria,
+      stock: estoque,
+      image: cover,
+      gallery: galleryClean,
+      createdAt: Date.now(),
+      status: "published"
+    };
 
-    try {
-      const uploaded = await uploadImagens(produtoId, fotos);
-
-      const cover = uploaded[capaIndex] || "";
-      const galleryClean = (uploaded || [])
-        .filter(Boolean)
-        .filter((u, i) => i !== capaIndex)
-        .filter((u, idx, arr) => arr.indexOf(u) === idx);
-      const produto = {
-        id: produtoId,
-        title: titulo,
-        price: valor,
-        description: descricao,
-        category: categoria,
-        stock: estoque,
-        image: cover,
-        gallery: galleryClean,
-        createdAt: Date.now(),
-        status: "published"
-      };
-
-      produtos.push(produto);
-      const ok = await salvarNoGitHub(produtos);
-      if(ok){
-        // success already shown by salvarNoGitHub; hide status and reset form
-        statusMessage.style.display = 'none';
-        document.getElementById('formProduto').reset();
-        document.getElementById('preview').innerHTML = '';
-        renderProdutos();
-      } else {
-        statusMessage.textContent = '❌ Erro ao enviar. Verifique a configuração do GitHub.';
-        statusMessage.classList.remove('info');
-        statusMessage.classList.add('error');
-        statusMessage.style.display = 'block';
-      }
-    } catch(e){
-      statusMessage.textContent = '❌ Falha: ' + (e.message || e);
-      statusMessage.classList.remove('info');
-      statusMessage.classList.add('error');
-      statusMessage.style.display = 'block';
-    } finally {
-      addBtn.disabled = false;
-      addBtn.textContent = 'Add Product';
-      // hide status after a short delay if it is an info message
-      // (errors will remain until next action)
-      if(statusMessage.classList.contains('info')){
-        setTimeout(()=> statusMessage.style.display='none', 3000);
-      }
-    }
+    produtos.push(produto);
+    await salvarNoGitHub(produtos);
+    document.getElementById('formProduto').reset();
+    document.getElementById('preview').innerHTML = '';
+    renderProdutos();
   });
 
   async function excluirProduto(index){
@@ -421,10 +339,9 @@
     <input id="ghPath" placeholder="products.json" style="width:100%; margin-bottom:10px;" type="text"/>
     <label>Personal Access Token</label>
     <input id="ghToken" placeholder="ghp_xxx" style="width:100%; margin-bottom:16px;" type="password"/>
-    <div style="display:flex; gap:10px; justify-content:flex-end; margin-bottom:10px;">
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
       <button id="saveGithubConfig">Save</button>
       <button id="testGithubConfig">Test</button>
-      <button id="downloadProducts" title="Baixar products.json">Download</button>
     </div>
     <div id="ghAlert" style="margin-top:10px; display:none; padding:8px; border-radius:6px; text-align:center;"></div>
   </div>
@@ -437,15 +354,12 @@ window.onload = function(){
   const closeBtn = document.getElementById('closeGithubModal');
   const saveBtn = document.getElementById('saveGithubConfig');
   const testBtn = document.getElementById('testGithubConfig');
-  const downloadBtn = document.getElementById('downloadProducts');
 
   function showGhAlert(msg, success){
     const el = document.getElementById('ghAlert');
     el.textContent = msg;
     el.style.display = 'block';
     el.style.background = success ? '#28a745' : '#c0392b';
-    el.style.color = '#fff';
-    setTimeout(()=> el.style.display='none', 3000);
   }
 
   function loadGithubConfig(){
@@ -486,7 +400,6 @@ window.onload = function(){
   if(closeBtn){ closeBtn.onclick = ()=>{ ghModal.style.display='none'; carregarProdutosGitHub(); }; }
   if(saveBtn){ saveBtn.onclick = saveGithubConfig; }
   if(testBtn){ testBtn.onclick = testGithubConfig; }
-  if(downloadBtn){ downloadBtn.onclick = downloadProductsJson; }
   carregarProdutosGitHub();
 };
 </script>
