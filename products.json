@@ -118,5 +118,19 @@
     ],
     "createdAt": 1762433532459,
     "status": "published"
+  },
+  {
+    "id": "1762435184553",
+    "title": "Converse Camouflage ",
+    "price": 35,
+    "description": "\t•\tBrand: Converse\n\t•\tModel: High-Top Sneakers\n\t•\tSize: EUR 42\n\t•\tColor: Camouflage (Green/Brown)\n\t•\tMaterial: Canvas & Rubber\n\t•\tCondition: Used / Vintage – in good condition\n",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762435184553/873A8CE8-D2D6-4E6E-AA15-16ACAD77C0EF.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762435184553/IMG_2962.jpeg"
+    ],
+    "createdAt": 1762435187652,
+    "status": "published"
   }
 ]
