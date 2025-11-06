@@ -260,5 +260,17 @@
     "gallery": [],
     "createdAt": 1762445437372,
     "status": "published"
+  },
+  {
+    "id": "1762445754581",
+    "title": "Vintage Guess black graphic t-shirt in size S.",
+    "price": 15,
+    "description": "Vintage Guess black graphic t-shirt in size S.\nFeatures bold red and white textured lettering with “Finest Denim – 1981 L.A. California” design on the front. Soft cotton fabric with natural signs of wear, adding authentic vintage charm.",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762445754581/62231325-6647-49DA-85A9-6093097D9116.png",
+    "gallery": [],
+    "createdAt": 1762445756043,
+    "status": "published"
   }
 ]
