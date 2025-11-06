@@ -272,5 +272,17 @@
     "gallery": [],
     "createdAt": 1762445756043,
     "status": "published"
+  },
+  {
+    "id": "1762445914770",
+    "title": "Vintage Nike x NBA Houston Rockets t-shirt in size S.",
+    "price": 15,
+    "description": "Vintage Nike x NBA Houston Rockets t-shirt in size S.\nClassic red tee featuring the bold Rockets logo in black and white on the front. Made from soft cotton fabric, offering comfort and style with natural signs of wear that highlight its authentic vintage appeal.",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762445914770/IMG_3143.png",
+    "gallery": [],
+    "createdAt": 1762445916300,
+    "status": "published"
   }
 ]
