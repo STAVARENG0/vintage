@@ -503,7 +503,7 @@ function openCart(){
   list.innerHTML = '';
   if(cart.length === 0){
     list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
-    if(totalEl){ totalEl.textContent = '€ 0.00'; }
+    totalEl.textContent = '€ 0.00';
   } else {
     let total = 0;
     cart.forEach(item => {
@@ -528,7 +528,7 @@ function openCart(){
     });
     const selected = getSelectedShipping();
     const shipping = selected ? Number(selected.value) : 0;
-    if(totalEl){ totalEl.textContent = fmtEUR(total + shipping); }
+    totalEl.textContent = fmtEUR(total + shipping);
   }
   cartModal.style.display = 'flex';
 }
@@ -548,7 +548,40 @@ document.addEventListener('click', function(e){
   e.preventDefault();
   const id = btn.dataset.id;
   if(id){ addToCart(id); }
-});</script>
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const radios = document.querySelectorAll('input[name="shipping"]');
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.querySelector('.cart-checkout');
+  function calcBaseTotal() {
+    return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
+  }
+  function updateDisplayTotal() {
+    const base = calcBaseTotal();
+    const sel = document.querySelector('input[name="shipping"]:checked');
+    const shippingVal = sel ? Number(sel.value) : 0;
+    totalEl.textContent = fmtEUR(base + shippingVal);
+  }
+  radios.forEach(r => r.addEventListener('change', updateDisplayTotal));
+  const _openCart = openCart;
+  openCart = function() {
+    _openCart();
+    updateDisplayTotal();
+  };
+  checkoutBtn.addEventListener('click', () => {
+    // Default shipping: none/0. Keep downstream pages happy if they expect this key.
+    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
+    window.location.href = 'checkout.html';
+  });
+});
+(async function init(){
+  currentList = await readPublic();
+  currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  render(currentList);
+  document.getElementById('year').textContent = new Date().getFullYear();
+  updateCartIcon();
+})();
+</script>
 <script>
 (function(){
   function getCartSubtotal(){
@@ -571,10 +604,45 @@ document.addEventListener('click', function(e){
     return sum;
   }
   function updateTotals(){
-  let subtotal = getCartSubtotal();
-  const totalEl = document.getElementById('cartTotal');
-  if(totalEl){ totalEl.textContent = fmtEUR(subtotal); }
-}
+    let subtotal = getCartSubtotal();
+    const method = (document.querySelector('input[name="deliveryMethod"]:checked')||{}).value || 'shipping';
+    let shipping = method === 'shipping' ? 9 : 0;
+
+    const shipRow = document.getElementById('shipping-row');
+    const shipVal = document.getElementById('shipping-value');
+    if (shipRow){
+      shipRow.style.display = (method === 'shipping') ? 'flex' : 'none';
+    }
+    if (shipVal){
+      shipVal.textContent = '€' + shipping.toFixed(0);
+    }
+
+    const grand = subtotal + shipping;
+
+    let totalValueEl = document.querySelector('#cart-grand-total');
+    if (!totalValueEl){
+      const totalEl = document.querySelector('.cart-total span:last-child');
+      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
+    }
+    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
+  }
+
+  document.addEventListener('change', function(e){
+    if (e.target && e.target.name === 'deliveryMethod'){
+      updateTotals();
+    }
+    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
+      updateTotals();
+    }
+  });
+
+  const ready = () => { updateTotals(); };
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ready);
+  } else {
+    ready();
+  }
+  window.updateCartTotalsWithShipping = updateTotals;
 })();
 </script>
 <div aria-hidden="true" class="vmodal" id="vModal">
@@ -711,19 +779,32 @@ document.addEventListener('click', function(e){
 
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const totalEl = document.getElementById('cartTotal');
-  const checkoutBtn = document.querySelector('.cart-checkout');
-  function calcBaseTotal(){ return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0); }
-  function updateDisplayTotal(){ if(totalEl){ totalEl.textContent = fmtEUR(calcBaseTotal()); } }
-  const _openCart = openCart;
-  openCart = function(){ _openCart(); updateDisplayTotal(); };
-  if(checkoutBtn){ checkoutBtn.addEventListener('click', () => {
-    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
-    const cartJSON = JSON.stringify(cart);
+(function(){
+  // Ensure the cart opens and subtotal shows without shipping radios
+  var _open = window.openCart;
+  window.openCart = function(){
+    try{ _open(); }catch(e){}
+    var modal = document.getElementById('cartModal');
+    if(modal){ modal.style.display = 'flex'; }
+    var totalEl = document.getElementById('cartTotal');
+    if(totalEl){
+      var sum = 0;
+      document.querySelectorAll('.cart-item [data-price]').forEach(function(el){
+        var price = parseFloat((el.getAttribute('data-price')||'0').replace(',', '.'))||0;
+        var qtyEl = el.closest('.cart-item').querySelector('input[type="number"]');
+        var qty = qtyEl ? parseInt(qtyEl.value||'1',10) : 1;
+        sum += price*qty;
+      });
+      totalEl.textContent = '€ ' + (Number(sum)||0);
+    }
+  };
+  var checkoutBtn = document.querySelector('.cart-checkout');
+  if(checkoutBtn){ checkoutBtn.addEventListener('click', function(){
+    try{ localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() })); }catch(e){}
+    var cartJSON = JSON.stringify(window.cart||[]);
     window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
-  });}
-});
+  }); }
+})();
 </script>
 </body>
 </html>
