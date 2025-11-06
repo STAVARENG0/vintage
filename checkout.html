@@ -247,26 +247,22 @@ if(typeof paypal !== 'undefined' && state.subtotal > 0){
 }
 </script>
 <script>
-(function(){
+
+window.addEventListener('load', function(){
   function setShipping(amount, label){
-    try {
-      localStorage.setItem('vw_shipping', JSON.stringify({ amount: amount, label: label, ts: Date.now() }));
-    } catch(e){}
+    try { localStorage.setItem('vw_shipping', JSON.stringify({ amount: amount, label: label, ts: Date.now() })); } catch(e){}
   }
-  function initRadios(){
+  // Set initial selection from localStorage or URL once everything is ready
+  (function initRadios(){
     var shipAmount = 0;
-    try {
-      var v = JSON.parse(localStorage.getItem('vw_shipping'));
-      if (v && typeof v.amount === 'number') shipAmount = v.amount;
-    } catch(e){}
-    var q = new URLSearchParams(location.search).get('shipping');
-    var qNum = q !== null ? Number(q) : NaN;
-    if(!Number.isNaN(qNum)) shipAmount = qNum;
+    try { var v = JSON.parse(localStorage.getItem('vw_shipping')); if (v && typeof v.amount === 'number') shipAmount = v.amount; } catch(e){}
+    var q = new URLSearchParams(location.search).get('shipping'); var qNum = q !== null ? Number(q) : NaN; if(!Number.isNaN(qNum)) shipAmount = qNum;
     var shipInput = document.querySelector('input[name="deliveryMethod"][value="shipping"]');
     var pickInput = document.querySelector('input[name="deliveryMethod"][value="pickup"]');
-    if(shipAmount >= 9 && shipInput){ shipInput.checked = true; }
-    else if(pickInput){ pickInput.checked = true; }
-  }
+    if(shipAmount >= 9 && shipInput){ shipInput.checked = true; } else if(pickInput){ pickInput.checked = true; }
+    try { if(typeof renderSummary === 'function') renderSummary(); } catch(err){}
+  })();
+  // React to changes
   document.addEventListener('change', function(e){
     if(e.target && e.target.name === 'deliveryMethod'){
       if(e.target.value === 'shipping'){ setShipping(9, 'Shipping (€9)'); }
@@ -274,7 +270,7 @@ if(typeof paypal !== 'undefined' && state.subtotal > 0){
       try { if(typeof renderSummary === 'function') renderSummary(); } catch(err){}
     }
   });
-  document.addEventListener('DOMContentLoaded', initRadios);
-})();
+});
+
 </script></body>
 </html>
