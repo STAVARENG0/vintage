@@ -63,7 +63,7 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 <div class="row"><span class="label">Products Subtotal</span><span class="value" id="subtotalValue">€ 0.00</span></div>
 <div class="row"><span class="label" id="shippingLabel">Shipping</span><span class="value" id="shippingValue">€ 0.00</span></div>
 <div class="row total">Total: € <span id="totalAmount">0.00</span></div>
-</div><div id="deliveryPickup" style="margin:14px 0; text-align:left; border:1px dashed rgba(0,0,0,.12); border-radius:10px; padding:12px;"><div style="font-weight:800; margin-bottom:8px;">Delivery / Pickup</div><div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:8px;"><span style="width:16px; height:16px; border:2px solid #333; border-radius:50%; display:inline-block; margin-top:2px;"></span><span><a href="?shipping=9" style="text-decoration:none; color:inherit;">Shipping (€9)</a><br/><div style="font-size:12px; color:#6f6f6f;">Estimated delivery time: 7 to 10 business days.</div></span></div><div style="display:flex; align-items:flex-start; gap:10px; "><span style="width:16px; height:16px; border:2px solid #333; border-radius:50%; display:inline-block; margin-top:2px;"></span><span><a href="?shipping=0" style="text-decoration:none; color:inherit;">Pickup</a><br/><div style="font-size:12px; color:#6f6f6f;">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</div></span></div></div>
+</div><div id="deliveryPickup" style="margin:14px 0; text-align:left; border:1px dashed rgba(0,0,0,.12); border-radius:10px; padding:12px;"><div style="font-weight:800; margin-bottom:8px;">Delivery / Pickup</div><label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; margin-bottom:8px;"><input name="deliveryMethod" type="radio" value="shipping"/><span>Shipping (€9)<br/><div style="font-size:12px; color:#6f6f6f;">Estimated delivery time: 7 to 10 business days.</div></span></label><label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;"><input name="deliveryMethod" type="radio" value="pickup"/><span>Pickup<br/><div style="font-size:12px; color:#6f6f6f;">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</div></span></label></div>
 
 <div id="paypal-section">
 <div id="paypal-button-paypal"></div>
@@ -72,7 +72,7 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 </div>
 <footer>© <span id="year"></span> Checkout</footer>
 </div>
-<script src="https://www.paypal.com/sdk/js?client-id=AfTde7kvXeDpijvvMVxUcfb7b-XIQgWMnQ8W2rcUd8PX5wyHAddc-Xf0_VG_wLUVl0dNw_9HXAzpo6dt¤cy=EUR&amp;intent=capture&amp;commit=true&amp;locale=en_IE&amp;components=buttons,funding-eligibility&amp;enable-funding=card"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AfTde7kvXeDpijvvMVxUcfb7b-XIQgWMnQ8W2rcUd8PX5wyHAddc-Xf0_VG_wLUVl0dNw_9HXAzpo6dtcurrency=EUR&amp;amp;intent=capture&amp;amp;commit=true&amp;amp;locale=en_IE&amp;amp;components=buttons,funding-eligibility&amp;amp;enable-funding=card"></script>
 <script>
 // ===== Keys used by the site =====
 const CART_KEYS_ORDER = ['vw_cart','hs_cart','cart','v_cart','cartItems','cart_items','cartData'];
@@ -231,20 +231,84 @@ function commonConfig(){
   };
 }
 
-// render dos botões
-if(typeof paypal !== 'undefined' && state.subtotal > 0){
-  const btnPayPal = paypal.Buttons(Object.assign({}, commonConfig(), {
-    fundingSource: paypal.FUNDING.PAYPAL,
-    style:{ layout:'vertical', color:'gold', shape:'pill', label:'paypal', height:45 }
-  }));
-  if(btnPayPal.isEligible()) btnPayPal.render('#paypal-button-paypal');
+// render dos botões (substituído por renderButtons)
 
-  const btnCard = paypal.Buttons(Object.assign({}, commonConfig(), {
-    fundingSource: paypal.FUNDING.CARD,
-    style:{ layout:'vertical', color:'black', shape:'pill', label:'pay', height:45 }
-  }));
-  if(btnCard.isEligible()) btnCard.render('#paypal-button-card');
+// ------- Robust PayPal button rendering -------
+function renderButtons(){
+  try {
+    // Ensure summary UI reflects current totals
+    const st = renderSummary();
+
+    // Clear containers before (re)render
+    var payWrap = document.getElementById('paypal-button-paypal');
+    var cardWrap = document.getElementById('paypal-button-card');
+    if (payWrap) payWrap.innerHTML = '';
+    if (cardWrap) cardWrap.innerHTML = '';
+
+    if (typeof paypal === 'undefined') return; // SDK not loaded yet
+
+    if (st.subtotal > 0){
+      const btnPayPal = paypal.Buttons(Object.assign({}, commonConfig(), {
+        fundingSource: paypal.FUNDING.PAYPAL,
+        style:{ layout:'vertical', color:'gold', shape:'pill', label:'paypal', height:45 }
+      }));
+      if (btnPayPal.isEligible()) btnPayPal.render('#paypal-button-paypal');
+
+      const btnCard = paypal.Buttons(Object.assign({}, commonConfig(), {
+        fundingSource: paypal.FUNDING.CARD,
+        style:{ layout:'vertical', color:'black', shape:'pill', label:'pay', height:45 }
+      }));
+      if (btnCard.isEligible()) btnCard.render('#paypal-button-card');
+    }
+  } catch(e){
+    console.error('renderButtons error:', e);
+  }
 }
+
+// Re-render when the SDK loads (in case of slow networks)
+if (document.readyState === 'complete' || document.readyState === 'interactive'){
+  setTimeout(renderButtons, 0);
+} else {
+  document.addEventListener('DOMContentLoaded', function(){ renderButtons(); });
+}
+
+// Re-render when cart changes in another tab/window or page writes to localStorage
+window.addEventListener('storage', function(e){
+  if (['vw_cart','hs_cart','cart','v_cart','cartItems','cart_items','cartData','vw_shipping','hs_shipping','shipping','ship'].includes(e.key)){
+    renderButtons();
+  }
+});
+
 </script>
-</body>
+<script>
+(function(){
+  function setShipping(amount, label){
+    try {
+      localStorage.setItem('vw_shipping', JSON.stringify({ amount: amount, label: label, ts: Date.now() }));
+    } catch(e){}
+  }
+  function initRadios(){
+    var shipAmount = 0;
+    try {
+      var v = JSON.parse(localStorage.getItem('vw_shipping'));
+      if (v && typeof v.amount === 'number') shipAmount = v.amount;
+    } catch(e){}
+    var q = new URLSearchParams(location.search).get('shipping');
+    var qNum = q !== null ? Number(q) : NaN;
+    if(!Number.isNaN(qNum)) shipAmount = qNum;
+    var shipInput = document.querySelector('input[name="deliveryMethod"][value="shipping"]');
+    var pickInput = document.querySelector('input[name="deliveryMethod"][value="pickup"]');
+    if(shipAmount >= 9 && shipInput){ shipInput.checked = true; }
+    else if(pickInput){ pickInput.checked = true; }
+  }
+  document.addEventListener('change', function(e){
+    if(e.target && e.target.name === 'deliveryMethod'){
+      if(e.target.value === 'shipping'){ setShipping(9, 'Shipping (€9)'); }
+      else { setShipping(0, 'Pickup'); }
+      try { if(typeof renderSummary === 'function') renderSummary(); } catch(err){}
+    }
+  });
+  document.addEventListener('DOMContentLoaded', initRadios);
+})();
+</script></body>
 </html>
