@@ -516,7 +516,8 @@ function render(list){
     const cta = document.createElement('div'); cta.className='cta';
     const a = document.createElement('a');
     a.className='btn'; a.href='#'; a.textContent = Number(p.stock) > 0 ? "Add to cart" : "Out of Stock";
-    if(Number(p.stock) > 0){ a.dataset.action = 'add-to-cart'; a.dataset.id = p.id; } else { a.classList.add('disabled'); }
+    $1
+    a.title = (Number(p.stock) > 0) ? 'Máximo: ' + Number(p.stock) + ' por cliente (estoque)' : 'Sem estoque';
     cta.appendChild(a); el.appendChild(cta); grid.appendChild(el);
   });
 }
@@ -537,8 +538,31 @@ let cart = loadCart();
 function addToCart(productId){
   const product = currentList.find(p => String(p.id) === String(productId));
   if(!product) return;
-  const existing = cart.find(item => item.id === product.id);
-  if(existing){ existing.qty++; } else { cart.push({...product, qty: 1}); }
+  const stock = Number(product.stock || 0);
+  let existing = cart.find(item => item.id === product.id);
+
+  if (stock <= 0) {
+    // No stock – do nothing, button should already be disabled by render()
+    return;
+  }
+
+  if (existing){
+    // Cap at available stock
+    if (existing.qty >= stock) {
+      // Already at limit — optionally provide subtle feedback
+      try { 
+        // If cart UI is present, flash it open so user sees limit
+        openCart();
+      } catch(e) {}
+      return;
+    }
+    existing.qty = Math.min(existing.qty + 1, stock);
+  } else {
+    cart.push({ ...product, qty: 1 });
+  }
+  saveCart(cart);
+  updateCartIcon();
+} else { cart.push({...product, qty: 1}); }
   saveCart(cart);
   updateCartIcon();
 }
@@ -561,18 +585,23 @@ function openCart(){
       total += Number(item.price) * item.qty;
       const row = document.createElement('div');
       row.className = 'cart-item';
+      const prod = currentList.find(p => String(p.id) === String(item.id));
+      const stock = Number((prod && prod.stock) || item.stock || 0);
+      const plusDisabled = stock > 0 && item.qty >= stock ? 'disabled' : '';
+      const limitNote = (stock > 0 && item.qty >= stock) ? '<small style="color:#b33b2e;font-weight:700;display:block; margin-top:4px;">Limite atingido: ' + stock + ' em estoque</small>' : '';
       row.innerHTML = `
         <div class="cart-item-left">
           <img class="cart-thumb" src="${item.image}" alt="${item.title}">
           <div>
             <strong>${item.title}</strong><br>
             <small>${fmtEUR(item.price)}</small>
+            ${limitNote}
           </div>
         </div>
         <div class="cart-qty">
           <button onclick="changeQty('${item.id}', -1)" style="padding:4px 8px;">−</button>
           <span>${item.qty}</span>
-          <button onclick="changeQty('${item.id}', 1)" style="padding:4px 8px;">+</button>
+          <button onclick="changeQty('${item.id}', 1)" style="padding:4px 8px;" ${plusDisabled}>+</button>
         </div>
       `;
       list.appendChild(row);
@@ -585,8 +614,23 @@ function closeCart(){ document.getElementById('cartModal').style.display = 'none
 function changeQty(id, delta){
   const item = cart.find(p => p.id === id);
   if(!item) return;
-  item.qty += delta;
-  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  const prod = currentList.find(p => String(p.id) === String(id));
+  const stock = Number((prod && prod.stock) || item.stock || 0);
+
+  // Decrease
+  if (delta < 0){
+    item.qty += delta;
+    if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  } else {
+    // Increase: only if below stock (and stock > 0). If stock is 0, prevent.
+    if (stock > 0 && item.qty < stock){
+      item.qty += 1;
+    }
+  }
+  saveCart(cart);
+  openCart();
+  updateCartIcon();
+}
   saveCart(cart);
   openCart();
   updateCartIcon();
