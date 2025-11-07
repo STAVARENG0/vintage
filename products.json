@@ -1,19 +1,5 @@
 [
   {
-    "id": "1762349817957",
-    "title": "Tommy Hilfiger Hooded Jacket ",
-    "price": 50,
-    "description": "Hooded jacket, size 2XL",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762349817957/IMG_3031.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762349817957/IMG_3032.png"
-    ],
-    "createdAt": 1762349822455,
-    "status": "published"
-  },
-  {
     "id": "1762350278175",
     "title": "Adidas hoodie",
     "price": 25,
