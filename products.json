@@ -296,5 +296,19 @@
     "gallery": [],
     "createdAt": 1762449001769,
     "status": "published"
+  },
+  {
+    "id": "1762491848864",
+    "title": " Diesel Puffer Jacket with Hood ",
+    "price": 50,
+    "description": "\nDiesel Puffer Jacket with Hood – Size XL",
+    "category": "women",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762491848864/5B3E2505-F927-4A3E-A050-5D74CC717485.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762491848864/D47EA3B8-4548-4B2E-BE3C-ACE565F84AD4.png"
+    ],
+    "createdAt": 1762491874296,
+    "status": "published"
   }
 ]
