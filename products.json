@@ -338,17 +338,5 @@
     ],
     "createdAt": 1762493597087,
     "status": "published"
-  },
-  {
-    "id": "1762493886827",
-    "title": "SERGIO TACCHINE JACKET -SIZE M",
-    "price": 45,
-    "description": "Authentic 80s/90s vintage jacket, full of color and retro attitude — a true classic in excellent condition",
-    "category": "women",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762493886827/IMG_3183.png",
-    "gallery": [],
-    "createdAt": 1762493895908,
-    "status": "published"
   }
 ]
