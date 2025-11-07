@@ -326,7 +326,56 @@ function commonConfig(){
       return actions.resolve();
     },
     createOrder: function(data, actions){
-      const { subtotal, shipping, total } = renderSummary();
+  const { subtotal, shipping, total } = renderSummary();
+  if(subtotal <= 0){ throw new Error('Empty subtotal'); }
+
+  const items = cart.map(item => ({
+    name: item.title,
+    unit_amount: {
+      currency_code: 'EUR',
+      value: item.price.toFixed(2)
+    },
+    quantity: item.qty.toString(),
+    category: 'PHYSICAL_GOODS'
+  }));
+
+  // Define shipping_preference conforme a seleção de fulfilment (pickup vs delivery)
+  const isPickup = (typeof fulfilment !== 'undefined' && fulfilment === 'pickup');
+  const shippingPreference = isPickup ? 'NO_SHIPPING' : 'GET_FROM_FILE';
+  // Se você coleta endereço próprio para delivery, troque para 'SET_PROVIDED_ADDRESS' e inclua purchase_units[0].shipping
+
+  return actions.order.create({
+    application_context: {
+      user_action: 'PAY_NOW',
+      shipping_preference: shippingPreference,
+      brand_name: 'Checkout',
+      locale: 'en-IE'
+    },
+    purchase_units:[{
+      custom_id: `fulfilment:${typeof fulfilment !== 'undefined' ? fulfilment : 'unknown'}`,
+      description:'Checkout Order',
+      amount:{
+        value: total.toFixed(2),
+        currency_code:'EUR',
+        breakdown: {
+          item_total: { currency_code: 'EUR', value: subtotal.toFixed(2) },
+          shipping:   { currency_code: 'EUR', value: shipping.toFixed(2) }
+        }
+      },
+      items: items
+      // Para SET_PROVIDED_ADDRESS, adicione:
+      // shipping: {
+      //   name: { full_name: 'Nome do cliente' },
+      //   address: {
+      //     address_line_1: 'Rua X, 123',
+      //     admin_area_2: 'Cidade',
+      //     postal_code: '00000-000',
+      //     country_code: 'IE'
+      //   }
+      // }
+    }]
+  });
+} = renderSummary();
       if(subtotal <= 0){ throw new Error('Empty subtotal'); }
 
       const items = cart.map(item => ({
