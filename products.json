@@ -364,17 +364,5 @@
     "gallery": [],
     "createdAt": 1762496914234,
     "status": "published"
-  },
-  {
-    "id": "1762509573956",
-    "title": "TORTA HOLANDESA",
-    "price": 1,
-    "description": "TORTA QUE NAO E RETA ",
-    "category": "women",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762509573956/Gemini_Generated_Image_et2z94et2z94et2z.png",
-    "gallery": [],
-    "createdAt": 1762509578230,
-    "status": "published"
   }
 ]
