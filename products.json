@@ -324,19 +324,5 @@
     ],
     "createdAt": 1762492303327,
     "status": "published"
-  },
-  {
-    "id": "1762492570094",
-    "title": "Vintage yellow puffer jacket with a black faux fur hood, inspired by 80s/90s retro style. A cherished vintage piece — gently pre-loved and beautifully preserved, full of character and in excellent condition.",
-    "price": 45,
-    "description": "Vintage color-block ski jacket in bold red, teal, and plum tones, inspired by 80s/90s mountain style. A unique pre-loved piece that captures the retro spirit — vibrant, cozy, and in excellent condition, perfect for adding personality to any look. - Size M",
-    "category": "women",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762492570094/CAA59FFE-7C19-4A54-8AE6-42ECE5B91B86.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762492570094/22F0E65D-49DC-4300-916D-C6430F57F4F5.png"
-    ],
-    "createdAt": 1762492588172,
-    "status": "published"
   }
 ]
