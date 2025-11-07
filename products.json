@@ -64,20 +64,6 @@
     "status": "published"
   },
   {
-    "id": "1762361213398",
-    "title": "Fila Velour Hoodie",
-    "price": 25,
-    "description": "Fila Velour Hoodie- Size S",
-    "category": "women",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762361213398/IMG_3087.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762361213398/IMG_3086.png"
-    ],
-    "createdAt": 1762361216967,
-    "status": "published"
-  },
-  {
     "id": "1762362938808",
     "title": "Diesel Puffer Jacket ",
     "price": 50,
