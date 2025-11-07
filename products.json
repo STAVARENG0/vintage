@@ -338,5 +338,19 @@
     ],
     "createdAt": 1762493597087,
     "status": "published"
+  },
+  {
+    "id": "1762494800594",
+    "title": "THE NORTH FACE NAVY USA GRAPHIC HOODIE – SIZE M",
+    "price": 25,
+    "description": "Vintage navy hoodie with USA sleeve print and back graphic. A pre-loved piece with authentic retro style, gently worn and in excellent condition.",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762494800594/9F8C5ED3-81D7-49E1-BA78-B435DD0FEA83.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762494800594/E076BC79-9BFF-4530-853F-8891595A9A7C.png"
+    ],
+    "createdAt": 1762494812123,
+    "status": "published"
   }
 ]
