@@ -352,17 +352,5 @@
     ],
     "createdAt": 1762496151112,
     "status": "published"
-  },
-  {
-    "id": "1762496910119",
-    "title": "FILA VELOUR HOODIE - SIZE S",
-    "price": 25,
-    "description": " FILA hoodie, made from soft velour, A pre-loved piece with authentic retro style, gently worn and in excellent condition.",
-    "category": "women",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762496910119/1D3201A9-C701-40E2-B166-3B01B77C9619.png",
-    "gallery": [],
-    "createdAt": 1762496914234,
-    "status": "published"
   }
 ]
