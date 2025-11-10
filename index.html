@@ -390,6 +390,70 @@ header{ text-align:center; }
 }
 
 </style>
+
+<!-- === Override: replace VINTAGE text with logo image === -->
+<style>
+/* Hide the animated letters and brush, use the logo image instead */
+.site-name {
+  width: clamp(240px, 60vw, 820px);
+  aspect-ratio: 16 / 5;
+  background: url("LOGO.png") center / contain no-repeat;
+  display: block;
+  margin: 0 auto;
+  text-indent: -9999px; /* keep text for a11y/SEO but hide it */
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: #ffffff; /* optional white behind transparent png */
+  box-shadow: 0 10px 22px rgba(0,0,0,.10);
+  padding: 0; /* neutralize any padding */
+}
+.site-name .char { display: none !important; }
+.site-name::before { content: none !important; } /* remove brush overlay */
+.brand { gap: 10px; } /* keep layout tidy */
+</style>
+
+
+<style id="logo-gap-fix">
+/* Remove the tiny baseline gap under <img> by making it block-level */
+.brand img{ display:block; margin:0 auto; }
+.brand{ line-height: 0; } /* ensure no extra line-box space */
+</style>
+
+
+<style id="logo-white-gap-kill">
+/* Mata a “margem branca” do logo: vem do background e border do .brand img */
+.brand img{
+  display:block !important;
+  margin:0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+.brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; }
+</style>
+
+
+<style id="logo-gap-kill-2">
+/* Elimina qualquer faixa clara/“margem” embaixo do logo  */
+.brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; gap:0 !important; }
+.brand img{
+  display:block !important;
+  margin:0 auto !important;
+  background: transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+/* Caso o logo seja aplicado no .site-name como background */
+.site-name{
+  display:block !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  line-height:0 !important;
+  background-color: transparent !important;
+  box-shadow:none !important;
+}
+h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !important; }
+</style>
+
 </head>
 <body>
 <div class="wrap">
