@@ -455,10 +455,10 @@ h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !importan
 </style>
 
 <style>
-/* === Mobile: make the VINTAGE logo larger (only) === */
+/* === Mobile override: bigger logo image width only === */
 @media (max-width: 600px){
-  .brand .site-name{
-    font-size: clamp(84px, 22vw, 180px) !important;
+  .site-name{
+    width: min(92vw, 900px) !important; /* grow to 92% viewport width on small screens */
   }
 }
 
