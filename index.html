@@ -389,15 +389,6 @@ header{ text-align:center; }
   .social-btn{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:9999px; font-weight:700; font-size:12px; text-decoration:none; border:1px solid rgba(0,0,0,.08); box-shadow:0 2px 8px rgba(0,0,0,.08); transition: transform .18s ease, filter .18s ease; color:#fff; }
 }
 
-
-/* === Mobile: enlarge logo image without affecting desktop === */
-@media (max-width: 600px){
-  .brand img{
-    transform: scale(1.18);
-    transform-origin: top center;
-  }
-}
-
 </style>
 
 <!-- === Override: replace VINTAGE text with logo image === -->
@@ -463,6 +454,15 @@ header{ text-align:center; }
 h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !important; }
 </style>
 
+<style>
+/* === Mobile: make the VINTAGE logo larger (only) === */
+@media (max-width: 600px){
+  .brand .site-name{
+    font-size: clamp(84px, 22vw, 180px) !important;
+  }
+}
+
+</style>
 </head>
 <body>
 <div class="wrap">
