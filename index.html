@@ -454,6 +454,28 @@ header{ text-align:center; }
 h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !important; }
 </style>
 
+
+<style id="logo-mobile-scale">
+/* Aumenta o tamanho do logo em telas pequenas */
+@media (max-width: 640px){
+  .brand img{
+    display:block;
+    width: min(92vw, 520px) !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 auto !important;
+  }
+  .site-name{
+    display:block;
+    width: 92vw !important;
+    height: min(44vw, 220px) !important; /* mais alto no mobile */
+    margin: 0 auto !important;
+    background-size: contain !important;
+    background-position: center !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="wrap">
