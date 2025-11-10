@@ -476,6 +476,40 @@ h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !importan
 }
 </style>
 
+
+<style id="logo-rounded-and-spacing">
+/* Bordas arredondadas no logo (tanto <img> quanto .site-name como background) */
+.brand img,
+.site-name{
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+
+/* Apertar os espaçamentos do bloco do topo */
+.brand{
+  gap: 10px !important;           /* aproxima WELCOME, logo e botões */
+  line-height: 0 !important;      /* evita sobras de linha */
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Remover margens extras entre os elementos do header */
+.welcome,
+.brand img,
+.site-name,
+.tagline,
+.social-buttons{
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* No mobile, manter o logo grande, mas respeitando os cantos arredondados */
+@media (max-width: 640px){
+  .brand img{ width: min(92vw, 520px) !important; height: auto !important; }
+  .site-name{ width: 92vw !important; height: min(44vw, 220px) !important; }
+}
+</style>
+
 </head>
 <body>
 <div class="wrap">
