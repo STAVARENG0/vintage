@@ -268,5 +268,20 @@
     "gallery": [],
     "createdAt": 1763123939218,
     "status": "published"
+  },
+  {
+    "id": "1763124982271",
+    "title": "Reebok Puffer Jacket – Size M",
+    "price": 45,
+    "description": "Black Reebok puffer jacket, lightweight and cozy. Features a hood, front zipper, and classic quilted design. ",
+    "category": "men",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763124982271/IMG_3354.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763124982271/IMG_3355.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763124982271/IMG_3353.jpeg"
+    ],
+    "createdAt": 1763124987768,
+    "status": "published"
   }
 ]
