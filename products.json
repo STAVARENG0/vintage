@@ -310,5 +310,17 @@
     ],
     "createdAt": 1762496151112,
     "status": "published"
+  },
+  {
+    "id": "1763123935631",
+    "title": "Vintage Cappopera Jeans – Size 42",
+    "price": 30,
+    "description": "\nComfortable, stylish, and one of a kind, these size 42 jeans are ideal for creating modern outfits with a retro touch.",
+    "category": "women",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763123935631/IMG_3369.jpeg",
+    "gallery": [],
+    "createdAt": 1763123939218,
+    "status": "published"
   }
 ]
