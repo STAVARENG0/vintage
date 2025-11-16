@@ -283,17 +283,5 @@
     ],
     "createdAt": 1763124987768,
     "status": "published"
-  },
-  {
-    "id": "1763318441058",
-    "title": "TORTA HOLANDESA",
-    "price": 1,
-    "description": "torta gostosa",
-    "category": "Dresses & Skirts",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763318441058/Gemini_Generated_Image_et2z94et2z94et2z.png",
-    "gallery": [],
-    "createdAt": 1763318451172,
-    "status": "published"
   }
 ]
