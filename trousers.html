@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>VintageShop</title>
+<title>VintageShop — Trousers</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&amp;family=Poppins:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
@@ -560,11 +560,13 @@ h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !importan
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
+  <a class="pill-btn" href="index.html">HOME</a>
   <button class="pill-btn" id="menuButton">MENU</button>
 </div>
 </div>
 </header>
 <div class="divider"></div>
+<div class="meta" style="text-align:center;font-weight:700;margin-bottom:10px;">Category: Trousers</div>
 <section class="grid" id="products"></section>
 <div class="divider"></div>
 <footer>© <span id="year"></span> Vintage Wear Ireland</footer>
@@ -776,6 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 (async function init(){
   currentList = await readPublic();
+  currentList = currentList.filter(p => (p.category || '').toLowerCase() === 'trousers');
   currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
   render(currentList);
   document.getElementById('year').textContent = new Date().getFullYear();
