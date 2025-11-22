@@ -293,5 +293,17 @@
     "gallery": [],
     "createdAt": 1763810995829,
     "status": "published"
+  },
+  {
+    "id": "1763811395417",
+    "title": "Nike Dry Fit-Size S",
+    "price": 15,
+    "description": "Lightweight and sporty, in great overall condition.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763811395417/IMG_3481.jpeg",
+    "gallery": [],
+    "createdAt": 1763811397440,
+    "status": "published"
   }
 ]
