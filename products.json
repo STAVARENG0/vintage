@@ -377,5 +377,17 @@
     "gallery": [],
     "createdAt": 1763815737708,
     "status": "published"
+  },
+  {
+    "id": "1763816842134",
+    "title": "Color-block cropped tee. Size S",
+    "price": 15,
+    "description": "Soft, lightweight cotton and in great overall condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763816842134/IMG_0815.jpeg",
+    "gallery": [],
+    "createdAt": 1763816845011,
+    "status": "published"
   }
 ]
