@@ -365,5 +365,17 @@
     "gallery": [],
     "createdAt": 1763815488873,
     "status": "published"
+  },
+  {
+    "id": "1763815733503",
+    "title": "Adidas all-over print tank. Size L",
+    "price": 10,
+    "description": "Lightweight, breathable, and in excellent overall condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763815733503/IMG_0814.jpeg",
+    "gallery": [],
+    "createdAt": 1763815737708,
+    "status": "published"
   }
 ]
