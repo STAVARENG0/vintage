@@ -305,5 +305,17 @@
     "gallery": [],
     "createdAt": 1763811397440,
     "status": "published"
+  },
+  {
+    "id": "1763811668298",
+    "title": "Tommy Hilfiger V-neck sweater-Size S",
+    "price": 20,
+    "description": "\nSoft, classic, and in great overall condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763811668298/IMG_3474.jpeg",
+    "gallery": [],
+    "createdAt": 1763811671947,
+    "status": "published"
   }
 ]
