@@ -401,5 +401,17 @@
     "gallery": [],
     "createdAt": 1763817639838,
     "status": "published"
+  },
+  {
+    "id": "1763817783268",
+    "title": "Nike cropped logo tee. Size XL",
+    "price": 12,
+    "description": "Soft, lightweight cotton with bold front print, in excellent overall condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763817783268/IMG_0817.jpeg",
+    "gallery": [],
+    "createdAt": 1763817784842,
+    "status": "published"
   }
 ]
