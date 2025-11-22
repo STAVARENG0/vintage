@@ -341,5 +341,17 @@
     "gallery": [],
     "createdAt": 1763814913946,
     "status": "published"
+  },
+  {
+    "id": "1763815151860",
+    "title": "Nike camo basketball tank. Size L",
+    "price": 15,
+    "description": "Lightweight, breathable, and in great overall condition",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763815151860/IMG_0812.jpeg",
+    "gallery": [],
+    "createdAt": 1763815158121,
+    "status": "published"
   }
 ]
