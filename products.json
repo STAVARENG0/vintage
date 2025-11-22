@@ -413,5 +413,17 @@
     "gallery": [],
     "createdAt": 1763817784842,
     "status": "published"
+  },
+  {
+    "id": "1763817927698",
+    "title": "Vans washed tee. Size XS",
+    "price": 12,
+    "description": "Soft, vintage-style fabric with a front cutout detail, in good overall condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763817927698/IMG_0818.jpeg",
+    "gallery": [],
+    "createdAt": 1763817938435,
+    "status": "published"
   }
 ]
