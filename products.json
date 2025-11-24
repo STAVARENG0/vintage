@@ -487,5 +487,19 @@
     "gallery": [],
     "createdAt": 1763989952378,
     "status": "published"
+  },
+  {
+    "id": "1763992600645",
+    "title": "Regatta Great Outdoors insulated jacket. Size M",
+    "price": 35,
+    "description": "Warm, weather-resistant fabric with a hood, utility pockets and logo details, in excellent overall condition.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763992600645/IMG_0845.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763992600645/IMG_0846.jpeg"
+    ],
+    "createdAt": 1763992606193,
+    "status": "published"
   }
 ]
