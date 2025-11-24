@@ -461,5 +461,19 @@
     "gallery": [],
     "createdAt": 1763988669740,
     "status": "published"
+  },
+  {
+    "id": "1763989364023",
+    "title": "Vintage-Inspired Armata di Mare Coat – Gold Buttons, Premium Finish Size 44",
+    "price": 45,
+    "description": "Armata di Mare coat, from the classic Italian brand founded in 1959. A premium camel military/nautical piece featuring gold-tone buttons, high collar, and quality tailoring. Excellent condition with clean lining and minimal wear. A stylish, durable Italian coat that elevates any wardrobe",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763989364023/IMG_0842.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763989364023/IMG_0841.jpeg"
+    ],
+    "createdAt": 1763989372186,
+    "status": "published"
   }
 ]
