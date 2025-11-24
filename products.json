@@ -525,5 +525,17 @@
     "gallery": [],
     "createdAt": 1763993273834,
     "status": "published"
+  },
+  {
+    "id": "1763993432008",
+    "title": "PrettyLittleThing clear heels. Size Uk 6",
+    "price": 10,
+    "description": "Transparent straps with a matching clear block heel and a nude footbed, in great overall condition.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763993432008/IMG_0850.jpeg",
+    "gallery": [],
+    "createdAt": 1763993434810,
+    "status": "published"
   }
 ]
