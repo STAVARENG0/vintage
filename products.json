@@ -449,5 +449,17 @@
     "gallery": [],
     "createdAt": 1763818234369,
     "status": "published"
+  },
+  {
+    "id": "1763988667313",
+    "title": "Vintage leather handbag",
+    "price": 55,
+    "description": "Genuine leather with a structured silhouette and front buckle detail, in great overall condition.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763988667313/IMG_0840.jpeg",
+    "gallery": [],
+    "createdAt": 1763988669740,
+    "status": "published"
   }
 ]
