@@ -597,5 +597,17 @@
     "gallery": [],
     "createdAt": 1764154079470,
     "status": "published"
+  },
+  {
+    "id": "1764154305457",
+    "title": "Tommy Hilfiger Vintage Black Long-Sleeve Tee Size M",
+    "price": 17,
+    "description": "Classic black long-sleeve tee with small flag logo, pre-owned in great condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764154305457/IMG_0857.jpeg",
+    "gallery": [],
+    "createdAt": 1764154308230,
+    "status": "published"
   }
 ]
