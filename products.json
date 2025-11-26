@@ -609,5 +609,17 @@
     "gallery": [],
     "createdAt": 1764154308230,
     "status": "published"
+  },
+  {
+    "id": "1764154444717",
+    "title": "The North Face Vintage Black Logo Long-Sleeve Size XL",
+    "price": 15,
+    "description": "Black long-sleeve tee with bold front logo, pre-owned in very good condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764154444717/IMG_0858.jpeg",
+    "gallery": [],
+    "createdAt": 1764154446058,
+    "status": "published"
   }
 ]
