@@ -683,5 +683,17 @@
     "gallery": [],
     "createdAt": 1764156493428,
     "status": "published"
+  },
+  {
+    "id": "1764156942727",
+    "title": "Nike Vintage Light Grey Jogger Pants Size M",
+    "price": 15,
+    "description": "Nike Vintage Light Grey Jogger Pants",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764156942727/IMG_0865.jpeg",
+    "gallery": [],
+    "createdAt": 1764156945217,
+    "status": "published"
   }
 ]
