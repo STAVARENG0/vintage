@@ -659,5 +659,17 @@
     ],
     "createdAt": 1764155591705,
     "status": "published"
+  },
+  {
+    "id": "1764156357699",
+    "title": "Umbro Vintage Olive Track Pants Size L",
+    "price": 15,
+    "description": "Olive tapered track pants with side tape and zip pockets, pre-owned in great condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764156357699/IMG_0863.jpeg",
+    "gallery": [],
+    "createdAt": 1764156359287,
+    "status": "published"
   }
 ]
