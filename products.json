@@ -585,5 +585,17 @@
     "gallery": [],
     "createdAt": 1764153957402,
     "status": "published"
+  },
+  {
+    "id": "1764154075871",
+    "title": "Calvin Klein Jeans Vintage Black Graphic Long-Sleeve Size L",
+    "price": 10,
+    "description": "Black CK graphic long-sleeve tee, pre-owned in very good condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764154075871/IMG_0856.jpeg",
+    "gallery": [],
+    "createdAt": 1764154079470,
+    "status": "published"
   }
 ]
