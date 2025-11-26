@@ -561,5 +561,17 @@
     "gallery": [],
     "createdAt": 1764153640984,
     "status": "published"
+  },
+  {
+    "id": "1764153765905",
+    "title": "Levi’s Vintage Green Plaid Flannel Shirt",
+    "price": 20,
+    "description": "Classic Levi’s buffalo plaid flannel, soft and warm, pre-owned in very good condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764153765905/IMG_0854.jpeg",
+    "gallery": [],
+    "createdAt": 1764153770620,
+    "status": "published"
   }
 ]
