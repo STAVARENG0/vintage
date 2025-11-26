@@ -645,5 +645,19 @@
     "gallery": [],
     "createdAt": 1764155445019,
     "status": "published"
+  },
+  {
+    "id": "1764155588021",
+    "title": "Vertical Vintage Purple Fleece Jogger Pants Size M",
+    "price": 15,
+    "description": "Retro purple fleece joggers with contrast details, pre-owned in great condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764155588021/IMG_0862.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764155588021/IMG_0861.jpeg"
+    ],
+    "createdAt": 1764155591705,
+    "status": "published"
   }
 ]
