@@ -671,5 +671,17 @@
     "gallery": [],
     "createdAt": 1764156359287,
     "status": "published"
+  },
+  {
+    "id": "1764156491897",
+    "title": "Adidas Vintage Black Track Pants Size XL",
+    "price": 15,
+    "description": "Classic black Adidas track pants with side stripes and zip pockets, pre-owned in great condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764156491897/IMG_0864.jpeg",
+    "gallery": [],
+    "createdAt": 1764156493428,
+    "status": "published"
   }
 ]
