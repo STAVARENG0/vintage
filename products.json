@@ -621,5 +621,17 @@
     "gallery": [],
     "createdAt": 1764154446058,
     "status": "published"
+  },
+  {
+    "id": "1764154616011",
+    "title": "Ralph Lauren Vintage Blue Striped Oxford Shirt Size L",
+    "price": 20,
+    "description": "Light blue striped button-down with pony logo, pre-owned in great condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764154616011/IMG_0859.jpeg",
+    "gallery": [],
+    "createdAt": 1764154618701,
+    "status": "published"
   }
 ]
