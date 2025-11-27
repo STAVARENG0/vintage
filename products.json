@@ -408,5 +408,17 @@
     ],
     "createdAt": 1764236534010,
     "status": "published"
+  },
+  {
+    "id": "1764236713596",
+    "title": "Vintage Plaid A-Line Skirt Size-Uk 12",
+    "price": 7,
+    "description": "Dorothy Perkins\nA-line plaid skirt with front button accents. Classic, stylish, and gently used.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764236713596/IMG_3718.jpeg",
+    "gallery": [],
+    "createdAt": 1764236718126,
+    "status": "published"
   }
 ]
