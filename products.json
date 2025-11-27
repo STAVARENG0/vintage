@@ -341,5 +341,17 @@
     "gallery": [],
     "createdAt": 1764235015621,
     "status": "published"
+  },
+  {
+    "id": "1764235299888",
+    "title": "Vintage Orange Beaded Spaghetti-Strap Dress UK 10",
+    "price": 20,
+    "description": "Monsoon\nFlowy vintage dress with delicate beadwork on the bodice. Lightweight, elegant, and gently used.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764235299888/IMG_3416.jpeg",
+    "gallery": [],
+    "createdAt": 1764235303977,
+    "status": "published"
   }
 ]
