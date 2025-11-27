@@ -420,5 +420,17 @@
     "gallery": [],
     "createdAt": 1764236718126,
     "status": "published"
+  },
+  {
+    "id": "1764236916949",
+    "title": "VINTAGE CAPPOPERA JEANS – SIZE 42",
+    "price": 30,
+    "description": "\nComfortable, stylish, and one of a kind, these size 42 jeans are ideal for creating modern outfits with a retro touch",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764236916949/IMG_3719.jpeg",
+    "gallery": [],
+    "createdAt": 1764236922306,
+    "status": "published"
   }
 ]
