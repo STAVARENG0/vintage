@@ -831,5 +831,17 @@
     "gallery": [],
     "createdAt": 1764257098427,
     "status": "published"
+  },
+  {
+    "id": "1764257319253",
+    "title": "Vintage Leather Jacket — Size 38",
+    "price": 45,
+    "description": "\nMaddox\nVintage piece with a classic finish and original fit, in great condition with light wear and its authentic charm preserved.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764257319253/IMG_3738.png",
+    "gallery": [],
+    "createdAt": 1764257321046,
+    "status": "published"
   }
 ]
