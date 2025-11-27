@@ -368,5 +368,17 @@
     ],
     "createdAt": 1764235699040,
     "status": "published"
+  },
+  {
+    "id": "1764235917306",
+    "title": "Vintage Black Champion T-Shirt Size XS",
+    "price": 20,
+    "description": "Classic black Champion tee with embroidered logo. Soft, casual, and gently used.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764235917306/IMG_3713.jpeg",
+    "gallery": [],
+    "createdAt": 1764235919197,
+    "status": "published"
   }
 ]
