@@ -733,5 +733,19 @@
     ],
     "createdAt": 1764244179620,
     "status": "published"
+  },
+  {
+    "id": "1764247621978",
+    "title": "Vintage Denim Skirt — Size 44",
+    "price": 15,
+    "description": "Vintage denim skirt with acid-wash finish and straight fit, in great condition with light wear and its original charm preserved.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764247621978/IMG_3726.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764247621978/IMG_3728.png"
+    ],
+    "createdAt": 1764247628579,
+    "status": "published"
   }
 ]
