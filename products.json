@@ -771,5 +771,17 @@
     "gallery": [],
     "createdAt": 1764248578653,
     "status": "published"
+  },
+  {
+    "id": "1764249235706",
+    "title": "Vintage Champion Dress — Size XS",
+    "price": 20,
+    "description": "Vintage dress with a classic finish and original fit, in great condition with light wear and its authentic charm preserved.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764249235706/IMG_3729.png",
+    "gallery": [],
+    "createdAt": 1764249241562,
+    "status": "published"
   }
 ]
