@@ -719,5 +719,19 @@
     "gallery": [],
     "createdAt": 1764157215768,
     "status": "published"
+  },
+  {
+    "id": "1764244172946",
+    "title": "Vintage Natural Beaver Fur Coat (1950s–60s)",
+    "price": 550,
+    "description": "Authentic European beaver fur coat from the 1950s–60s. Soft, warm, beautifully crafted, and exceptionally well-preserved. A rare vintage luxury piece.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764244172946/IMG_3638.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764244172946/IMG_3637.png"
+    ],
+    "createdAt": 1764244179620,
+    "status": "published"
   }
 ]
