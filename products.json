@@ -353,5 +353,20 @@
     "gallery": [],
     "createdAt": 1764235303977,
     "status": "published"
+  },
+  {
+    "id": "1764235690435",
+    "title": "Guess White Sleeveless Bodycon Dress- Size L",
+    "price": 35,
+    "description": "White Guess bodycon dress with mesh details and a sheer tulle back panel. Gently used.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764235690435/CB5A7F65-F708-4220-8A43-169316620E63.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764235690435/88433680-043A-460A-B634-F786FE31F863.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764235690435/34640C19-25B1-4B9C-9E4C-78AD4CBB5704.png"
+    ],
+    "createdAt": 1764235699040,
+    "status": "published"
   }
 ]
