@@ -759,5 +759,17 @@
     "gallery": [],
     "createdAt": 1764248153478,
     "status": "published"
+  },
+  {
+    "id": "1764248574858",
+    "title": "Vintage Plaid Skirt — Size UK 12",
+    "price": 7,
+    "description": "Vintage Plaid Skirt — Size M\nVintage skirt with classic plaid finish and original structure, in great condition with light wear and its authentic charm preserved.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764248574858/IMG_3724.png",
+    "gallery": [],
+    "createdAt": 1764248578653,
+    "status": "published"
   }
 ]
