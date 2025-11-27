@@ -819,5 +819,17 @@
     "gallery": [],
     "createdAt": 1764256723948,
     "status": "published"
+  },
+  {
+    "id": "1764257096712",
+    "title": "Vintage Leather Jacket — Size  50",
+    "price": 45,
+    "description": "Vera Pelle\nVintage jacket with a classic finish and original fit, in great condition with light wear and its authentic charm preserved.\n",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764257096712/IMG_3739.png",
+    "gallery": [],
+    "createdAt": 1764257098427,
+    "status": "published"
   }
 ]
