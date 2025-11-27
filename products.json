@@ -380,5 +380,19 @@
     "gallery": [],
     "createdAt": 1764235919197,
     "status": "published"
+  },
+  {
+    "id": "1764236299034",
+    "title": "Vintage Acid-Wash Denim Skirt- Size 44",
+    "price": 15,
+    "description": "High-waisted vintage denim skirt with classic pockets and back slit with button closure. Gently used.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764236299034/IMG_3714.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764236299034/IMG_3715.jpeg"
+    ],
+    "createdAt": 1764236308729,
+    "status": "published"
   }
 ]
