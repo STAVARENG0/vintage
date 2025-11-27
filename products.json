@@ -394,5 +394,19 @@
     ],
     "createdAt": 1764236308729,
     "status": "published"
+  },
+  {
+    "id": "1764236525021",
+    "title": "Vintage Black Leather Skirt seize - 46",
+    "price": 30,
+    "description": "Genuine leather skirt with front panel detail and elastic back waist. Soft, stylish, and gently used.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764236525021/IMG_3716.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764236525021/IMG_3717.jpeg"
+    ],
+    "createdAt": 1764236534010,
+    "status": "published"
   }
 ]
