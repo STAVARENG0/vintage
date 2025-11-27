@@ -903,5 +903,17 @@
     "gallery": [],
     "createdAt": 1764260278843,
     "status": "published"
+  },
+  {
+    "id": "1764260926720",
+    "title": "Vintage Puma Hoodie — Size 14",
+    "price": 25,
+    "description": "Vintage hoodie with a classic finish and original fit, in great condition with light wear and its authentic charm preserved.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764260926720/IMG_3748.png",
+    "gallery": [],
+    "createdAt": 1764260928377,
+    "status": "published"
   }
 ]
