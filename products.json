@@ -783,5 +783,17 @@
     "gallery": [],
     "createdAt": 1764249241562,
     "status": "published"
+  },
+  {
+    "id": "1764250175776",
+    "title": "Vintage Embellished Slip Dress — Size UK 10",
+    "price": 20,
+    "description": "Vintage slip dress with delicate embroidered detailing and a soft, flowing fit, in great condition with light wear and its authentic charm preserved.\n",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764250175776/IMG_3732.png",
+    "gallery": [],
+    "createdAt": 1764250178302,
+    "status": "published"
   }
 ]
