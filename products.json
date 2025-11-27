@@ -747,5 +747,17 @@
     ],
     "createdAt": 1764247628579,
     "status": "published"
+  },
+  {
+    "id": "1764248150166",
+    "title": "Vintage Leather Skirt — Size 46",
+    "price": 30,
+    "description": "Vintage leather skirt with a classic finish and structured fit, in great condition with light wear and its authentic charm preserved",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764248150166/IMG_3725.png",
+    "gallery": [],
+    "createdAt": 1764248153478,
+    "status": "published"
   }
 ]
