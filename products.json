@@ -795,5 +795,17 @@
     "gallery": [],
     "createdAt": 1764250178302,
     "status": "published"
+  },
+  {
+    "id": "1764256338143",
+    "title": "Vintage Leather Vest — Size S",
+    "price": 25,
+    "description": "Vintage piece with classic finishing and original fit, in great condition with light wear and authentic charm preserved.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764256338143/IMG_3741.png",
+    "gallery": [],
+    "createdAt": 1764256339947,
+    "status": "published"
   }
 ]
