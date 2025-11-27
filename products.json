@@ -867,5 +867,17 @@
     "gallery": [],
     "createdAt": 1764257843905,
     "status": "published"
+  },
+  {
+    "id": "1764258092772",
+    "title": "Vintage Leather Coat with Fur Hood — Size 46",
+    "price": 60,
+    "description": "Vera Pelle\nVintage coat with a classic leather finish and original drape, in great condition with light wear and its authentic charm preserved.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764258092772/IMG_3737.png",
+    "gallery": [],
+    "createdAt": 1764258094376,
+    "status": "published"
   }
 ]
