@@ -1001,5 +1001,17 @@
     "gallery": [],
     "createdAt": 1764345259948,
     "status": "published"
+  },
+  {
+    "id": "1764345407620",
+    "title": "Vintage Brown Leather Belt (William Hunt)",
+    "price": 15,
+    "description": "A vintage piece with a classic finish and original fit, in excellent condition with light wear and its authentic charm fully preserved.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764345407620/IMG_3774.png",
+    "gallery": [],
+    "createdAt": 1764345409846,
+    "status": "published"
   }
 ]
