@@ -951,5 +951,17 @@
     "gallery": [],
     "createdAt": 1764261600851,
     "status": "published"
+  },
+  {
+    "id": "1764344614512",
+    "title": "Vintage Knit Beanie — One Size",
+    "price": 10,
+    "description": "A vintage piece with a classic finish and original fit, in excellent condition with light wear and its authentic charm fully preserved.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764344614512/IMG_3776.png",
+    "gallery": [],
+    "createdAt": 1764344616662,
+    "status": "published"
   }
 ]
