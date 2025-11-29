@@ -1013,5 +1013,17 @@
     "gallery": [],
     "createdAt": 1764345409846,
     "status": "published"
+  },
+  {
+    "id": "1764423467750",
+    "title": "Reebok Quilted Hooded Jacket — Size M",
+    "price": 45,
+    "description": "Vintage piece with a classic quilted finish and original fit, in great overall condition, showing light wear while preserving its authentic charm.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764423467750/IMG_3812.png",
+    "gallery": [],
+    "createdAt": 1764423471967,
+    "status": "published"
   }
 ]
