@@ -1,17 +1,5 @@
 [
   {
-    "id": "1763810992613",
-    "title": "Puma track jacket - Size XL",
-    "price": 25,
-    "description": "Sporty design, great condition",
-    "category": "Coats & Outerwear",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763810992613/IMG_3480.jpeg",
-    "gallery": [],
-    "createdAt": 1763810995829,
-    "status": "published"
-  },
-  {
     "id": "1763811395417",
     "title": "Nike Dry Fit-Size S",
     "price": 15,
