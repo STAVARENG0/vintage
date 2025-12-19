@@ -1,17 +1,5 @@
 [
   {
-    "id": "1763812429631",
-    "title": "Tommy Hilfiger crewneck sweater-Size L",
-    "price": 25,
-    "description": "Soft, classic, and in great overall condition.",
-    "category": "Shirts & Tees",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763812429631/IMG_3470.jpeg",
-    "gallery": [],
-    "createdAt": 1763812432374,
-    "status": "published"
-  },
-  {
     "id": "1763814910957",
     "title": "Champion green basketball tank. Size S",
     "price": 20,
