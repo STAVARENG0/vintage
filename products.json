@@ -1,17 +1,5 @@
 [
   {
-    "id": "1764261599300",
-    "title": "Nike Hoodie — Size S",
-    "price": 25,
-    "description": "\nVintage hoodie with a classic finish and original fit, in great condition with light wear and its authentic charm preserved.",
-    "category": "Hoodies & Sweatshirts",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764261599300/IMG_3744.png",
-    "gallery": [],
-    "createdAt": 1764261600851,
-    "status": "published"
-  },
-  {
     "id": "1764344614512",
     "title": "Vintage Knit Beanie — One Size",
     "price": 10,
