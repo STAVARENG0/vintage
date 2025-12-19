@@ -1,19 +1,5 @@
 [
   {
-    "id": "1762433528918",
-    "title": "Vintage Lacoste Polo",
-    "price": 25,
-    "description": "Vintage Lacoste Light Blue Polo Shirt – Size L\n",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762433528918/D3B28E7C-FDCC-4565-ABE0-B6485E9F1075.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762433528918/712CA2DA-BFAF-484D-865C-9782BAA8C3BF.png"
-    ],
-    "createdAt": 1762433532459,
-    "status": "published"
-  },
-  {
     "id": "1762435184553",
     "title": "Converse Camouflage ",
     "price": 35,
