@@ -1,19 +1,5 @@
 [
   {
-    "id": "1764345109198",
-    "title": "Vintage Woven Leather Belt",
-    "price": 40,
-    "description": "A vintage piece with a classic finish and original fit, in excellent condition with light wear and its authentic charm fully preserved.",
-    "category": "Bags & Accessories",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764345109198/IMG_3775.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1764345109198/IMG_3777.png"
-    ],
-    "createdAt": 1764345113559,
-    "status": "published"
-  },
-  {
     "id": "1764345257981",
     "title": "Vintage Black Leather Belt",
     "price": 10,
