@@ -1,19 +1,5 @@
 [
   {
-    "id": "1762359757103",
-    "title": "Sergio Tacchine Jacket ",
-    "price": 45,
-    "description": "Hooded Jacket- size M\nVintage ",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762359757103/IMG_3080.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762359757103/IMG_3081.png"
-    ],
-    "createdAt": 1762359760025,
-    "status": "published"
-  },
-  {
     "id": "1762433528918",
     "title": "Vintage Lacoste Polo",
     "price": 25,
