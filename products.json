@@ -1,17 +1,5 @@
 [
   {
-    "id": "1763989949128",
-    "title": "Vintage embroidered handbag.",
-    "price": 50,
-    "description": "Rich satin body with intricate floral beadwork and an ornate metal handle, in excellent overall condition.",
-    "category": "Curated Pieces",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1763989949128/IMG_0844.jpeg",
-    "gallery": [],
-    "createdAt": 1763989952378,
-    "status": "published"
-  },
-  {
     "id": "1763992600645",
     "title": "Regatta Great Outdoors insulated jacket. Size M",
     "price": 35,
