@@ -1,19 +1,5 @@
 [
   {
-    "id": "1762493592938",
-    "title": "SERGIO TACCHINE JACKET -SIZE M",
-    "price": 45,
-    "description": "Authentic 80s/90s vintage jacket, full of color and retro attitude — a true classic in excellent condition",
-    "category": "women",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762493592938/CAA59FFE-7C19-4A54-8AE6-42ECE5B91B86.jpeg",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762493592938/22F0E65D-49DC-4300-916D-C6430F57F4F5.jpeg"
-    ],
-    "createdAt": 1762493597087,
-    "status": "published"
-  },
-  {
     "id": "1762496142356",
     "title": "CONVERSE HOODIE JACKET - SIZE M",
     "price": 40,
