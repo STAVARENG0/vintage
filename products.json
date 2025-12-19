@@ -1,19 +1,5 @@
 [
   {
-    "id": "1762356362936",
-    "title": "Converse hoodie jacket ",
-    "price": 40,
-    "description": "Converse reversible hooded jacket ",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762356362936/IMG_3076.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762356362936/IMG_3077.png"
-    ],
-    "createdAt": 1762356366050,
-    "status": "published"
-  },
-  {
     "id": "1762359757103",
     "title": "Sergio Tacchine Jacket ",
     "price": 45,
