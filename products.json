@@ -1,17 +1,5 @@
 [
   {
-    "id": "1762350691315",
-    "title": "Tommy Hilfiger Hoodie ",
-    "price": 25,
-    "description": "Tommy Hilfiger Hoodie - Size L",
-    "category": "men",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1762350691315/IMG_3071.png",
-    "gallery": [],
-    "createdAt": 1762350692754,
-    "status": "published"
-  },
-  {
     "id": "1762350943839",
     "title": "Puma hoodie",
     "price": 25,
