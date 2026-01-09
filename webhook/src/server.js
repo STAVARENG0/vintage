@@ -2,18 +2,26 @@ import express from 'express';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 
-import { verifyWebhookSignature, extractOrderIdFromWebhook, getOrderDetails, extractPurchasedSkusFromOrder } from './paypal.js';
+import {
+  verifyWebhookSignature,
+  extractOrderIdFromWebhook,
+  getOrderDetails,
+  extractPurchasedIdsFromOrder
+} from './paypal.js';
+
 import { hasProcessed, markProcessed } from './store.js';
-import { removeProductsBySku } from './products.js';
+import { removeProductsById } from './products.js';
 
 dotenv.config();
 
 const app = express();
 
 // ⚠️ PayPal exige o RAW body
-app.use(express.json({ verify: (req, res, buf) => {
-  req.rawBody = buf.toString();
-}}));
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
 
 app.use(morgan('dev'));
 
@@ -21,29 +29,41 @@ app.get('/health', (_, res) => res.send('ok'));
 
 app.post('/webhooks/paypal', async (req, res) => {
   try {
+    // 1️⃣ Verifica assinatura PayPal
     const isValid = await verifyWebhookSignature(req.headers, req.body);
     if (!isValid) {
       return res.status(400).send('Invalid signature');
     }
 
     const eventId = req.body.id;
+
+    // 2️⃣ Evita processar o mesmo evento duas vezes
     if (await hasProcessed(eventId)) {
       return res.status(200).send('Already processed');
     }
 
+    // 3️⃣ Extrai orderId do webhook
     const orderId = extractOrderIdFromWebhook(req.body);
     if (!orderId) {
       return res.status(400).send('Order ID not found');
     }
 
+    // 4️⃣ Busca detalhes da order no PayPal
     const order = await getOrderDetails(orderId);
-    const items = extractPurchasedSkusFromOrder(order);
-    const skus = items.map(i => i.sku);
 
-    // 👉 AQUI O PRODUTO SOME
-    await removeProductsBySku(skus);
+    // 5️⃣ Extrai IDs comprados (custom_id)
+    const ids = extractPurchasedIdsFromOrder(order);
 
-    await markProcessed(eventId, { orderId, skus });
+    if (!ids.length) {
+      console.warn('⚠️ No product IDs found in order');
+      return res.status(200).send('No products to process');
+    }
+
+    // 6️⃣ Remove produtos do products.json (GitHub)
+    await removeProductsById(ids);
+
+    // 7️⃣ Marca evento como processado
+    await markProcessed(eventId, { orderId, ids });
 
     res.send('OK');
   } catch (err) {
