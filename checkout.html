@@ -273,6 +273,7 @@ function commonConfig(){
 
       const items = cart.map(item => ({
         name: item.title,
+        sku: String(item.id),
         unit_amount: { currency_code: 'EUR', value: item.price.toFixed(2) },
         quantity: item.qty.toString(),
         category: 'PHYSICAL_GOODS' // minimal change: set goods category
