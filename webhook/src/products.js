@@ -7,7 +7,8 @@ const octokit = new Octokit({
 // ⚠️ ATENÇÃO: É ZERO (0), NÃO LETRA O
 const OWNER = "STAVARENG0";
 const REPO = "vintage";
-const PRODUCTS_PATH = "products/products.json";
+const PRODUCTS_PATH = "products.json";
+
 
 /**
  * Remove produtos do products.json pelo ID
