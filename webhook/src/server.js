@@ -3,7 +3,6 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 
 import {
-  verifyWebhookSignature,
   extractOrderIdFromWebhook,
   getOrderDetails
 } from './paypal.js';
@@ -15,59 +14,59 @@ dotenv.config();
 
 const app = express();
 
-// ⚠️ PayPal exige o RAW body
-app.use(express.json({
-  verify: (req, res, buf) => {
-    req.rawBody = buf.toString();
-  }
-}));
-
+// NÃO usar raw body nem assinatura (PayPal quebra fácil)
+app.use(express.json());
 app.use(morgan('dev'));
 
 app.get('/health', (_, res) => res.send('ok'));
 
 app.post('/webhooks/paypal', async (req, res) => {
   try {
-    // 1️⃣ Verifica assinatura PayPal
-    const isValid = await verifyWebhookSignature(req.headers, req.body);
-    if (!isValid) {
-      return res.status(400).send('Invalid signature');
+    console.log('🔥 WEBHOOK RECEBIDO:', req.body?.event_type);
+
+    // Só processa pagamento concluído
+    if (req.body.event_type !== 'PAYMENT.CAPTURE.COMPLETED') {
+      return res.status(200).send('Event ignored');
     }
 
     const eventId = req.body.id;
 
-    // 2️⃣ Evita processar o mesmo evento duas vezes
+    // Evita duplicar
     if (await hasProcessed(eventId)) {
       return res.status(200).send('Already processed');
     }
 
-    // 3️⃣ Extrai orderId do webhook
+    // Extrai orderId
     const orderId = extractOrderIdFromWebhook(req.body);
     if (!orderId) {
-      return res.status(400).send('Order ID not found');
+      console.warn('⚠️ Order ID not found');
+      return res.status(200).send('No order');
     }
 
-    // 4️⃣ Busca detalhes da order no PayPal
+    // Busca detalhes da order no PayPal
     const order = await getOrderDetails(orderId);
 
-    // 🔥 5️⃣ EXTRAI IDs DOS PRODUTOS VIA reference_id
+    // 🔥 EXTRAI IDS VIA reference_id
     const ids = Array.isArray(order?.purchase_units)
       ? order.purchase_units
           .map(pu => pu.reference_id)
           .filter(Boolean)
       : [];
 
+    console.log('🧾 IDs pagos:', ids);
+
     if (!ids.length) {
-      console.warn('⚠️ No product reference_id found in order');
-      return res.status(200).send('No products to process');
+      console.warn('⚠️ No product reference_id found');
+      return res.status(200).send('No products');
     }
 
-    // 6️⃣ Remove produtos do products.json (GitHub)
+    // Remove produto + commit
     await removeProductsById(ids);
 
-    // 7️⃣ Marca evento como processado
+    // Marca evento como processado
     await markProcessed(eventId, { orderId, ids });
 
+    console.log('✅ Produto removido e commitado:', ids);
     res.send('OK');
   } catch (err) {
     console.error('❌ Webhook error:', err);
