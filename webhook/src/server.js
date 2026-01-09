@@ -3,11 +3,12 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 
 import {
-  verifyWebhookSignature,
   extractOrderIdFromWebhook,
   getOrderDetails,
   extractPurchasedSkusFromOrder
 } from "./paypal.js";
+
+import { removeProductsBySku } from "./store.js";
 
 dotenv.config();
 
@@ -16,58 +17,48 @@ const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 
+// Health check (Render usa isso)
 app.get("/health", (req, res) => {
   res.status(200).send("ok");
 });
 
-/**
- * 🔔 WEBHOOK PAYPAL (AQUI ESTÁ A CHAVE)
- */
+// ✅ WEBHOOK DO PAYPAL
 app.post("/webhooks/paypal", async (req, res) => {
   try {
-    console.log("🔥 WEBHOOK PAYPAL RECEBIDO");
-
-    const verified = await verifyWebhookSignature(req.headers, req.body);
-    if (!verified) {
-      console.log("❌ Assinatura inválida");
-      return res.sendStatus(400);
-    }
-
     const event = req.body;
-    console.log("Evento:", event.event_type);
 
-    // 👉 REGRA DE NEGÓCIO CORRETA
+    console.log("📩 PayPal webhook recebido:", event.event_type);
+
+    // Só processa pagamento concluído
     if (event.event_type !== "PAYMENT.CAPTURE.COMPLETED") {
-      return res.sendStatus(200);
+      return res.status(200).send("ignored");
     }
 
-    // ❗ NÃO checar status PENDING / ON_HOLD
     const orderId = extractOrderIdFromWebhook(event);
     if (!orderId) {
-      console.log("❌ Order ID não encontrado");
-      return res.sendStatus(200);
+      console.error("❌ Order ID não encontrado");
+      return res.status(400).send("no order id");
     }
 
     const order = await getOrderDetails(orderId);
     const items = extractPurchasedSkusFromOrder(order);
 
-    console.log("Itens comprados:", items);
+    for (const item of items) {
+      await removeProductsBySku(item.sku, item.qty);
+      console.log(`🗑 Produto removido: ${item.sku}`);
+    }
 
-    // 👉 AQUI entra sua lógica real:
-    // remove produto do JSON
-    // faz commit no GitHub
-    // atualiza estoque
+    // ⚠️ ESSENCIAL: responder 200
+    res.status(200).send("ok");
 
-    console.log("✅ Produto deve ser removido agora");
-
-    res.sendStatus(200);
   } catch (err) {
-    console.error("Erro no webhook:", err);
-    res.sendStatus(500);
+    console.error("🔥 Erro no webhook:", err);
+    res.status(500).send("error");
   }
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
