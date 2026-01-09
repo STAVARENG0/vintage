@@ -4,7 +4,8 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
 });
 
-const OWNER = "STAVARENGO";
+// ⚠️ ATENÇÃO: É ZERO (0), NÃO LETRA O
+const OWNER = "STAVARENG0";
 const REPO = "vintage";
 const PRODUCTS_PATH = "products/products.json";
 
@@ -61,6 +62,6 @@ export async function removeProductsById(ids = []) {
     console.log("✅ Produto removido e commitado com sucesso:", ids);
 
   } catch (err) {
-    console.error("🔥 Erro ao remover produto:", err.message);
+    console.error("🔥 Erro ao remover produto:", err);
   }
 }
