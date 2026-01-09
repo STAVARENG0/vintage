@@ -44,7 +44,6 @@ export async function getAccessToken() {
 export async function verifyWebhookSignature(headers, webhookEvent) {
   const token = await getAccessToken();
 
-  // Express lowercases header names
   const payload = {
     auth_algo: headers['paypal-auth-algo'],
     cert_url: headers['paypal-cert-url'],
@@ -81,6 +80,7 @@ export async function getOrderDetails(orderId) {
       'Content-Type': 'application/json'
     }
   });
+
   if (!res.ok) {
     const txt = await res.text().catch(() => '');
     throw new Error(`PayPal get order error: HTTP ${res.status} ${txt}`);
@@ -88,53 +88,42 @@ export async function getOrderDetails(orderId) {
   return res.json();
 }
 
-export async function captureOrder(orderId) {
-  const token = await getAccessToken();
-  const res = await fetch(`${baseUrl}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+/**
+ * ✅ EXTRAI IDS DOS PRODUTOS COMPRADOS (custom_id)
+ * Isso bate com o checkout e com o products.json
+ */
+export function extractPurchasedIdsFromOrder(order) {
+  const ids = [];
+  const pus = Array.isArray(order?.purchase_units) ? order.purchase_units : [];
+
+  for (const pu of pus) {
+    const puItems = Array.isArray(pu?.items) ? pu.items : [];
+    for (const it of puItems) {
+      const id = (it?.custom_id ?? '').toString().trim();
+      if (id) ids.push(id);
     }
-  });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`PayPal capture error: HTTP ${res.status} ${txt}`);
   }
-  return res.json();
+
+  return ids;
 }
 
 export function extractOrderIdFromWebhook(event) {
-  // Common places an order id shows up
   const r = event?.resource || {};
   const related = r?.supplementary_data?.related_ids || {};
   if (related.order_id) return related.order_id;
 
-  // Some events have the order id in resource.id
   if (event?.resource_type === 'checkout-order' && r?.id) return r.id;
 
-  // Fallback: look for a HATEOAS link rel="up" to an order
-  const up = Array.isArray(r?.links) ? r.links.find(l => l?.rel === 'up' && typeof l.href === 'string') : null;
+  const up = Array.isArray(r?.links)
+    ? r.links.find(l => l?.rel === 'up' && typeof l.href === 'string')
+    : null;
+
   if (up?.href) {
     const m = up.href.match(/\/v2\/checkout\/orders\/([A-Z0-9]+)/i);
     if (m) return m[1];
   }
 
   return null;
-}
-
-export function extractPurchasedSkusFromOrder(order) {
-  const items = [];
-  const pus = Array.isArray(order?.purchase_units) ? order.purchase_units : [];
-  for (const pu of pus) {
-    const puItems = Array.isArray(pu?.items) ? pu.items : [];
-    for (const it of puItems) {
-      const sku = (it?.sku ?? '').toString().trim();
-      const qty = parseInt((it?.quantity ?? '1').toString(), 10);
-      if (sku) items.push({ sku, qty: Number.isFinite(qty) && qty > 0 ? qty : 1 });
-    }
-  }
-  return items;
 }
 
 export { baseUrl };
