@@ -5,8 +5,7 @@ import dotenv from 'dotenv';
 import {
   verifyWebhookSignature,
   extractOrderIdFromWebhook,
-  getOrderDetails,
-  extractPurchasedIdsFromOrder
+  getOrderDetails
 } from './paypal.js';
 
 import { hasProcessed, markProcessed } from './store.js';
@@ -51,11 +50,15 @@ app.post('/webhooks/paypal', async (req, res) => {
     // 4️⃣ Busca detalhes da order no PayPal
     const order = await getOrderDetails(orderId);
 
-    // 5️⃣ Extrai IDs comprados (custom_id)
-    const ids = extractPurchasedIdsFromOrder(order);
+    // 🔥 5️⃣ EXTRAI IDs DOS PRODUTOS VIA reference_id
+    const ids = Array.isArray(order?.purchase_units)
+      ? order.purchase_units
+          .map(pu => pu.reference_id)
+          .filter(Boolean)
+      : [];
 
     if (!ids.length) {
-      console.warn('⚠️ No product IDs found in order');
+      console.warn('⚠️ No product reference_id found in order');
       return res.status(200).send('No products to process');
     }
 
