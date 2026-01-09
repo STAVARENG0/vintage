@@ -1,7 +1,15 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const PRODUCTS_FILE = path.resolve(process.cwd(), 'products.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// sobe de webhook/src → webhook → raiz → products/products.json
+const PRODUCTS_FILE = path.resolve(
+  __dirname,
+  '../../products/products.json'
+);
 
 export async function removeProductsBySku(skus = []) {
   if (!Array.isArray(skus) || skus.length === 0) return;
