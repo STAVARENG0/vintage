@@ -292,30 +292,23 @@ function commonConfig(){
       const missingId = cart.find(i => !i.id);
       if(missingId){ throw new Error('Cart item missing id'); }
 
-      const items = cart.map(item => ({
-        name: item.title,
-        custom_id: String(item.id),
-        unit_amount: { currency_code: 'EUR', value: item.price.toFixed(2) },
-        quantity: item.qty.toString(),
-        category: 'PHYSICAL_GOODS' // minimal change: set goods category
-      }));
-
       const shippingPref = (fulfilment === 'pickup') ? 'NO_SHIPPING' : 'GET_FROM_FILE';
 
+      // 🔥 reference_id = ID DO PRODUTO (PayPal SEMPRE DEVOLVE)
       return actions.order.create({
         intent: 'CAPTURE',
-        application_context: { shipping_preference: shippingPref, user_action: 'PAY_NOW', locale: 'en-IE' },
-        purchase_units:[{
-          description:'Checkout Order',
-          amount:{
-            value: total.toFixed(2),
-            currency_code:'EUR',
-            breakdown: {
-              item_total: { currency_code: 'EUR', value: subtotal.toFixed(2) },
-              shipping:   { currency_code: 'EUR', value: shipping.toFixed(2) }
-            }
-          },
-          items: items
+        application_context: {
+          shipping_preference: shippingPref,
+          user_action: 'PAY_NOW',
+          locale: 'en-IE'
+        },
+        purchase_units: [{
+          reference_id: String(cart[0].id),
+          description: cart[0].title,
+          amount: {
+            currency_code: 'EUR',
+            value: total.toFixed(2)
+          }
         }]
       });
     },
