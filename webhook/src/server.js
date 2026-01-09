@@ -1,64 +1,58 @@
-import express from "express";
-import morgan from "morgan";
-import dotenv from "dotenv";
+import express from 'express';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
 
-import {
-  extractOrderIdFromWebhook,
-  getOrderDetails,
-  extractPurchasedSkusFromOrder
-} from "./paypal.js";
-
-import { removeProductsBySku } from "./store.js";
+import { verifyWebhookSignature, extractOrderIdFromWebhook, getOrderDetails, extractPurchasedSkusFromOrder } from './paypal.js';
+import { hasProcessed, markProcessed } from './store.js';
+import { removeProductsBySku } from './products.js';
 
 dotenv.config();
 
 const app = express();
 
-app.use(express.json());
-app.use(morgan("dev"));
+// ⚠️ PayPal exige o RAW body
+app.use(express.json({ verify: (req, res, buf) => {
+  req.rawBody = buf.toString();
+}}));
 
-// Health check (Render usa isso)
-app.get("/health", (req, res) => {
-  res.status(200).send("ok");
-});
+app.use(morgan('dev'));
 
-// ✅ WEBHOOK DO PAYPAL
-app.post("/webhooks/paypal", async (req, res) => {
+app.get('/health', (_, res) => res.send('ok'));
+
+app.post('/webhooks/paypal', async (req, res) => {
   try {
-    const event = req.body;
-
-    console.log("📩 PayPal webhook recebido:", event.event_type);
-
-    // Só processa pagamento concluído
-    if (event.event_type !== "PAYMENT.CAPTURE.COMPLETED") {
-      return res.status(200).send("ignored");
+    const isValid = await verifyWebhookSignature(req.headers, req.body);
+    if (!isValid) {
+      return res.status(400).send('Invalid signature');
     }
 
-    const orderId = extractOrderIdFromWebhook(event);
+    const eventId = req.body.id;
+    if (await hasProcessed(eventId)) {
+      return res.status(200).send('Already processed');
+    }
+
+    const orderId = extractOrderIdFromWebhook(req.body);
     if (!orderId) {
-      console.error("❌ Order ID não encontrado");
-      return res.status(400).send("no order id");
+      return res.status(400).send('Order ID not found');
     }
 
     const order = await getOrderDetails(orderId);
     const items = extractPurchasedSkusFromOrder(order);
+    const skus = items.map(i => i.sku);
 
-    for (const item of items) {
-      await removeProductsBySku(item.sku, item.qty);
-      console.log(`🗑 Produto removido: ${item.sku}`);
-    }
+    // 👉 AQUI O PRODUTO SOME
+    await removeProductsBySku(skus);
 
-    // ⚠️ ESSENCIAL: responder 200
-    res.status(200).send("ok");
+    await markProcessed(eventId, { orderId, skus });
 
+    res.send('OK');
   } catch (err) {
-    console.error("🔥 Erro no webhook:", err);
-    res.status(500).send("error");
+    console.error('❌ Webhook error:', err);
+    res.status(500).send('Webhook error');
   }
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
