@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "1767966682819",
+    "title": "ARROZ E FEIJAO ",
+    "price": 1,
+    "description": "COMIDA",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1767966682819/Gemini_Generated_Image_qhq7nyqhq7nyqhq7.png",
+    "gallery": [],
+    "createdAt": 1767966685496,
+    "status": "published"
+  }
+]
