@@ -72,12 +72,16 @@ export async function verifyWebhookSignature(headers, webhookEvent) {
   return data.verification_status === 'SUCCESS';
 }
 
+/**
+ * 🔥 CORRIGIDO: agora o PayPal retorna os ITEMS (custom_id)
+ */
 export async function getOrderDetails(orderId) {
   const token = await getAccessToken();
   const res = await fetch(`${baseUrl}/v2/checkout/orders/${encodeURIComponent(orderId)}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation' // 👈 ESSENCIAL
     }
   });
 
@@ -85,12 +89,12 @@ export async function getOrderDetails(orderId) {
     const txt = await res.text().catch(() => '');
     throw new Error(`PayPal get order error: HTTP ${res.status} ${txt}`);
   }
+
   return res.json();
 }
 
 /**
  * ✅ EXTRAI IDS DOS PRODUTOS COMPRADOS (custom_id)
- * Isso bate com o checkout e com o products.json
  */
 export function extractPurchasedIdsFromOrder(order) {
   const ids = [];
