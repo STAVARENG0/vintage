@@ -22,5 +22,17 @@
     "gallery": [],
     "createdAt": 1767966827161,
     "status": "published"
+  },
+  {
+    "id": "1767983512496",
+    "title": "FRANGA",
+    "price": 1,
+    "description": "COCORICO ",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1767983512496/Gemini_Generated_Image_lr8lvelr8lvelr8l.png",
+    "gallery": [],
+    "createdAt": 1767983514142,
+    "status": "published"
   }
 ]
