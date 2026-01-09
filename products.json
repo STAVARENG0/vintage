@@ -10,5 +10,17 @@
     "gallery": [],
     "createdAt": 1767966685496,
     "status": "published"
+  },
+  {
+    "id": "1767966825811",
+    "title": "YAKISOBA",
+    "price": 1,
+    "description": "SSSS",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1767966825811/1_bNNzGACTDnmkRwKJo6fjww-removebg-preview.png",
+    "gallery": [],
+    "createdAt": 1767966827161,
+    "status": "published"
   }
 ]
