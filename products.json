@@ -46,5 +46,17 @@
     "gallery": [],
     "createdAt": 1768019626185,
     "status": "published"
+  },
+  {
+    "id": "1768019715882",
+    "title": "FOOD",
+    "price": 1,
+    "description": "LARANJADA",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768019715882/Gemini_Generated_Image_ix83tvix83tvix83.png",
+    "gallery": [],
+    "createdAt": 1768019718236,
+    "status": "published"
   }
 ]
