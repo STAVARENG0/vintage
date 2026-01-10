@@ -212,7 +212,7 @@ a.small:hover{ filter:brightness(1.05); }
 
 <script>
   // URL do seu back-end no Render (troque pelo seu domínio)
-  const BACKEND_URL = 'https://SEU-BACKEND.onrender.com';
+  const BACKEND_URL = 'https://login-oo7o.onrender.com';
 
   const form = document.getElementById('loginForm');
 
@@ -235,7 +235,9 @@ a.small:hover{ filter:brightness(1.05); }
 
       if (!res.ok) {
         err.style.display = 'block';
-        err.textContent = 'Invalid username or password.';
+        if (res.status === 401) err.textContent = 'Invalid username or password.';
+        else if (res.status === 404) err.textContent = 'Endpoint not found (check BACKEND_URL).';
+        else err.textContent = 'Server error. Try again.';
         return;
       }
 
@@ -247,42 +249,7 @@ a.small:hover{ filter:brightness(1.05); }
     }
   });
 </script>
-<script>
-  // URL do seu back-end no Render (troque pelo seu domínio)
-  const BACKEND_URL = 'https://SEU-BACKEND.onrender.com';
 
-  const form = document.getElementById('loginForm');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const u = document.getElementById('u').value.trim();
-    const p = document.getElementById('p').value;
-    const err = document.getElementById('err');
-
-    err.style.display = 'none';
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // necessário pro cookie HttpOnly
-        body: JSON.stringify({ username: u, password: p })
-      });
-
-      if (!res.ok) {
-        err.style.display = 'block';
-        err.textContent = 'Invalid username or password.';
-        return;
-      }
-
-      // Login OK -> vai para o painel
-      location.href = 'painel_vintage_wear.html';
-    } catch (e) {
-      err.style.display = 'block';
-      err.textContent = 'Server error. Try again.';
-    }
-  });
-</script>
 </body>
 </html>
