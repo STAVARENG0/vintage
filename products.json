@@ -58,17 +58,5 @@
     "gallery": [],
     "createdAt": 1768019718236,
     "status": "published"
-  },
-  {
-    "id": "1768019750881",
-    "title": "STROGONOFF",
-    "price": 1,
-    "description": "LEITE QUENTE DOI O DENTE ",
-    "category": "Shirts & Tees",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768019750881/Gemini_Generated_Image_az76g8az76g8az76.png",
-    "gallery": [],
-    "createdAt": 1768019753559,
-    "status": "published"
   }
 ]
