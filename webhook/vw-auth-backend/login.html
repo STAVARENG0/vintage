@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Vintage Wear | Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  /* paleta padrão (igual ao index) */
+  --bg-1:#f6f1e7;
+  --bg-2:#f3e9d8;
+  --text:#2b2723;
+  --muted:#7c6f63;
+  --accent:#d68d28;
+  --accent-2:#f0b43b;
+  --accent-dark:#9a5b18;
+  --card:#ffffff;
+  --border:#e0d5c2;
+  --radius:20px;
+
+  /* ouro / botões brancos com borda dourada */
+  --gold:#D4AF37;
+  --gold-light:#F5D76E;
+  --gold-deep:#8D6E21;
+  --gold-soft: rgba(212,175,55,.55);
+  --btn-bg: rgba(255,255,255,.88);
+  --btn-text:#3b2206;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Poppins, Arial, sans-serif;
+  background:linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395);
+  color:var(--text);
+  min-height:100svh;
+  padding:24px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* campo reativo dourado (canvas) */
+#reactiveField{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+
+.wrap{
+  width:min(92vw,520px);
+  margin:0 auto;
+  position:relative;
+  z-index:1;
+}
+
+.card{
+  background:linear-gradient(135deg,rgba(253,244,227,0.10),rgba(241,223,194,0.08),rgba(227,195,149,0.14));
+  backdrop-filter:saturate(120%) blur(6px);
+  -webkit-backdrop-filter:saturate(120%) blur(6px);
+  border-radius:28px;
+  border:1px solid rgba(212,175,55,.55);
+  box-shadow:0 18px 42px rgba(0,0,0,.32), 0 0 26px rgba(212,175,55,.22);
+  padding:30px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:10px;
+  flex-direction:column;
+}
+
+.brand img{
+  max-width:220px;
+  height:auto;
+  display:block;
+  border-radius:18px;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  filter:
+    drop-shadow(0 0 2px rgba(255,255,255,0.98))
+    drop-shadow(0 0 10px rgba(255,255,255,0.85))
+    drop-shadow(0 0 22px rgba(235,255,255,0.60))
+    drop-shadow(0 0 44px rgba(200,255,255,0.35));
+}
+
+/* linha dourada (igual ao header) */
+.brand::after{
+  content:"";
+  display:block;
+  width:min(420px,92%);
+  height:2px;
+  margin:12px auto 2px;
+  background:linear-gradient(90deg,transparent, rgba(212,175,55,.95), transparent);
+  border-radius:999px;
+  box-shadow:0 10px 22px rgba(212,175,55,.20);
+}
+
+h1{
+  margin:0 0 14px;
+  font-size:1.25rem;
+  text-align:center;
+}
+
+label{
+  font-size:.9rem;
+  color:var(--muted);
+  display:block;
+  margin:10px 0 6px;
+}
+
+input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:999px;
+  border:1px solid var(--gold-soft);
+  background:rgba(255,255,255,.90);
+  color:var(--text);
+  font-size:15px;
+  box-shadow:0 10px 26px rgba(0,0,0,.08);
+  outline:none;
+}
+
+input:focus{
+  border-color: rgba(212,175,55,.85);
+  box-shadow:0 10px 26px rgba(0,0,0,.08), 0 0 0 3px rgba(212,175,55,.16);
+}
+
+button{
+  width:100%;
+  padding:12px 14px;
+  border-radius:999px;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid var(--gold-soft);
+  font-weight:700;
+  cursor:pointer;
+  margin-top:14px;
+  box-shadow:0 10px 26px rgba(0,0,0,.10);
+  transition: transform .15s ease, filter .15s ease;
+}
+
+button:hover{
+  filter:brightness(1.03);
+  transform:translateY(-1px);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.95), transparent 60%),
+    linear-gradient(120deg, rgba(212,175,55,.22), rgba(240,180,59,.22));
+  border-color: rgba(212,175,55,.75);
+}
+
+button:active{
+  transform:translateY(0);
+  filter:brightness(.99);
+}
+
+.err{
+  color:#8a1f1f;
+  background:rgba(255,230,230,.95);
+  border:1px solid rgba(242,179,179,.9);
+  padding:10px 12px;
+  border-radius:14px;
+  display:none;
+  margin:0 0 12px;
+  text-align:center;
+}
+
+a.small{
+  display:block;
+  text-align:center;
+  color:var(--muted);
+  font-size:.9rem;
+  text-decoration:none;
+  margin-top:12px;
+}
+a.small:hover{ filter:brightness(1.05); }
+
+@media (max-width: 600px){
+  .brand img{ max-width:180px; }
+  .card{ padding:26px 18px; }
+}
+</style>
+</head>
+<body>
+  <canvas id="reactiveField" aria-hidden="true"></canvas>
+  <div class="wrap">
+  <div class="card">
+    <div class="brand">
+      <img src="LOGO.png" alt="Vintage Wear logo">
+    </div>
+    <h1>Sign in — Vintage Wear</h1>
+    <div id="err" class="err">Invalid username or password.</div>
+    <form id="loginForm" autocomplete="off">
+      <label for="u">Username</label>
+      <input type="text" id="u" autocomplete="username" required placeholder="your username">
+      <label for="p">Password</label>
+      <input type="password" id="p" autocomplete="current-password" required placeholder="your password">
+      <button type="submit">Sign in</button>
+      <a class="small" href="index.html">← Back to site</a>
+    </form>
+  </div>
+  </div>
+
+<script>
+  // URL do seu back-end no Render (troque pelo seu domínio)
+  const BACKEND_URL = 'https://SEU-BACKEND.onrender.com';
+
+  const form = document.getElementById('loginForm');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const u = document.getElementById('u').value.trim();
+    const p = document.getElementById('p').value;
+    const err = document.getElementById('err');
+
+    err.style.display = 'none';
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // necessário pro cookie HttpOnly
+        body: JSON.stringify({ username: u, password: p })
+      });
+
+      if (!res.ok) {
+        err.style.display = 'block';
+        err.textContent = 'Invalid username or password.';
+        return;
+      }
+
+      // Login OK -> vai para o painel
+      location.href = 'painel_vintage_wear.html';
+    } catch (e) {
+      err.style.display = 'block';
+      err.textContent = 'Server error. Try again.';
+    }
+  });
+</script>
+<script>
+  // URL do seu back-end no Render (troque pelo seu domínio)
+  const BACKEND_URL = 'https://SEU-BACKEND.onrender.com';
+
+  const form = document.getElementById('loginForm');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const u = document.getElementById('u').value.trim();
+    const p = document.getElementById('p').value;
+    const err = document.getElementById('err');
+
+    err.style.display = 'none';
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // necessário pro cookie HttpOnly
+        body: JSON.stringify({ username: u, password: p })
+      });
+
+      if (!res.ok) {
+        err.style.display = 'block';
+        err.textContent = 'Invalid username or password.';
+        return;
+      }
+
+      // Login OK -> vai para o painel
+      location.href = 'painel_vintage_wear.html';
+    } catch (e) {
+      err.style.display = 'block';
+      err.textContent = 'Server error. Try again.';
+    }
+  });
+</script>
+</body>
+</html>
