@@ -8,9 +8,10 @@ const app = express();
 
 // ====== ENV ======
 const NODE_ENV = process.env.NODE_ENV || "development";
-const ADMIN_USER = process.env.ADMIN_USER || "";
-const ADMIN_PASS_HASH = process.env.ADMIN_PASS_HASH || "";
-const JWT_SECRET = process.env.JWT_SECRET || "";
+const ADMIN_USER = (process.env.ADMIN_USER || "").trim();
+const ADMIN_PASS_HASH = (process.env.ADMIN_PASS_HASH || "").trim();
+const JWT_SECRET = (process.env.JWT_SECRET || "").trim();
+
 const FRONTEND_ORIGIN = (process.env.FRONTEND_ORIGIN || "")
   .split(",")
   .map((s) => s.trim())
@@ -20,12 +21,12 @@ const FRONTEND_ORIGIN = (process.env.FRONTEND_ORIGIN || "")
 app.use(express.json());
 app.use(cookieParser());
 
-// CORS para permitir seu site chamar o back-end
 app.use(
   cors({
     origin: (origin, cb) => {
       if (!origin) return cb(null, true);
-      if (FRONTEND_ORIGIN.length === 0) return cb(new Error("CORS: FRONTEND_ORIGIN vazio"));
+      if (FRONTEND_ORIGIN.length === 0)
+        return cb(new Error("CORS: FRONTEND_ORIGIN vazio"));
       if (FRONTEND_ORIGIN.includes(origin)) return cb(null, true);
       return cb(new Error("CORS blocked: " + origin));
     },
@@ -33,7 +34,6 @@ app.use(
   })
 );
 
-// Preflight
 app.options("*", cors({ origin: true, credentials: true }));
 
 // ====== HELPERS ======
@@ -67,13 +67,14 @@ app.get("/health", (req, res) =>
   res.json({ ok: true, env: NODE_ENV, service: "vw-auth" })
 );
 
-// compatível com Render se estiver configurado como /healthz
 app.get("/healthz", (req, res) =>
   res.json({ ok: true, env: NODE_ENV, service: "vw-auth" })
 );
 
 app.post("/auth/login", async (req, res) => {
-  const { username, password } = req.body || {};
+  // trim também no que vem do front (evita "karla " e "senha " sem querer)
+  const username = String(req.body?.username || "").trim();
+  const password = String(req.body?.password || "").trim();
 
   if (!username || !password) {
     return res.status(400).json({ ok: false, error: "MISSING_FIELDS" });
@@ -92,7 +93,6 @@ app.post("/auth/login", async (req, res) => {
 
   const token = signToken({ sub: ADMIN_USER, role: "admin" });
 
-  // Cookie HttpOnly (recomendado)
   res.cookie("vw_admin", token, {
     httpOnly: true,
     secure: true,
@@ -100,12 +100,15 @@ app.post("/auth/login", async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  // fallback: também devolve o token (se cookie for bloqueado)
   return res.json({ ok: true, token });
 });
 
 app.post("/auth/logout", (req, res) => {
-  res.clearCookie("vw_admin", { httpOnly: true, secure: true, sameSite: "none" });
+  res.clearCookie("vw_admin", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
   res.json({ ok: true });
 });
 
