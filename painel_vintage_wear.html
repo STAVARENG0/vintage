@@ -3,6 +3,32 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script>
+/**
+ * Guard: blocks direct access to this static page without a valid login cookie.
+ * IMPORTANT: Replace BACKEND_URL with your Render login service URL.
+ */
+(() => {
+  const BACKEND_URL = "https://login-0070.onrender.com"; // <-- TROQUE AQUI se sua URL for outra
+  // Hide content until we confirm auth (prevents flashing the admin UI)
+  document.documentElement.style.visibility = "hidden";
+
+  async function requireLogin() {
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/me`, { credentials: "include" });
+      if (!res.ok) throw new Error("not-auth");
+      document.documentElement.style.visibility = "visible";
+      window.__BACKEND_URL__ = BACKEND_URL;
+    } catch (err) {
+      const next = encodeURIComponent(location.pathname + location.search + location.hash);
+      location.href = `/login.html?next=${next}`;
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", requireLogin);
+})();
+</script>
+
 <title>Vintage Wear — Admin Panel (Fix)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
