@@ -34,5 +34,17 @@
     "gallery": [],
     "createdAt": 1768019583854,
     "status": "published"
+  },
+  {
+    "id": "1768019624164",
+    "title": "FEIJOADA",
+    "price": 1,
+    "description": "TO COM FOME QUERO LEITE ",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768019624164/Gemini_Generated_Image_izcdsizcdsizcdsi.png",
+    "gallery": [],
+    "createdAt": 1768019626185,
+    "status": "published"
   }
 ]
