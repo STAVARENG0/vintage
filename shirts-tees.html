@@ -48,7 +48,7 @@ header{ text-align:center; margin-bottom:18px }
   font-family: "Poppins", cursive;
   font-size: 58px;
   fill: none;
-  stroke: var(--olive);
+  stroke: var(--accent);
   stroke-width: 2px;
   stroke-dasharray: 800;
   stroke-dashoffset: 800;
@@ -115,7 +115,7 @@ header{ text-align:center; margin-bottom:18px }
 footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
 .admin-btn-modal { position: absolute; top: 12px; right: 12px; z-index: 100; }
 .admin-btn-modal a{
-  background: var(--olive); color:#fff; text-decoration:none; padding:4px 8px;
+  background: var(--accent); color:#fff; text-decoration:none; padding:4px 8px;
   border-radius:6px; font-weight:600; font-size:11px; box-shadow:0 1px 4px rgba(0,0,0,0.1);
   transition: filter 0.2s; display:inline-block;
 }
@@ -535,14 +535,281 @@ header{ text-align:center; }
 h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !important; }
 </style>
 
+
+<!-- ====== ARTESANATO GLASS THEME + GOLD FIELD (aplicado na Vintage) ====== -->
+<style id="vintage-artesanato-glass">
+:root{
+  /* paleta do artesanato */
+  --bg-1:#f6f1e7;
+  --bg-2:#f3e9d8;
+  --text:#2b2723;
+  --muted:#7c6f63;
+  --accent:#d68d28;
+  --accent-2:#f0b43b;
+  --accent-dark:#9a5b18;
+  --card:#ffffff;
+  --border:#e0d5c2;
+  --shadow:0 10px 26px rgba(0,0,0,.15);
+  --radius:20px;
+  --gold:#D4AF37;
+  --gold-light:#F5D76E;
+  --gold-deep:#8D6E21;
+}
+
+/* fundo e padding iguais ao artesanato */
+body{
+  background:linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395) !important;
+  color: var(--text) !important;
+  padding:24px 10px !important;
+}
+
+/* campo reativo dourado */
+#reactiveField{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* container glass (usa os wrappers existentes .wrap + .card) */
+.wrap{
+  max-width:1180px !important;
+  margin:0 auto 32px !important;
+  padding:0 !important;
+  position:relative;
+  z-index:1;
+}
+
+.card{
+  padding:26px 22px 38px !important;
+  background:linear-gradient(135deg,rgba(253,244,227,0.10),rgba(241,223,194,0.08),rgba(227,195,149,0.14)) !important;
+  backdrop-filter:saturate(120%) blur(6px) !important;
+  -webkit-backdrop-filter:saturate(120%) blur(6px) !important;
+  border-radius:28px !important;
+  border:1px solid rgba(212,175,55,.55) !important;
+  box-shadow:0 18px 42px rgba(0,0,0,.32), 0 0 26px rgba(212,175,55,.22) !important;
+  position:relative;
+  z-index:1;
+}
+
+/* linha dourada e logo elegante */
+.site-name{
+  width:100% !important;
+  max-width: 720px !important;
+  aspect-ratio: 16 / 5 !important;
+  border-radius:18px !important;
+  border:1px solid rgba(212,175,55,.80) !important;
+  background-color: rgba(255,255,255,.10) !important;
+  box-shadow:0 14px 34px rgba(0,0,0,.18), 0 0 18px rgba(212,175,55,.18) !important;
+  margin:0 auto 8px !important;
+}
+
+/* mobile: logo maior */
+@media (max-width:600px){
+  .site-name{ max-width: 560px !important; }
+}
+
+/* linha dourada abaixo da logo */
+.brand{ position:relative !important; }
+.brand::after{
+  content:"";
+  display:block;
+  width:min(820px,92%);
+  height:2px;
+  margin:10px auto 6px;
+  background:linear-gradient(90deg,transparent, rgba(212,175,55,.95), transparent);
+  border-radius:999px;
+  box-shadow:0 8px 18px rgba(212,175,55,.20);
+}
+
+/* botões no mesmo estilo do artesanato */
+.btn,
+.pill-btn,
+.social-btn,
+.floating-cart{
+  background:linear-gradient(120deg,var(--accent),var(--accent-2)) !important;
+  color:#3b2206 !important;
+  border:none !important;
+  box-shadow:0 8px 22px rgba(198,129,41,.40) !important;
+}
+.floating-cart{ color:#3b2206 !important; }
+
+.search-box input,
+.search-box button{
+  background: rgba(255,255,255,.86) !important;
+  border:1px solid rgba(0,0,0,.10) !important;
+  box-shadow:0 10px 26px rgba(0,0,0,.10) !important;
+  border-radius:999px !important;
+}
+
+/* divisórias igual artesanato */
+.divider{
+  height:2px !important;
+  background:linear-gradient(90deg,transparent, rgba(212,175,55,.55), transparent) !important;
+}
+
+/* modal com overlay e card elegante */
+.modal{
+  background:rgba(0,0,0,.45) !important;
+}
+.modal-content,
+.vmodal__dialog{
+  background:var(--card) !important;
+  border:1px solid rgba(224,213,194,.9) !important;
+  border-radius:18px !important;
+  box-shadow:0 22px 60px rgba(0,0,0,.5) !important;
+}
+
+/* menu lateral com o mesmo fundo do tema */
+.menu-panel{
+  background:linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395) !important;
+}
+</style>
+
+
+<!-- ================= AJUSTES (MENU acima + BOTÕES BRANCOS + LOGO MAIOR) ================= -->
+<style id="vintage-glass-fixes">
+/* 1) Menu lateral sempre acima do “vidro” e dos modais */
+.menu-modal{ z-index: 200000 !important; }
+.menu-panel{ z-index: 200001 !important; }
+.menu-overlay{ z-index: 200000 !important; }
+
+/* 2) Botões brancos com borda dourada (estilo elegante) */
+:root{
+  --gold:#D4AF37;
+  --gold-soft: rgba(212,175,55,.55);
+  --btn-bg: rgba(255,255,255,.88);
+  --btn-text: #3b2206;
+}
+
+.btn,
+.pill-btn,
+.social-btn,
+.search-box button,
+.vmodal__cta,
+.cart-checkout{
+  background: var(--btn-bg) !important;
+  color: var(--btn-text) !important;
+  border: 1px solid var(--gold-soft) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.10) !important;
+}
+
+.btn:hover,
+.pill-btn:hover,
+.social-btn:hover,
+.search-box button:hover,
+.vmodal__cta:hover,
+.cart-checkout:hover{
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.95), transparent 60%),
+    linear-gradient(120deg, rgba(212,175,55,.22), rgba(240,180,59,.22)) !important;
+  border-color: rgba(212,175,55,.75) !important;
+}
+
+.btn:active,
+.pill-btn:active,
+.social-btn:active,
+.search-box button:active,
+.vmodal__cta:active,
+.cart-checkout:active{
+  transform: translateY(0);
+  filter: brightness(.99);
+}
+
+/* Mantém o texto dos botões sociais legível */
+.social-btn svg path{ fill: currentColor !important; }
+
+/* 3) Logo bem maior (PC e mobile) + borda dourada */
+.site-name{
+  width: clamp(420px, 78vw, 1180px) !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(212,175,55,.85) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.20), 0 0 26px rgba(212,175,55,.22) !important;
+}
+
+@media (max-width: 600px){
+  .site-name{
+    width: clamp(320px, 96vw, 720px) !important;
+    border-radius: 18px !important;
+  }
+}
+
+/* Linha dourada reforçada */
+.brand::after{
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,.95), transparent) !important;
+  box-shadow: 0 10px 22px rgba(212,175,55,.20) !important;
+}
+
+/* Inputs combinando */
+.search-box input{
+  background: rgba(255,255,255,.90) !important;
+  border: 1px solid var(--gold-soft) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.08) !important;
+}
+</style>
+
+
+<!-- === Logo neon + sem folgas (override final) === -->
+<style id="logo-neon-tight">
+/* 1) Remove “moldura”/espaços do container da logo */
+.site-name{
+  /* faz a imagem encostar (remove letterbox do contain) */
+  background: url("LOGO.png") center / cover no-repeat !important;
+
+  /* tira fundo/borda/sombra que viravam “margem” */
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+
+  /* deixa o brilho aparecer fora do bloco */
+  overflow: visible !important;
+  border-radius: 20px !important;
+
+  /* 2) Brilho neon claro em TODO o traçado */
+  filter:
+    drop-shadow(0 0 2px rgba(255,255,255,0.98))
+    drop-shadow(0 0 10px rgba(255,255,255,0.85))
+    drop-shadow(0 0 22px rgba(235,255,255,0.60))
+    drop-shadow(0 0 44px rgba(200,255,255,0.35)) !important;
+}
+
+/* se existir qualquer <img> de logo em outros pontos, aplica o mesmo neon */
+.brand img{
+    border-radius: 18px !important;
+background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter:
+    drop-shadow(0 0 2px rgba(255,255,255,0.98))
+    drop-shadow(0 0 10px rgba(255,255,255,0.85))
+    drop-shadow(0 0 22px rgba(235,255,255,0.60))
+    drop-shadow(0 0 44px rgba(200,255,255,0.35)) !important;
+}
+
+/* === Ajustes mobile: logo menor + mais respiro entre logo e botões === */
+@media (max-width: 600px){
+  .site-name{
+    /* reduz a “caixa” e o texto no mobile */
+    width: clamp(260px, 88vw, 420px) !important;
+    font-size: clamp(34px, 11vw, 64px) !important;
+  }
+  .social-buttons{ margin-top: 12px !important; }
+  .brand .search-box{ margin-top: 12px !important; }
+  .category-buttons{ margin-top: 12px !important; }
+}
+
+</style>
 </head>
 <body>
+  <canvas id="reactiveField" aria-hidden="true"></canvas>
 <div class="wrap">
 <div class="card">
 <div class="admin-btn-modal"><a href="login.html">Admin</a></div>
 <header>
-<div class="brand"><svg aria-label="WELCOME" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">WELCOME</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1><div class="tagline">clothes shop</div>
-<div aria-label="Redes sociais" class="social-buttons">
+<div class="brand"><svg aria-label="Shirts &amp; Tees" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">Shirts &amp; Tees</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1><div aria-label="Redes sociais" class="social-buttons">
 <a aria-label="Instagram Vintage Clothes" class="social-btn social-instagram" href="https://www.instagram.com/vintageclothes.ie?igsh=emtmYjV1NGF6ZGZk&amp;utm_source=qr" rel="noopener noreferrer" target="_blank">
 <!-- IG glyph -->
 <svg aria-hidden="true" viewbox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.51 5.51 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zM18 6.75a1.25 1.25 0 1 1 1.25-1.25A1.25 1.25 0 0 1 18 6.75z" fill="white"></path></svg>
@@ -1039,6 +1306,176 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   })();
+</script>
+
+<script>
+(() => {
+  // Campo reativo dourado (mesmo efeito do Artesanato)
+  const GOLD = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#D4AF37';
+  const GOLD_LIGHT = getComputedStyle(document.documentElement).getPropertyValue('--gold-light').trim() || '#F5D76E';
+  const GOLD_DEEP = getComputedStyle(document.documentElement).getPropertyValue('--gold-deep').trim() || '#8D6E21';
+
+  const MAX_PARTICLES_BASE = 135;
+  const LINK_DIST = 170;
+  const SAFETY_MARGIN = 22;
+  const MOUSE_REPEL_RADIUS = 120 + SAFETY_MARGIN;
+  const MOUSE_FORCE = 0.14;
+  const SPEED = 0.55;
+  const FRICTION = 0.965;
+  const CURVE = true;
+  const GLOW = true;
+
+  const canvas = document.getElementById('reactiveField');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d', { alpha: true });
+  let DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  let W = 0, H = 0;
+
+  function resize(){
+    W = canvas.clientWidth = window.innerWidth;
+    H = canvas.clientHeight = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  resize();
+
+  window.addEventListener('resize', () => {
+    DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    resize();
+    init();
+  });
+
+  const pts = [];
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  function init(){
+    pts.length = 0;
+    const area = W * H;
+    const target = Math.min(250, Math.round(MAX_PARTICLES_BASE * (area / (1200*900))));
+    for(let i=0;i<target;i++){
+      pts.push({
+        x: rand(0,W),
+        y: rand(0,H),
+        vx: rand(-SPEED,SPEED),
+        vy: rand(-SPEED,SPEED),
+        r: rand(2.1,3.6)
+      });
+    }
+  }
+  init();
+
+  const mouse = { x:-9999, y:-9999, active:false };
+  document.addEventListener('mousemove', (e)=>{
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  }, {passive:true});
+  document.addEventListener('mouseleave', ()=>{ mouse.active = false; }, {passive:true});
+
+  function drawDot(p){
+    const g = ctx.createRadialGradient(p.x-1, p.y-1, 0, p.x, p.y, p.r*1.6);
+    g.addColorStop(0, GOLD_LIGHT);
+    g.addColorStop(0.55, GOLD);
+    g.addColorStop(1, GOLD_DEEP);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+    if(GLOW){
+      ctx.save();
+      ctx.globalAlpha = .25;
+      ctx.shadowColor = GOLD;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawLink(a,b,dist){
+    const t = 1 - (dist / LINK_DIST);
+    const lw = 1 + t * 2.2;
+    const alpha = 0.12 + t * 0.6;
+
+    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, GOLD);
+    grad.addColorStop(0.5, GOLD_LIGHT);
+    grad.addColorStop(1, GOLD);
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = lw;
+    ctx.globalAlpha = alpha;
+
+    if(CURVE){
+      const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len = Math.hypot(dx,dy) || 1;
+      const nx = -dy/len, ny = dx/len;
+      const bend = 10 + 26 * t;
+      const cx = mx + nx * bend;
+      const cy = my + ny * bend;
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.quadraticCurveTo(cx,cy,b.x,b.y);
+      ctx.stroke();
+    }else{
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function step(){
+    ctx.clearRect(0,0,W,H);
+
+    for(const p of pts){
+      if(mouse.active){
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const d2 = dx*dx + dy*dy;
+        const r2 = MOUSE_REPEL_RADIUS * MOUSE_REPEL_RADIUS;
+        if(d2 < r2){
+          const d = Math.sqrt(d2) || 0.0001;
+          const force = (1 - d / MOUSE_REPEL_RADIUS) * MOUSE_FORCE;
+          p.vx += (dx / d) * force * 5.0;
+          p.vy += (dy / d) * force * 5.0;
+        }
+      }
+
+      p.vx += (Math.random()-0.5)*0.02;
+      p.vy += (Math.random()-0.5)*0.02;
+
+      p.vx *= FRICTION;
+      p.vy *= FRICTION;
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if(p.x < 0){ p.x = 0; p.vx = Math.abs(p.vx); }
+      if(p.x > W){ p.x = W; p.vx = -Math.abs(p.vx); }
+      if(p.y < 0){ p.y = 0; p.vy = Math.abs(p.vy); }
+      if(p.y > H){ p.y = H; p.vy = -Math.abs(p.vy); }
+    }
+
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const a = pts[i], b = pts[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.hypot(dx,dy);
+        if(dist < LINK_DIST){
+          drawLink(a,b,dist);
+        }
+      }
+    }
+
+    for(const p of pts) drawDot(p);
+    requestAnimationFrame(step);
+  }
+  step();
+})();
 </script>
 
 </body>
