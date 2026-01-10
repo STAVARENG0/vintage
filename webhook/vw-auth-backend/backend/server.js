@@ -1,4 +1,4 @@
-// server.js
+// server.js (ESM)
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -14,15 +14,16 @@ const ADMIN_PASS_HASH = process.env.ADMIN_PASS_HASH || "";
 const JWT_SECRET = process.env.JWT_SECRET || "change-me";
 const FRONTEND_ORIGIN = (process.env.FRONTEND_ORIGIN || "")
   .split(",")
-  .map(s => s.trim())
+  .map((s) => s.trim())
   .filter(Boolean);
 
 // ====== CORS ======
 app.use(
   cors({
     origin: function (origin, cb) {
-      // permite chamadas sem origin (ex.: curl / healthchecks)
+      // permite chamadas sem origin (ex.: abrir URL direto no browser, health checks)
       if (!origin) return cb(null, true);
+      if (FRONTEND_ORIGIN.length === 0) return cb(null, true); // fallback: se não configurar, libera (não recomendado)
       if (FRONTEND_ORIGIN.includes(origin)) return cb(null, true);
       return cb(new Error("CORS blocked: " + origin));
     },
@@ -41,12 +42,15 @@ function signToken(payload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
 
-function requireAuth(req, res, next) {
+function getTokenFromReq(req) {
   const cookieToken = req.cookies?.vw_admin;
   const header = req.headers.authorization || "";
   const bearerToken = header.startsWith("Bearer ") ? header.slice(7) : null;
+  return cookieToken || bearerToken;
+}
 
-  const token = cookieToken || bearerToken;
+function requireAuth(req, res, next) {
+  const token = getTokenFromReq(req);
   if (!token) return res.status(401).json({ ok: false, error: "UNAUTHORIZED" });
 
   try {
@@ -81,15 +85,15 @@ app.post("/auth/login", async (req, res) => {
 
   const token = signToken({ sub: ADMIN_USER, role: "admin" });
 
-  // Cookie para o navegador (HttpOnly)
+  // Cookie HttpOnly (recomendado)
   res.cookie("vw_admin", token, {
     httpOnly: true,
-    secure: true,        // obrigatório em HTTPS
-    sameSite: "none",    // necessário porque site e backend são domínios diferentes
+    secure: true,       // HTTPS (Render + seu site)
+    sameSite: "none",   // domínios diferentes (vintage-clothes.ie vs onrender.com)
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  // Também devolvo o token no JSON como fallback (caso o browser bloqueie cookie third-party)
+  // Fallback: devolve token também (se o browser bloquear cookie cross-site)
   return res.json({ ok: true, token });
 });
 
@@ -102,10 +106,11 @@ app.get("/auth/me", requireAuth, (req, res) => {
   res.json({ ok: true, user: req.user });
 });
 
-// Exemplo de rota protegida (teste)
+// Rota protegida de teste
 app.get("/admin/ping", requireAuth, (req, res) => {
   res.json({ ok: true, msg: "pong", user: req.user });
 });
 
+// ====== START ======
 const port = process.env.PORT || 10000;
 app.listen(port, () => console.log("Server running on port", port));
