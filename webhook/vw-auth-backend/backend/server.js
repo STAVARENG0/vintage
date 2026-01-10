@@ -6,13 +6,20 @@ import bcrypt from "bcryptjs";
 
 const app = express();
 
-// ====== ENV ======
-const NODE_ENV = process.env.NODE_ENV || "development";
-const ADMIN_USER = (process.env.ADMIN_USER || "").trim();
-const ADMIN_PASS_HASH = (process.env.ADMIN_PASS_HASH || "").trim();
-const JWT_SECRET = (process.env.JWT_SECRET || "").trim();
+// remove espaços e aspas no começo/fim
+function clean(v) {
+  return String(v || "")
+    .trim()
+    .replace(/^['"]+|['"]+$/g, "");
+}
 
-const FRONTEND_ORIGIN = (process.env.FRONTEND_ORIGIN || "")
+// ====== ENV ======
+const NODE_ENV = clean(process.env.NODE_ENV) || "development";
+const ADMIN_USER = clean(process.env.ADMIN_USER);
+const ADMIN_PASS_HASH = clean(process.env.ADMIN_PASS_HASH);
+const JWT_SECRET = clean(process.env.JWT_SECRET);
+
+const FRONTEND_ORIGIN = clean(process.env.FRONTEND_ORIGIN)
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
@@ -63,18 +70,13 @@ function requireAuth(req, res, next) {
 // ====== ROUTES ======
 app.get("/", (req, res) => res.send("OK"));
 
-app.get("/health", (req, res) =>
-  res.json({ ok: true, env: NODE_ENV, service: "vw-auth" })
-);
-
 app.get("/healthz", (req, res) =>
   res.json({ ok: true, env: NODE_ENV, service: "vw-auth" })
 );
 
 app.post("/auth/login", async (req, res) => {
-  // trim também no que vem do front (evita "karla " e "senha " sem querer)
-  const username = String(req.body?.username || "").trim();
-  const password = String(req.body?.password || "").trim();
+  const username = clean(req.body?.username);
+  const password = String(req.body?.password || ""); // não trim aqui por padrão
 
   if (!username || !password) {
     return res.status(400).json({ ok: false, error: "MISSING_FIELDS" });
@@ -86,6 +88,16 @@ app.post("/auth/login", async (req, res) => {
 
   const userOk = username === ADMIN_USER;
   const passOk = await bcrypt.compare(password, ADMIN_PASS_HASH);
+
+  // LOG SEGURO (não mostra senha/hash, só diz onde falhou)
+  console.log("[LOGIN]", {
+    incomingUser: username,
+    userOk,
+    passOk,
+    adminUserLen: ADMIN_USER.length,
+    hashLen: ADMIN_PASS_HASH.length, // bcrypt correto costuma ser 60
+    origin: req.headers.origin || null,
+  });
 
   if (!userOk || !passOk) {
     return res.status(401).json({ ok: false, error: "INVALID_CREDENTIALS" });
@@ -101,15 +113,6 @@ app.post("/auth/login", async (req, res) => {
   });
 
   return res.json({ ok: true, token });
-});
-
-app.post("/auth/logout", (req, res) => {
-  res.clearCookie("vw_admin", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-  });
-  res.json({ ok: true });
 });
 
 app.get("/auth/me", requireAuth, (req, res) => {
