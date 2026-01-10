@@ -1,4 +1,3 @@
-// server.js (ESM)
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -7,7 +6,6 @@ import bcrypt from "bcryptjs";
 
 const app = express();
 
-// ====== ENV ======
 const NODE_ENV = process.env.NODE_ENV || "development";
 const ADMIN_USER = process.env.ADMIN_USER || "";
 const ADMIN_PASS_HASH = process.env.ADMIN_PASS_HASH || "";
@@ -17,27 +15,21 @@ const FRONTEND_ORIGIN = (process.env.FRONTEND_ORIGIN || "")
   .map((s) => s.trim())
   .filter(Boolean);
 
-// ====== CORS ======
 app.use(
   cors({
-    origin: function (origin, cb) {
-      // permite chamadas sem origin (ex.: abrir URL direto no browser, health checks)
+    origin: (origin, cb) => {
       if (!origin) return cb(null, true);
-      if (FRONTEND_ORIGIN.length === 0) return cb(null, true); // fallback: se não configurar, libera (não recomendado)
       if (FRONTEND_ORIGIN.includes(origin)) return cb(null, true);
       return cb(new Error("CORS blocked: " + origin));
     },
     credentials: true,
   })
 );
-
-// Preflight
 app.options("*", cors({ origin: true, credentials: true }));
 
 app.use(express.json());
 app.use(cookieParser());
 
-// ====== HELPERS ======
 function signToken(payload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
@@ -52,7 +44,6 @@ function getTokenFromReq(req) {
 function requireAuth(req, res, next) {
   const token = getTokenFromReq(req);
   if (!token) return res.status(401).json({ ok: false, error: "UNAUTHORIZED" });
-
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     return next();
@@ -61,56 +52,31 @@ function requireAuth(req, res, next) {
   }
 }
 
-// ====== ROUTES ======
 app.get("/", (req, res) => res.send("OK"));
 app.get("/health", (req, res) => res.json({ ok: true, env: NODE_ENV }));
 
 app.post("/auth/login", async (req, res) => {
   const { username, password } = req.body || {};
-
-  if (!username || !password) {
-    return res.status(400).json({ ok: false, error: "MISSING_FIELDS" });
-  }
-
-  if (!ADMIN_USER || !ADMIN_PASS_HASH) {
-    return res.status(500).json({ ok: false, error: "SERVER_NOT_CONFIGURED" });
-  }
+  if (!username || !password) return res.status(400).json({ ok: false, error: "MISSING_FIELDS" });
+  if (!ADMIN_USER || !ADMIN_PASS_HASH) return res.status(500).json({ ok: false, error: "SERVER_NOT_CONFIGURED" });
 
   const userOk = username === ADMIN_USER;
   const passOk = await bcrypt.compare(password, ADMIN_PASS_HASH);
-
-  if (!userOk || !passOk) {
-    return res.status(401).json({ ok: false, error: "INVALID_CREDENTIALS" });
-  }
+  if (!userOk || !passOk) return res.status(401).json({ ok: false, error: "INVALID_CREDENTIALS" });
 
   const token = signToken({ sub: ADMIN_USER, role: "admin" });
 
-  // Cookie HttpOnly (recomendado)
   res.cookie("vw_admin", token, {
     httpOnly: true,
-    secure: true,       // HTTPS (Render + seu site)
-    sameSite: "none",   // domínios diferentes (vintage-clothes.ie vs onrender.com)
+    secure: true,
+    sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  // Fallback: devolve token também (se o browser bloquear cookie cross-site)
   return res.json({ ok: true, token });
 });
 
-app.post("/auth/logout", (req, res) => {
-  res.clearCookie("vw_admin", { httpOnly: true, secure: true, sameSite: "none" });
-  res.json({ ok: true });
-});
+app.get("/auth/me", requireAuth, (req, res) => res.json({ ok: true, user: req.user }));
 
-app.get("/auth/me", requireAuth, (req, res) => {
-  res.json({ ok: true, user: req.user });
-});
-
-// Rota protegida de teste
-app.get("/admin/ping", requireAuth, (req, res) => {
-  res.json({ ok: true, msg: "pong", user: req.user });
-});
-
-// ====== START ======
 const port = process.env.PORT || 10000;
 app.listen(port, () => console.log("Server running on port", port));
