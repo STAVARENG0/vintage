@@ -22,5 +22,17 @@
     "gallery": [],
     "createdAt": 1767983514142,
     "status": "published"
+  },
+  {
+    "id": "1768019580666",
+    "title": "ARROZ E FEIJAO ",
+    "price": 1,
+    "description": "COMIDA",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768019580666/Gemini_Generated_Image_qhq7nyqhq7nyqhq7.png",
+    "gallery": [],
+    "createdAt": 1768019583854,
+    "status": "published"
   }
 ]
