@@ -21,10 +21,24 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-app.use(cors({
-  origin: cfg.frontendOrigin || true,
-  credentials: false,
-}));
+const allowedOrigins = [
+  "https://vintage-clothes.ie",
+  "https://www.vintage-clothes.ie",
+  "http://localhost:3000",
+  "http://127.0.0.1:5500"
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS blocked: " + origin));
+    },
+    credentials: true,
+  })
+);
+
 
 app.get("/health", async (req, res) => {
   try{
