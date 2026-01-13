@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>VintageShop — Dresses & Skirts</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&amp;family=Poppins:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<meta content="no-store" http-equiv="Cache-Control"/>
+<style>
+:root{
+  --cream:#f6f1e7;
+  --cream-2:#f3e9d8;
+  --text:#2a2a2a;
+  --muted:#6f6f6f;
+  --olive:#6b7b2a;
+  --mustard:#f1b332;
+  --coral:#ff8e7f;
+  --terracotta:#b33b2e;
+  --card:#ffffff;
+  --accent: #f1b332;
+  --accent-2: #ff8e7f;
+}
+*{ box-sizing: border-box }
+body{
+  margin:0;
+  font-family:Poppins,system-ui,Arial,sans-serif;
+  color:var(--text);
+  background: linear-gradient(180deg, var(--cream), var(--cream-2));
+  min-height:100dvh;
+}
+.wrap{ max-width:1200px; margin:0 auto; padding:26px }
+.card{ background:transparent; border:none; border-radius:0; padding:0; box-shadow:none; position:relative; }
+header{ text-align:center; margin-bottom:18px }
+.brand{ display:flex; flex-direction:column; align-items:center; gap:0; position:relative; }
+.brand img{
+  max-width:100%;
+  height:auto;
+  border:2px solid var(--mustard);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 10px 20px rgba(0,0,0,.06);
+}
+.welcome { width: 100%; max-width: 600px; margin: 10px 0 0 0; }
+.welcome text {
+  font-family: "Poppins", cursive;
+  font-size: 58px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2px;
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+  animation: draw 6s ease forwards;
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.brand .search-box {
+  position: absolute; bottom: 10px; right: 20px; max-width: 320px;
+  display:flex; gap:6px;
+}
+.search-box input{
+  flex:1; padding:12px 16px; border-radius:20px; border:1px solid #ddd;
+  outline:none; background:#ffffff; color:#111; font-size:14px;
+}
+.search-box input::placeholder{ color:#666; }
+.search-box button{
+  padding:12px 20px; border:1px solid #ddd; border-radius:20px;
+  background:#ffffff; color:#111; font-weight:700; cursor:pointer;
+}
+.category-buttons{
+  display:flex; justify-content:center; gap:12px; margin: 12px 0 2px; flex-wrap: wrap;
+}
+.pill-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 20px; border-radius:9999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color:#2a2a2a; font-weight:800; border:2px solid rgba(0,0,0,.05);
+  text-decoration:none; box-shadow:0 6px 18px rgba(0,0,0,0.12);
+  cursor:pointer; transition: transform .18s ease, filter .18s ease;
+}
+.pill-btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+.pill-btn:active{ transform: translateY(0); }
+@media (max-width: 600px) {
+  .brand { align-items: center; }
+  .brand .search-box { position: static; margin-top: 14px; width: 100%; max-width: 100%; padding: 0 10px; display: flex; justify-content: center; gap: 8px; }
+}
+.divider{ height:2px; background:linear-gradient(90deg,transparent,var(--olive),transparent); margin:18px 0 }
+.grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:22px; align-items:stretch }
+@media (max-width:600px){ .grid{ grid-template-columns:repeat(2,1fr) } }
+.product{ display:flex; flex-direction:column; justify-content:space-between; }
+.product{
+  background:var(--card);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:18px; overflow:hidden;
+  box-shadow:0 10px 28px rgba(0,0,0,.08);
+  position:relative;
+}
+.product img{ width:100%; aspect-ratio:1/1; object-fit:cover; background:#fafafa; display:block }
+.product-body{ padding:14px 16px 10px }
+.product h3{ margin:0 0 6px; font-weight:700; font-size:16px; color:var(--text); }
+.meta{ color:var(--muted); font-size:13px; line-height:1.4; margin-bottom:8px }
+.price{ font-weight:800; color:var(--terracotta); margin-bottom:6px }
+.cta{ padding:12px 14px 14px; border-top:1px dashed rgba(0,0,0,.06) }
+.btn{
+  display:block; width:100%; text-align:center; text-decoration:none; font-weight:800;
+  padding:12px 14px; border-radius:28px;
+  background:linear-gradient(90deg,var(--olive), var(--mustard));
+  color:#fff;
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+  transition:transform .18s ease, filter .18s ease;
+}
+.btn:hover{ transform:translateY(-1px); filter:brightness(1.08) }
+.btn.disabled{ opacity:.55; pointer-events:none; filter:grayscale(1) }
+footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
+.admin-btn-modal { position: absolute; top: 12px; right: 12px; z-index: 100; }
+.admin-btn-modal a{
+  background: var(--accent); color:#fff; text-decoration:none; padding:4px 8px;
+  border-radius:6px; font-weight:600; font-size:11px; box-shadow:0 1px 4px rgba(0,0,0,0.1);
+  transition: filter 0.2s; display:inline-block;
+}
+.admin-btn-modal a:hover { filter: brightness(1.1); }
+.oos-ribbon{
+  position:absolute; top:10px; left:-40px; transform: rotate(-20deg);
+  background: rgba(179,59,46,0.9); color:#fff; padding:10px 60px; font-weight:900;
+  letter-spacing:.12em; text-shadow: 0 1px 2px rgba(0,0,0,.35); box-shadow:0 10px 20px rgba(0,0,0,.18);
+  border:2px solid rgba(255,255,255,0.12); pointer-events:none;
+}
+/* Floating cart */
+.floating-cart {
+  position: fixed; bottom: 20px; right: 20px;
+  background: linear-gradient(180deg, var(--mustard), var(--coral));
+  color: white; border-radius: 50%; width: 70px; height: 70px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2); cursor:pointer; z-index: 5000; transition: transform 0.3s ease;
+}
+.floating-cart .cart-ico { font-size: 28px; line-height: 1; }
+.floating-cart .cart-count { font-size: 14px; font-weight: 800; line-height: 1; }
+.floating-cart .cart-count:empty { display:none; }
+.floating-cart:hover { transform: scale(1.1) rotate(5deg); }
+/* Cart modal */
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:3000; }
+.modal-content {
+  background:var(--card); padding:20px; border-radius:16px; max-width:600px; width:90%; text-align:left;
+  color:var(--text); position:relative; border: 1px solid rgba(0,0,0,0.08);
+}
+.modal-close{ position:absolute; top:10px; right:10px; background:var(--terracotta); border:none; color:#fff; font-weight:bold; padding:6px 12px; border-radius:6px; cursor:pointer }
+.cart-content{ background:#ffffff; color:#111; box-shadow:0 18px 42px rgba(0,0,0,.12); }
+.cart-content h2{ color:#111; margin:0 0 6px; }
+.cart-divider{ border:none; border-top:2px dashed rgba(0,0,0,0.08); }
+.cart-total{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; font-weight:800; color:#111; }
+.cart-checkout{ width:100%; background:linear-gradient(90deg,var(--olive), var(--mustard)) !important; color:#fff; border:none; }
+.cart-item{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.cart-item-left{ display:flex; align-items:center; gap:10px; }
+.cart-thumb{ width:46px; height:46px; border-radius:8px; object-fit:cover; border:1px solid rgba(0,0,0,.06); }
+.cart-qty{ display:flex; align-items:center; gap:6px; }
+
+/* ==== Brand header with colored letters ==== */
+header{ text-align:center; margin-bottom: 8px }
+.brand{ gap: 12px; padding-top: 16px; }
+.site-name{
+  margin: 0;
+  font-family: Poppins, system-ui, Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: clamp(46px, 9vw, 120px);
+  line-height: 1;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.08));
+ position:relative; display:inline-block; z-index:0;  position:relative; display:inline-block; line-height:1; z-index:0; }
+.site-name .char{
+  display:inline-block;
+  opacity:0;
+  transform: translateY(14px) scale(.96);
+  animation: typeIn .5s ease forwards;
+  animation-delay: calc(var(--i) * 90ms);
+  -webkit-text-stroke: 1.2px #ffffff;
+  paint-order: stroke fill;
+  text-shadow: none;
+  position: relative;
+  z-index: 3;
+  mix-blend-mode: normal;
+}
+@keyframes typeIn{ to{ opacity:1; transform: translateY(0) scale(1); } }
+/* Search box positioning */
+.brand .search-box{ position: static; margin-top: 6px; }
+@media (min-width: 820px){
+  header{ display:flex; align-items:center; justify-content:center; }
+  .brand{ position:relative; }
+  .brand .search-box{
+    position:absolute; right: 0; bottom: 4px;
+  }
+}
+/* Clean up spacing after removing hero */
+.card{ padding-top: 8px; }
+
+/* Two-tone support for the last letter */
+.site-name .char{
+  display:inline-block;
+  opacity:0;
+  transform: translateY(14px) scale(.96);
+  animation: typeIn .5s ease forwards;
+  animation-delay: calc(var(--i) * 90ms);
+  -webkit-text-stroke: 1.2px #ffffff;
+  paint-order: stroke fill;
+  text-shadow: none;
+  position: relative;
+  z-index: 3;
+  mix-blend-mode: normal;
+}
+@keyframes typeIn{ to{ opacity:1; transform: translateY(0) scale(1); } }
+/* Layout tweaks */
+header{ text-align:center; }
+.brand{ gap: 10px; padding-top: 14px; }
+.brand .search-box{ position: static; margin-top: 6px; }
+@media (min-width: 900px){
+  .brand { position: relative; }
+  .brand .search-box { position: absolute; right: 0; bottom: 4px; }
+}
+
+/* ===== Tagline cursiva sob o VINTAGE ===== */
+.tagline{
+  margin-top: 6px;
+  font-family: "Brush Script MT","Lucida Handwriting","Segoe Script",cursive;
+  font-size: clamp(22px, 3.6vw, 34px);
+  letter-spacing: .02em;
+  line-height: 1;
+  background: linear-gradient(90deg, #7b3f00, #4b2612);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: .0; transform: translateY(6px);
+  animation: taglineFade .5s ease forwards;
+  animation-delay: .25s;
+}
+@keyframes taglineFade{ to{ opacity:1; transform: translateY(0);} }
+/* ===== Search posicionada logo abaixo do tagline ===== */
+.brand .search-box{
+  position: static !important;
+  margin: 8px auto 10px !important;
+}
+/* Garanta que os botões fiquem abaixo com espaço */
+.buttons, .filters, .category-buttons{
+  margin-top: 8px;
+}
+
+/* ===== Welcome acima do título ===== */
+.welcome-line{
+  font-family: Poppins, system-ui, Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  font-size: clamp(14px, 2.4vw, 22px);
+  color: #6B7B2A;
+  opacity: 0; transform: translateY(-6px);
+  animation: welcomeIn .5s ease forwards;
+}
+@keyframes welcomeIn { to{ opacity:1; transform: translateY(0); } }
+
+/* Fix: force last letter (E) to solid peach, no gradient or clip */
+.site-name .char:last-child{
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  color: #F79A73 !important;
+}
+
+/* === Brush underline under the word "VINTAGE" === */
+:root{ --brush-height: 0.65em; --brush-offset: 0.12em; }
+.site-name > * { position: relative; z-index: 2; }
+
+
+
+/* === Precise brush underline under VINTAGE (tight under text) === */
+:root{ --brush-height: 0.42em; --brush-offset: 0.02em; }
+.site-name{ position:relative; display:inline-block; line-height:1; }
+.site-name > *{ position:relative; z-index:2; }
+
+
+
+
+
+
+/* === Subtle glow around VINTAGE for contrast on the brown brush === */
+.site-name .char{
+  text-shadow: none;
+  -webkit-text-stroke: 1.2px #ffffff;
+  paint-order: stroke fill;
+  position: relative;
+  z-index: 3;
+  mix-blend-mode: normal;
+}
+/* fallback for non-shadow letters (SVG/other): keep a soft drop shadow too */
+.site-name{
+  filter: drop-shadow(0 0 6px rgba(255,255,255,.14));
+}
+
+
+/* ==== Vintage Modal — exact layout ==== */
+.product img, .product h3 { cursor: pointer; }
+
+.vmodal{ display:none; position:fixed; inset:0; background: transparent;
+  z-index: 10000; align-items:center; justify-content:center; padding:18px; }
+.vmodal__dialog{ position:relative; background: #fff; color:var(--text); border-radius:16px;
+  border:1px solid rgba(255,255,255,.06); max-width:980px; width:100%;
+  display:grid; grid-template-columns: 58% 42%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.35); }
+@media (max-width: 860px){ .vmodal__dialog{ grid-template-columns:1fr; } }
+
+/* Left */
+.vmodal__left{ background: #fff; padding:16px; display:grid; grid-template-rows: 1fr auto; gap:12px; }
+.vmodal__main{ background: #fff; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.vmodal__main img{ width:100%; max-height:360px; object-fit:contain; background: #fff; display:block; }
+.vmodal__thumbs{ display:flex; gap:10px; padding:2px; }
+.vmodal__thumb{ width:56px; height:56px; border-radius:12px; overflow:hidden; border:2px solid transparent; cursor:pointer; background:#fff; }
+.vmodal__thumb.is-active{ border-color: var(--mustard); }
+.vmodal__thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Right */
+.vmodal__right{ padding:18px; display:flex; flex-direction:column; gap:10px; background:var(--card); }
+.vmodal__title{ margin:0; font-size:20px; font-weight:800; color:var(--text); }
+.vmodal__price{ font-weight:900; color:var(--terracotta); font-size:18px; }
+.vmodal__meta{ font-size:12px; color:var(--muted); }
+.vmodal__desc{ font-size:14px; color:var(--text); }
+
+.vmodal__actions{ margin-top:8px; }
+.vmodal__cta{
+  width:100%; padding:12px 16px; border-radius:999px; border:none; cursor:pointer;
+  background:linear-gradient(135deg, #ff7a1a, #ffb35a);
+  color:#fff; font-weight:900; box-shadow:0 10px 24px rgba(255,122,26,.28);
+}
+.vmodal__cta:active{ transform: translateY(1px); }
+
+/* Close badge inside dialog (top-right) */
+.vmodal__close{
+  position:absolute; top:10px; right:10px; width:28px; height:28px;
+  display:flex; align-items:center; justify-content:center;
+  background:#ff7a1a; color:#fff; border:none; border-radius:8px; cursor:pointer;
+  font-weight:900; line-height:1; box-shadow: 0 8px 18px rgba(255,122,26,.35);
+}
+.vmodal__close:hover{ filter:brightness(1.1); }
+
+
+/* === Social buttons above the search bar === */
+.social-buttons{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin:6px 0 4px; }
+.social-btn{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:9999px; font-weight:700; font-size:12px; text-decoration:none; border:1px solid rgba(0,0,0,.08); box-shadow:0 2px 8px rgba(0,0,0,.08); transition: transform .18s ease, filter .18s ease; color:#fff; }
+.social-btn:hover{ transform: translateY(-1px); filter: brightness(1.06); }
+.social-btn svg{ width:14px; height:14px; display:block; }
+
+/* Instagram uses site theme */
+.social-instagram{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: var(--text);
+}
+
+/* TikTok uses site theme */
+.social-tiktok{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-color: rgba(0,0,0,.06);
+  color: var(--text);
+}
+.social-tiktok .accent{ display:inline-block; width:6px; height:6px; border-radius:50%; background:#25F4EE; box-shadow: 10px 0 0 #FE2C55; margin-right:2px; }
+
+/* WhatsApp uses site theme */
+.social-whatsapp{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: var(--text);
+}
+
+/* Compact on small screens */
+@media (max-width: 600px){ .social-buttons{ margin-top:4px; gap:4px; } .social-btn{ padding:3px 7px; font-size:11px; } }
+  .social-btn{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:9999px; font-weight:700; font-size:12px; text-decoration:none; border:1px solid rgba(0,0,0,.08); box-shadow:0 2px 8px rgba(0,0,0,.08); transition: transform .18s ease, filter .18s ease; color:#fff; }
+}
+
+
+/* ====== MENU LATERAL ====== */
+.menu-modal{
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100vh;
+  display: none;
+  z-index: 6000;
+}
+
+.menu-modal.is-open{
+  display: block;
+}
+
+.menu-overlay{
+  position: absolute;
+  inset: 0;
+  background: transparent; /* não escurece o site */
+}
+
+.menu-panel{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 30%;          /* ocupa 30% da página */
+  max-width: 360px;
+  min-width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, var(--cream), var(--cream-2)); /* mesma cor do tema */
+  box-shadow: 4px 0 24px rgba(0,0,0,0.25);
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (max-width: 700px){
+  .menu-panel{
+    width: 72%;       /* mais largo no mobile pra ficar usável */
+  }
+}
+
+.menu-title{
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--text);
+}
+
+.menu-close{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: var(--terracotta);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-list{
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-list a{
+  display: block;
+  padding: 8px 6px;
+  border-radius: 9999px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  background: rgba(0,0,0,0.02);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.menu-list a:hover{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  transform: translateX(2px);
+}
+</style>
+
+<!-- === Override: replace VINTAGE text with logo image === -->
+<style>
+/* Hide the animated letters and brush, use the logo image instead */
+.site-name {
+  width: clamp(240px, 60vw, 820px);
+  aspect-ratio: 16 / 5;
+  background: url("LOGO.png") center / contain no-repeat;
+  display: block;
+  margin: 0 auto;
+  text-indent: -9999px; /* keep text for a11y/SEO but hide it */
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: #ffffff; /* optional white behind transparent png */
+  box-shadow: 0 10px 22px rgba(0,0,0,.10);
+  padding: 0; /* neutralize any padding */
+}
+.site-name .char { display: none !important; }
+.site-name::before { content: none !important; } /* remove brush overlay */
+.brand { gap: 10px; } /* keep layout tidy */
+</style>
+
+
+<style id="logo-gap-fix">
+/* Remove the tiny baseline gap under <img> by making it block-level */
+.brand img{ display:block; margin:0 auto; }
+.brand{ line-height: 0; } /* ensure no extra line-box space */
+</style>
+
+
+<style id="logo-white-gap-kill">
+/* Mata a “margem branca” do logo: vem do background e border do .brand img */
+.brand img{
+  display:block !important;
+  margin:0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+.brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; }
+</style>
+
+
+<style id="logo-gap-kill-2">
+/* Elimina qualquer faixa clara/“margem” embaixo do logo  */
+.brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; gap:0 !important; }
+.brand img{
+  display:block !important;
+  margin:0 auto !important;
+  background: transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+/* Caso o logo seja aplicado no .site-name como background */
+.site-name{
+  display:block !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  line-height:0 !important;
+  background-color: transparent !important;
+  box-shadow:none !important;
+}
+h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !important; }
+</style>
+
+
+<!-- ====== ARTESANATO GLASS THEME + GOLD FIELD (aplicado na Vintage) ====== -->
+<style id="vintage-artesanato-glass">
+:root{
+  /* paleta do artesanato */
+  --bg-1:#f6f1e7;
+  --bg-2:#f3e9d8;
+  --text:#2b2723;
+  --muted:#7c6f63;
+  --accent:#d68d28;
+  --accent-2:#f0b43b;
+  --accent-dark:#9a5b18;
+  --card:#ffffff;
+  --border:#e0d5c2;
+  --shadow:0 10px 26px rgba(0,0,0,.15);
+  --radius:20px;
+  --gold:#D4AF37;
+  --gold-light:#F5D76E;
+  --gold-deep:#8D6E21;
+}
+
+/* fundo e padding iguais ao artesanato */
+body{
+  background:linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395) !important;
+  color: var(--text) !important;
+  padding:24px 10px !important;
+}
+
+/* campo reativo dourado */
+#reactiveField{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* container glass (usa os wrappers existentes .wrap + .card) */
+.wrap{
+  max-width:1180px !important;
+  margin:0 auto 32px !important;
+  padding:0 !important;
+  position:relative;
+  z-index:1;
+}
+
+.card{
+  padding:26px 22px 38px !important;
+  background:linear-gradient(135deg,rgba(253,244,227,0.10),rgba(241,223,194,0.08),rgba(227,195,149,0.14)) !important;
+  backdrop-filter:saturate(120%) blur(6px) !important;
+  -webkit-backdrop-filter:saturate(120%) blur(6px) !important;
+  border-radius:28px !important;
+  border:1px solid rgba(212,175,55,.55) !important;
+  box-shadow:0 18px 42px rgba(0,0,0,.32), 0 0 26px rgba(212,175,55,.22) !important;
+  position:relative;
+  z-index:1;
+}
+
+/* linha dourada e logo elegante */
+.site-name{
+  width:100% !important;
+  max-width: 720px !important;
+  aspect-ratio: 16 / 5 !important;
+  border-radius:18px !important;
+  border:1px solid rgba(212,175,55,.80) !important;
+  background-color: rgba(255,255,255,.10) !important;
+  box-shadow:0 14px 34px rgba(0,0,0,.18), 0 0 18px rgba(212,175,55,.18) !important;
+  margin:0 auto 8px !important;
+}
+
+/* mobile: logo maior */
+@media (max-width:600px){
+  .site-name{ max-width: 560px !important; }
+}
+
+/* linha dourada abaixo da logo */
+.brand{ position:relative !important; }
+.brand::after{
+  content:"";
+  display:block;
+  width:min(820px,92%);
+  height:2px;
+  margin:10px auto 6px;
+  background:linear-gradient(90deg,transparent, rgba(212,175,55,.95), transparent);
+  border-radius:999px;
+  box-shadow:0 8px 18px rgba(212,175,55,.20);
+}
+
+/* botões no mesmo estilo do artesanato */
+.btn,
+.pill-btn,
+.social-btn,
+.floating-cart{
+  background:linear-gradient(120deg,var(--accent),var(--accent-2)) !important;
+  color:#3b2206 !important;
+  border:none !important;
+  box-shadow:0 8px 22px rgba(198,129,41,.40) !important;
+}
+.floating-cart{ color:#3b2206 !important; }
+
+.search-box input,
+.search-box button{
+  background: rgba(255,255,255,.86) !important;
+  border:1px solid rgba(0,0,0,.10) !important;
+  box-shadow:0 10px 26px rgba(0,0,0,.10) !important;
+  border-radius:999px !important;
+}
+
+/* divisórias igual artesanato */
+.divider{
+  height:2px !important;
+  background:linear-gradient(90deg,transparent, rgba(212,175,55,.55), transparent) !important;
+}
+
+/* modal com overlay e card elegante */
+.modal{
+  background:rgba(0,0,0,.45) !important;
+}
+.modal-content,
+.vmodal__dialog{
+  background:var(--card) !important;
+  border:1px solid rgba(224,213,194,.9) !important;
+  border-radius:18px !important;
+  box-shadow:0 22px 60px rgba(0,0,0,.5) !important;
+}
+
+/* menu lateral com o mesmo fundo do tema */
+.menu-panel{
+  background:linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395) !important;
+}
+</style>
+
+
+<!-- ================= AJUSTES (MENU acima + BOTÕES BRANCOS + LOGO MAIOR) ================= -->
+<style id="vintage-glass-fixes">
+/* 1) Menu lateral sempre acima do “vidro” e dos modais */
+.menu-modal{ z-index: 200000 !important; }
+.menu-panel{ z-index: 200001 !important; }
+.menu-overlay{ z-index: 200000 !important; }
+
+/* 2) Botões brancos com borda dourada (estilo elegante) */
+:root{
+  --gold:#D4AF37;
+  --gold-soft: rgba(212,175,55,.55);
+  --btn-bg: rgba(255,255,255,.88);
+  --btn-text: #3b2206;
+}
+
+.btn,
+.pill-btn,
+.social-btn,
+.search-box button,
+.vmodal__cta,
+.cart-checkout{
+  background: var(--btn-bg) !important;
+  color: var(--btn-text) !important;
+  border: 1px solid var(--gold-soft) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.10) !important;
+}
+
+.btn:hover,
+.pill-btn:hover,
+.social-btn:hover,
+.search-box button:hover,
+.vmodal__cta:hover,
+.cart-checkout:hover{
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.95), transparent 60%),
+    linear-gradient(120deg, rgba(212,175,55,.22), rgba(240,180,59,.22)) !important;
+  border-color: rgba(212,175,55,.75) !important;
+}
+
+.btn:active,
+.pill-btn:active,
+.social-btn:active,
+.search-box button:active,
+.vmodal__cta:active,
+.cart-checkout:active{
+  transform: translateY(0);
+  filter: brightness(.99);
+}
+
+/* Mantém o texto dos botões sociais legível */
+.social-btn svg path{ fill: currentColor !important; }
+
+/* 3) Logo bem maior (PC e mobile) + borda dourada */
+.site-name{
+  width: clamp(420px, 78vw, 1180px) !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(212,175,55,.85) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.20), 0 0 26px rgba(212,175,55,.22) !important;
+}
+
+@media (max-width: 600px){
+  .site-name{
+    width: clamp(320px, 96vw, 720px) !important;
+    border-radius: 18px !important;
+  }
+}
+
+/* Linha dourada reforçada */
+.brand::after{
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,.95), transparent) !important;
+  box-shadow: 0 10px 22px rgba(212,175,55,.20) !important;
+}
+
+/* Inputs combinando */
+.search-box input{
+  background: rgba(255,255,255,.90) !important;
+  border: 1px solid var(--gold-soft) !important;
+  box-shadow: 0 10px 26px rgba(0,0,0,.08) !important;
+}
+</style>
+
+
+<!-- === Logo neon + sem folgas (override final) === -->
+<style id="logo-neon-tight">
+/* 1) Remove “moldura”/espaços do container da logo */
+.site-name{
+  /* faz a imagem encostar (remove letterbox do contain) */
+  background: url("LOGO.png") center / cover no-repeat !important;
+
+  /* tira fundo/borda/sombra que viravam “margem” */
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+
+  /* deixa o brilho aparecer fora do bloco */
+  overflow: visible !important;
+  border-radius: 20px !important;
+
+  /* 2) Brilho neon claro em TODO o traçado */
+  filter:
+    drop-shadow(0 0 2px rgba(255,255,255,0.98))
+    drop-shadow(0 0 10px rgba(255,255,255,0.85))
+    drop-shadow(0 0 22px rgba(235,255,255,0.60))
+    drop-shadow(0 0 44px rgba(200,255,255,0.35)) !important;
+}
+
+/* se existir qualquer <img> de logo em outros pontos, aplica o mesmo neon */
+.brand img{
+    border-radius: 18px !important;
+background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter:
+    drop-shadow(0 0 2px rgba(255,255,255,0.98))
+    drop-shadow(0 0 10px rgba(255,255,255,0.85))
+    drop-shadow(0 0 22px rgba(235,255,255,0.60))
+    drop-shadow(0 0 44px rgba(200,255,255,0.35)) !important;
+}
+
+/* === Ajustes mobile: logo menor + mais respiro entre logo e botões === */
+@media (max-width: 600px){
+  .site-name{
+    /* reduz a “caixa” e o texto no mobile */
+    width: clamp(260px, 88vw, 420px) !important;
+    font-size: clamp(34px, 11vw, 64px) !important;
+  }
+  .social-buttons{ margin-top: 12px !important; }
+  .brand .search-box{ margin-top: 12px !important; }
+  .category-buttons{ margin-top: 12px !important; }
+}
+
+</style>
+</head>
+<body>
+  <canvas id="reactiveField" aria-hidden="true"></canvas>
+<div class="wrap">
+<div class="card">
+<div class="admin-btn-modal"><a href="login.html">Admin</a></div>
+<header>
+<div class="brand"><svg aria-label="Dresses &amp; Skirts" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">Dresses &amp; Skirts</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1><div aria-label="Redes sociais" class="social-buttons">
+<a aria-label="Instagram Vintage Clothes" class="social-btn social-instagram" href="https://www.instagram.com/vintageclothes.ie?igsh=emtmYjV1NGF6ZGZk&amp;utm_source=qr" rel="noopener noreferrer" target="_blank">
+<!-- IG glyph -->
+<svg aria-hidden="true" viewbox="0 0 24 24"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5A5.5 5.5 0 1 1 6.5 13 5.51 5.51 0 0 1 12 7.5zm0 2A3.5 3.5 0 1 0 15.5 13 3.5 3.5 0 0 0 12 9.5zM18 6.75a1.25 1.25 0 1 1 1.25-1.25A1.25 1.25 0 0 1 18 6.75z" fill="white"></path></svg>
+      Instagram
+    </a>
+<a aria-label="TikTok Vintage Clothes" class="social-btn social-tiktok" href="https://www.tiktok.com/@vintageclotheshop?_r=1&amp;_t=ZN-91AXxCjWlmg" rel="noopener noreferrer" target="_blank">
+<span aria-hidden="true" class="accent"></span> TikTok
+    </a>
+<a aria-label="WhatsApp Vintage Clothes" class="social-btn social-whatsapp" href="https://wa.me/353873452167" rel="noopener noreferrer" target="_blank">
+<!-- WhatsApp glyph -->
+<svg aria-hidden="true" viewbox="0 0 24 24"><path d="M20.52 3.48A11.87 11.87 0 0 0 12.06 0C5.5 0 .21 5.29.21 11.85c0 2.09.55 4.14 1.59 5.95L0 24l6.36-1.74a11.83 11.83 0 0 0 5.7 1.46h.01c6.56 0 11.85-5.29 11.85-11.85 0-3.17-1.24-6.16-3.4-8.35zM12.07 21.3h-.01a9.5 9.5 0 0 1-4.85-1.33l-.35-.2-3.77 1.03 1.01-3.67-.23-.38a9.49 9.49 0 0 1-1.44-5.02c0-5.25 4.27-9.51 9.52-9.51 2.54 0 4.93.99 6.73 2.79a9.46 9.46 0 0 1 2.79 6.72c0 5.25-4.27 9.52-9.52 9.52zm5.5-7.01c-.3-.15-1.77-.87-2.05-.97-.27-.09-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.18.2-.35.22-.65.07-.3-.15-1.28-.47-2.44-1.49a9.12 9.12 0 0 1-1.68-2.07c-.18-.3 0-.46.13-.61.13-.13.3-.35.46-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.6-.92-2.2-.24-.58-.5-.5-.67-.5h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.03-1.05 2.5s1.07 2.9 1.22 3.1c.15.2 2.1 3.2 5.1 4.49.71.31 1.26.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.08-.12-.27-.2-.57-.35z" fill="white"></path></svg>
+      WhatsApp
+    </a>
+</div><div class="search-box">
+<input id="search" placeholder="Search products..." type="text"/>
+<button onclick="searchProducts()">Search</button>
+</div><div class="category-buttons">
+  <a class="pill-btn" href="index.html">HOME</a>
+  <button class="pill-btn" id="menuButton">MENU</button>
+</div>
+</div>
+</header>
+<div class="divider"></div>
+<div class="meta" style="text-align:center;font-weight:700;margin-bottom:10px;">Category: Dresses & Skirts</div>
+<section class="grid" id="products"></section>
+<div class="divider"></div>
+<footer>© <span id="year"></span> Vintage Wear Ireland</footer>
+</div>
+</div>
+<div aria-label="Open cart" class="floating-cart" onclick="openCart()">
+<div class="cart-ico">🛒</div>
+<div class="cart-count" id="cartCount"></div>
+</div>
+<div class="modal" id="cartModal">
+<div class="modal-content cart-content" style="max-width:520px;text-align:left;">
+<button class="modal-close" onclick="closeCart()">×</button>
+<h2>Your Cart</h2>
+<div id="cartItems" style="margin:12px 0;"></div>
+<hr class="cart-divider" style="margin:12px 0;"/>
+
+
+
+
+
+      <div class="cart-total">
+        <span>Total:</span>
+        <span id="cartTotal">€ --</span>
+      </div>
+      <button class="btn cart-checkout">Checkout</button>
+</div>
+</div>
+<script>
+const PUBLIC_JSON = './products.json';
+const grid = document.getElementById('products');
+let currentList = [];
+function 
+
+
+  <!-- Social buttons (added above the search bar) -->
+  
+
+fmtEUR(n){
+  const v = Number(n);
+  if(Number.isNaN(v)) return '€ ' + (n ?? '');
+  if(Number.isInteger(v)) return '€ ' + v;
+  return '€ ' + String(v);
+}
+function sanitizeList(list){
+  if(!Array.isArray(list)) return [];
+  return list.map(p => ({
+    id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
+    title: p.title || '',
+    brand: p.brand || '',
+    price: Number(p.price || 0),
+    image: p.image || 'LOGO.png',
+    description: p.description || '',
+    gallery: Array.isArray(p.gallery)? p.gallery : [],
+    category: p.category || '',
+    createdAt: p.createdAt || 0,
+    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
+  }));
+}
+async function readPublic(){
+  try{
+    const r = await fetch(PUBLIC_JSON + '?t=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    return sanitizeList(data);
+  }catch(e){ return []; }
+}
+function render(list){
+  grid.innerHTML = '';
+  if(!list.length){
+    grid.innerHTML = '<div class="meta" style="text-align:center;padding:20px;">No products available.</div>';
+    return;
+  }
+  list.forEach(p=>{
+    const el = document.createElement('article'); el.className='product';
+    // attach description & gallery for vmodal to read
+    try {
+      el.setAttribute('data-description', String(p.description || ''));
+      const imgsArr = [];
+      if(p.image) imgsArr.push(p.image);
+      if(Array.isArray(p.gallery) && p.gallery.length) imgsArr.push(...p.gallery);
+      const imgsForAttr = imgsArr.filter(Boolean).join(',');
+      el.setAttribute('data-images', imgsForAttr);
+    } catch(e) {}
+
+    if(Number(p.stock) <= 0){
+      const badge = document.createElement('div'); badge.className = 'oos-ribbon'; badge.textContent = 'OUT OF STOCK'; el.appendChild(badge);
+    }
+    const img = document.createElement('img'); img.src = p.image; img.alt = p.title; el.appendChild(img);
+    const body = document.createElement('div'); body.className='product-body';
+    const brand = p.brand ? `<div class="meta">${p.brand}</div>` : '';
+    body.innerHTML = `<h3>${p.title}</h3>${brand}<div class='meta'>Stock: ${p.stock}</div><div class='price'>${fmtEUR(p.price)}</div><div class='description' style='display:none'>${p.description}</div>`;
+    el.appendChild(body);
+    const cta = document.createElement('div'); cta.className='cta';
+    const a = document.createElement('a');
+    a.className='btn'; a.href='#'; a.textContent = Number(p.stock) > 0 ? "Add to cart" : "Out of Stock";
+    if(Number(p.stock) > 0){ a.dataset.action = 'add-to-cart'; a.dataset.id = p.id; } else { a.classList.add('disabled'); }
+    cta.appendChild(a); el.appendChild(cta); grid.appendChild(el);
+  });
+}
+function searchProducts(){
+  const term = document.getElementById('search').value.toLowerCase();
+  const filtered = currentList.filter(p =>
+    p.title.toLowerCase().includes(term) ||
+    (p.brand && p.brand.toLowerCase().includes(term)) ||
+    (p.category && p.category.toLowerCase().includes(term))
+  );
+  render(filtered);
+}
+/* Cart */
+const CART_KEY='vw_cart';
+function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
+function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+let cart = loadCart();
+function addToCart(productId){
+const product = currentList.find(p => String(p.id) === String(productId));
+  if(!product) return;
+  const max = Number(product.stock) || 0;
+  if (max <= 0){ return; }
+  const existing = cart.find(item => item.id === product.id);
+  if(existing){
+    if (existing.qty >= max){
+      try { alert('Limite de estoque atingido para este item.'); } catch(_) {}
+      return;
+    }
+    existing.qty++;
+  } else {
+    cart.push({...product, qty: 1});
+  }
+  saveCart(cart);
+  updateCartIcon();
+}
+function updateCartIcon(){
+  const countEl = document.getElementById('cartCount');
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+  countEl.textContent = totalItems ? String(totalItems) : '';
+}
+function openCart(){
+  const cartModal = document.getElementById('cartModal');
+  const list = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  list.innerHTML = '';
+  if(cart.length === 0){
+    list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
+    if(totalEl){ if(totalEl){ totalEl.textContent = '€ 0.00'; } }
+  } else {
+    let total = 0;
+    cart.forEach(item => {
+      total += Number(item.price) * item.qty;
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML = `
+        <div class="cart-item-left">
+          <img class="cart-thumb" src="${item.image}" alt="${item.title}">
+          <div>
+            <strong>${item.title}</strong><br>
+            <small>${fmtEUR(item.price)}</small>
+          </div>
+        </div>
+        <div class="cart-qty">
+          <button onclick="changeQty('${item.id}', -1)" style="padding:4px 8px;">−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty('${item.id}', 1)" style="padding:4px 8px;">+</button>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+    if(totalEl){ if(totalEl){ totalEl.textContent = fmtEUR(total); } }
+  }
+  cartModal.style.display = 'flex';
+}
+function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
+function changeQty(id, delta){
+const item = cart.find(p => p.id === id);
+  if(!item) return;
+  const max = Number(item.stock) || 0;
+  if (delta > 0){
+    if (max <= 0){ return; }
+    if (item.qty >= max){
+      try { alert('Limite de estoque atingido para este item.'); } catch(_) {}
+      return;
+    }
+  }
+  item.qty += delta;
+  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  else if (max > 0 && item.qty > max){ item.qty = max; }
+  saveCart(cart);
+  openCart();
+  updateCartIcon();
+}
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action="add-to-cart"]');
+  if(!btn) return;
+  e.preventDefault();
+  const id = btn.dataset.id;
+  if(id){ addToCart(id); }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const totalEl = document.getElementById('cartTotal');
+  const checkoutBtn = document.querySelector('.cart-checkout');
+  function calcBaseTotal(){ return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0); }
+  function updateDisplayTotal(){ if(totalEl){ totalEl.textContent = fmtEUR(calcBaseTotal()); } }
+  const _openCart = openCart;
+  openCart = function(){ _openCart(); updateDisplayTotal(); };
+  if(checkoutBtn){ checkoutBtn.addEventListener('click', () => {
+    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
+    const cartJSON = JSON.stringify(cart);
+    window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
+  });}
+});
+(async function init(){
+  currentList = await readPublic();
+  currentList = currentList.filter(p => (p.category || '').toLowerCase() === 'dresses & skirts');
+  currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  render(currentList);
+  document.getElementById('year').textContent = new Date().getFullYear();
+  updateCartIcon();
+})();
+</script>
+<script>
+(function(){
+  function getCartSubtotal(){
+    const items = Array.from(document.querySelectorAll('.cart-item'));
+    let sum = 0;
+    items.forEach(item => {
+      const priceEl = item.querySelector('[data-price]');
+      const qtyEl = item.querySelector('input[type="number"]');
+      let price = 0;
+      let qty = 1;
+      if (priceEl){
+        price = parseFloat((priceEl.getAttribute('data-price')||'0').replace(',', '.'));
+      } else {
+        const m = (item.textContent||'').match(/€\s*([\d,.]+)/);
+        if (m) price = parseFloat(m[1].replace(',', '.'));
+      }
+      if (qtyEl) qty = parseInt(qtyEl.value || '1', 10);
+      if (!isNaN(price) && !isNaN(qty)) sum += price * qty;
+    });
+    return sum;
+  }
+  function updateTotals(){
+  let subtotal = getCartSubtotal();
+  const totalEl = document.getElementById('cartTotal');
+  if(totalEl){ totalEl.textContent = fmtEUR(subtotal); }
+}
+
+
+    if (shipVal){
+      shipVal.textContent = '€' + shipping.toFixed(0);
+    }
+
+    const grand = subtotal + shipping;
+
+    let totalValueEl = document.querySelector('#cart-grand-total');
+    if (!totalValueEl){
+      const totalEl = document.querySelector('.cart-total span:last-child');
+      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
+    }
+    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
+  }
+
+  document.addEventListener('change', function(e){
+    /* delivery method removed */
+    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
+      updateTotals();
+    }
+  });
+
+  const ready = () => { updateTotals(); };
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ready);
+  } else {
+    ready();
+  }
+  window.updateCartTotalsWithShipping = updateTotals;
+})();
+</script>
+<!-- ==== VModal (clean build) ==== -->
+<div aria-hidden="true" class="vmodal" id="vModal">
+<div aria-labelledby="vmTitle" aria-modal="true" class="vmodal__dialog" role="dialog">
+<button aria-label="Fechar" class="vmodal__close" id="vmClose">✕</button>
+<div class="vmodal__left">
+<div class="vmodal__main"><img alt="" id="vmMain"/></div>
+<div class="vmodal__thumbs" id="vmThumbs"></div>
+</div>
+<div class="vmodal__right">
+<h3 class="vmodal__title" id="vmTitle"></h3>
+<div class="vmodal__price" id="vmPrice"></div>
+<div class="vmodal__meta" id="vmMeta"></div>
+<div class="vmodal__desc" id="vmDesc"></div>
+<div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
+</div>
+</div>
+</div>
+
+<!-- Menu lateral -->
+<div class="menu-modal" id="menuModal" aria-hidden="true" style="display:none;">
+  <div class="menu-overlay" id="menuOverlay"></div>
+
+  <nav class="menu-panel" aria-label="Main menu">
+    <button class="menu-close" id="menuClose" aria-label="Fechar menu">×</button>
+    <h2 class="menu-title">Menu</h2>
+    <ul class="menu-list">
+      <li><a href="dresses-skirts.html">Dresses &amp; Skirts</a></li>
+      <li><a href="trousers.html">Trousers</a></li>
+      <li><a href="shirts-tees.html">Shirts &amp; Tees</a></li>
+      <li><a href="hoodies-sweatshirts.html">Hoodies &amp; Sweatshirts</a></li>
+      <li><a href="puffers.html">Puffers</a></li>
+      <li><a href="coats-outerwear.html">Coats &amp; Outerwear</a></li>
+      <li><a href="leatherwear.html">Leatherwear</a></li>
+      <li><a href="shoes.html">Shoes</a></li>
+      <li><a href="bags-accessories.html">Bags &amp; Accessories</a></li>
+      <li><a href="activewear.html">Activewear</a></li>
+      <li><a href="curated-pieces.html">Curated Pieces</a></li>
+    </ul>
+  </nav>
+</div>
+
+<script>
+
+// ==== VModal behavior (clean) ====
+(function(){
+  if (window.__vmodal) return; window.__vmodal = true;
+  const $ = (s, r=document)=> r.querySelector(s);
+  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
+
+  const modal = $('#vModal');
+  const mainImg = $('#vmMain');
+  const thumbs = $('#vmThumbs');
+  const titleEl = $('#vmTitle');
+  const priceEl = $('#vmPrice');
+  const metaEl = $('#vmMeta');
+  const descEl = $('#vmDesc');
+  const btnClose = $('#vmClose');
+  const btnAdd = $('#vmAdd');
+  let card = null;
+  let imgs = [];
+  let idx = 0;
+
+  function renderThumbs(){
+    thumbs.innerHTML = '';
+    imgs.forEach((src, i)=>{
+      const b = document.createElement('button');
+      b.className = 'vmodal__thumb' + (i===idx ? ' is-active' : '');
+      b.innerHTML = `<img src="${src}" alt="">`;
+      b.addEventListener('click', ()=> go(i));
+      thumbs.appendChild(b);
+    });
+  }
+  function go(i){
+    if(!imgs.length) return;
+    idx = (i + imgs.length) % imgs.length;
+    mainImg.src = imgs[idx];
+    $$('.vmodal__thumb', thumbs).forEach((t, j)=> t.classList.toggle('is-active', j===idx));
+  }
+
+  function openFromCard(c){
+    card = c;
+    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
+    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
+    const meta  = (card.querySelector('.stock')?.textContent?.trim() || card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '');
+    const desc  = card.getAttribute('data-description') || card.querySelector('.description')?.textContent?.trim() || '';
+
+    const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
+    const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
+    imgs = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
+    if (!imgs.length) { imgs = ['/assets/placeholder.png']; }
+
+    titleEl.textContent = title.toUpperCase();
+    priceEl.textContent = price;
+    metaEl.textContent = meta;
+    descEl.textContent = desc;
+
+    
+    // sync CTA with site cart handler
+    try {
+      const ctaBtn = card.querySelector('[data-action="add-to-cart"]');
+      const pidFromBtn = ctaBtn?.dataset?.id;
+      const pidGuess = pidFromBtn || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
+      if (pidGuess) btnAdd.dataset.id = String(pidGuess);
+    } catch(e) {}
+    renderThumbs(); go(0);
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(){
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  // Delegated open on img/title click
+  document.addEventListener('click', (e)=>{
+    const img = e.target.closest('.product img');
+    const title = e.target.closest('.product h3');
+    const clickable = img || title;
+    if (clickable){
+      const c = clickable.closest('.product');
+      if (c){ e.preventDefault?.(); openFromCard(c); }
+    }
+  });
+
+  // Close
+  btnClose?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e)=>{
+    if (modal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeModal();
+  });
+
+  // Add to Cart — robust integration
+  btnAdd?.addEventListener('click', (e)=>{
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  if (!card) return idx;
+  const pid =
+    btnAdd.dataset?.id ||
+    card.getAttribute('data-id') ||
+    card.getAttribute('data-product-id') ||
+    card.dataset?.productId;
+  if (pid) {
+  let did = false;
+  try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch (_) {}
+  if (!did) {
+    try { if (typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch (_) {}
+  }
+}
+  try {
+    btnAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles: false, detail: { index: idx } }));
+  } catch (_) {}
+  return idx;
+});})();
+
+</script>
+<script>
+  (function(){
+    const menuButton  = document.getElementById('menuButton');
+    const menuModal   = document.getElementById('menuModal');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const menuClose   = document.getElementById('menuClose');
+
+    if (!menuButton || !menuModal) return;
+
+    // garante que o menu fique diretamente no <body>, acima de qualquer wrapper com transform/overflow
+    if (menuModal.parentElement !== document.body){
+      document.body.appendChild(menuModal);
+    }
+
+    function openMenu(){
+      menuModal.classList.add('is-open');
+      menuModal.style.display = 'block';
+      menuModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu(){
+      menuModal.classList.remove('is-open');
+      menuModal.style.display = 'none';
+      menuModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    menuButton.addEventListener('click', openMenu);
+    menuClose.addEventListener('click', closeMenu);
+    menuOverlay.addEventListener('click', closeMenu);
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && menuModal.classList.contains('is-open')){
+        closeMenu();
+      }
+    });
+  })();
+</script>
+
+<script>
+(() => {
+  // Campo reativo dourado (mesmo efeito do Artesanato)
+  const GOLD = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#D4AF37';
+  const GOLD_LIGHT = getComputedStyle(document.documentElement).getPropertyValue('--gold-light').trim() || '#F5D76E';
+  const GOLD_DEEP = getComputedStyle(document.documentElement).getPropertyValue('--gold-deep').trim() || '#8D6E21';
+
+  const MAX_PARTICLES_BASE = 135;
+  const LINK_DIST = 170;
+  const SAFETY_MARGIN = 22;
+  const MOUSE_REPEL_RADIUS = 120 + SAFETY_MARGIN;
+  const MOUSE_FORCE = 0.14;
+  const SPEED = 0.55;
+  const FRICTION = 0.965;
+  const CURVE = true;
+  const GLOW = true;
+
+  const canvas = document.getElementById('reactiveField');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d', { alpha: true });
+  let DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  let W = 0, H = 0;
+
+  function resize(){
+    W = canvas.clientWidth = window.innerWidth;
+    H = canvas.clientHeight = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  resize();
+
+  window.addEventListener('resize', () => {
+    DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    resize();
+    init();
+  });
+
+  const pts = [];
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  function init(){
+    pts.length = 0;
+    const area = W * H;
+    const target = Math.min(250, Math.round(MAX_PARTICLES_BASE * (area / (1200*900))));
+    for(let i=0;i<target;i++){
+      pts.push({
+        x: rand(0,W),
+        y: rand(0,H),
+        vx: rand(-SPEED,SPEED),
+        vy: rand(-SPEED,SPEED),
+        r: rand(2.1,3.6)
+      });
+    }
+  }
+  init();
+
+  const mouse = { x:-9999, y:-9999, active:false };
+  document.addEventListener('mousemove', (e)=>{
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  }, {passive:true});
+  document.addEventListener('mouseleave', ()=>{ mouse.active = false; }, {passive:true});
+
+  function drawDot(p){
+    const g = ctx.createRadialGradient(p.x-1, p.y-1, 0, p.x, p.y, p.r*1.6);
+    g.addColorStop(0, GOLD_LIGHT);
+    g.addColorStop(0.55, GOLD);
+    g.addColorStop(1, GOLD_DEEP);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+    if(GLOW){
+      ctx.save();
+      ctx.globalAlpha = .25;
+      ctx.shadowColor = GOLD;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawLink(a,b,dist){
+    const t = 1 - (dist / LINK_DIST);
+    const lw = 1 + t * 2.2;
+    const alpha = 0.12 + t * 0.6;
+
+    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, GOLD);
+    grad.addColorStop(0.5, GOLD_LIGHT);
+    grad.addColorStop(1, GOLD);
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = lw;
+    ctx.globalAlpha = alpha;
+
+    if(CURVE){
+      const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len = Math.hypot(dx,dy) || 1;
+      const nx = -dy/len, ny = dx/len;
+      const bend = 10 + 26 * t;
+      const cx = mx + nx * bend;
+      const cy = my + ny * bend;
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.quadraticCurveTo(cx,cy,b.x,b.y);
+      ctx.stroke();
+    }else{
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function step(){
+    ctx.clearRect(0,0,W,H);
+
+    for(const p of pts){
+      if(mouse.active){
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const d2 = dx*dx + dy*dy;
+        const r2 = MOUSE_REPEL_RADIUS * MOUSE_REPEL_RADIUS;
+        if(d2 < r2){
+          const d = Math.sqrt(d2) || 0.0001;
+          const force = (1 - d / MOUSE_REPEL_RADIUS) * MOUSE_FORCE;
+          p.vx += (dx / d) * force * 5.0;
+          p.vy += (dy / d) * force * 5.0;
+        }
+      }
+
+      p.vx += (Math.random()-0.5)*0.02;
+      p.vy += (Math.random()-0.5)*0.02;
+
+      p.vx *= FRICTION;
+      p.vy *= FRICTION;
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if(p.x < 0){ p.x = 0; p.vx = Math.abs(p.vx); }
+      if(p.x > W){ p.x = W; p.vx = -Math.abs(p.vx); }
+      if(p.y < 0){ p.y = 0; p.vy = Math.abs(p.vy); }
+      if(p.y > H){ p.y = H; p.vy = -Math.abs(p.vy); }
+    }
+
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const a = pts[i], b = pts[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.hypot(dx,dy);
+        if(dist < LINK_DIST){
+          drawLink(a,b,dist);
+        }
+      }
+    }
+
+    for(const p of pts) drawDot(p);
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+</script>
+
+</body>
+</html>

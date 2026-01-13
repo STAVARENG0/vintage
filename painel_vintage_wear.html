@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<!-- 🔒 Guard: require login -->
+<script>
+(function () {
+  const BACKEND_URL = "https://login-oo7o.onrender.com";
+  const TOKEN_KEYS = ["vw_admin_token","vw_token","token","vw_admin"];
+  const LOGIN_URL = "login.html";
+
+  // overlay while checking
+  const style = document.createElement("style");
+  style.textContent = `
+    #authOverlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);z-index:99999}
+    #authOverlay .box{background:#fff;border-radius:14px;padding:18px 20px;max-width:420px;width:92%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    #authOverlay .box h3{margin:0 0 8px;font-size:16px}
+    #authOverlay .box p{margin:0;font-size:13px;opacity:.85}
+  `;
+  document.head.appendChild(style);
+
+  const overlay = document.createElement("div");
+  overlay.id = "authOverlay";
+  overlay.innerHTML = '<div class="box"><h3>Verificando login…</h3><p>Se não estiver autenticado, vamos te levar para a página de login.</p></div>';
+  document.addEventListener("DOMContentLoaded", () => document.body.appendChild(overlay));
+
+  function getToken(){
+    for(const k of TOKEN_KEYS){
+      const v = localStorage.getItem(k);
+      if(v) return v;
+    }
+    return null;
+  }
+
+  const token = getToken();
+  const headers = {};
+  if(token) headers["Authorization"] = "Bearer " + token;
+
+  fetch(`${BACKEND_URL}/auth/me`, { credentials: "include", headers })
+    .then(async (r) => {
+      const data = await r.json().catch(()=> ({}));
+      if(!r.ok || !data.ok) throw new Error(data.error || "not-auth");
+      return data;
+    })
+    .then(() => {
+      const el = document.getElementById("authOverlay");
+      if(el) el.remove();
+    })
+    .catch(() => {
+      // cleanup and redirect
+      for(const k of TOKEN_KEYS) localStorage.removeItem(k);
+      const next = encodeURIComponent(location.pathname + location.search);
+      location.replace(`${LOGIN_URL}?next=${next}`);
+    });
+})();
+</script>
+
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vintage Wear — Admin Panel (Fix)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+
+  :root{
+    --text:#2a2a2a;
+    --muted:#6f6f6f;
+    --gold:#D4AF37;
+    --gold-light:#F5D76E;
+    --gold-deep:#8D6E21;
+    --accent: var(--gold);
+    --bg1:#fdf4e3;
+    --bg2:#f1dfc2;
+    --bg3:#e3c395;
+    --shadow-strong: 0 18px 42px rgba(0,0,0,.32);
+    --radius:28px;
+    --orange: var(--gold);
+    --white:#ffffff;
+    --black:#0d0d0d;
+    --green:#28a745;
+    --red:#c0392b;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    font-family: Poppins, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+    color: var(--text);
+    background: linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+    min-height:100dvh;
+    padding:24px 10px;
+    overflow-x:hidden;
+  }
+
+  /* fundo reativo (canvas) */
+  #reactiveField{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto 32px;
+    position:relative;
+    z-index:1;
+  }
+
+  .card{
+    padding:26px 22px 38px;
+    background: linear-gradient(135deg, rgba(253,244,227,0.10), rgba(241,223,194,0.08), rgba(227,195,149,0.14));
+    backdrop-filter: saturate(120%) blur(6px);
+    -webkit-backdrop-filter: saturate(120%) blur(6px);
+    border-radius: var(--radius);
+    border:1px solid rgba(212,175,55,.55);
+    box-shadow: var(--shadow-strong), 0 0 26px rgba(212,175,55,.22);
+  }
+
+  /* Header (logo + subtítulo) */
+  .panel-header{ text-align:center; margin-bottom:18px; }
+  .brand-neo{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:12px 18px;
+    border-radius:18px;
+    border:1px solid rgba(212,175,55,.80);
+    background: rgba(255,255,255,.10);
+    box-shadow: 0 14px 34px rgba(0,0,0,.18), 0 0 18px rgba(212,175,55,.18);
+    position:relative;
+    overflow:hidden;
+  }
+  .brand-neo::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background: radial-gradient(circle, rgba(245,215,110,.35), rgba(212,175,55,.06), transparent 60%);
+    filter: blur(6px);
+    animation: glowMove 8s linear infinite;
+  }
+  @keyframes glowMove{
+    0%{ transform: translate(-12%,-8%) rotate(0deg); }
+    50%{ transform: translate(10%,8%) rotate(180deg); }
+    100%{ transform: translate(-12%,-8%) rotate(360deg); }
+  }
+  .brand-text{
+    font-family: Orbitron, Poppins, system-ui, Arial, sans-serif;
+    letter-spacing: .22em;
+    font-weight: 700;
+    font-size: clamp(22px, 4.6vw, 34px);
+    color: rgba(42,42,42,.92);
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+    position:relative;
+    z-index:1;
+    padding-left:.22em; /* compensar tracking visual */
+  }
+  .panel-subtitle{
+    margin-top:10px;
+    font-weight:600;
+    letter-spacing:.12em;
+    color: rgba(42,42,42,.86);
+    text-transform:uppercase;
+    font-size: 13px;
+  }
+
+  /* layout */
+  .top-actions{
+    display:flex;
+    justify-content:center;
+    margin: 14px 0 18px;
+  }
+
+  .container{
+    display:flex;
+    gap:18px;
+    flex-wrap:wrap;
+    align-items:flex-start;
+  }
+
+  .form-section, .list-section{
+    flex: 1 1 480px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.10);
+    border:1px solid rgba(212,175,55,.45);
+    box-shadow: 0 10px 26px rgba(0,0,0,.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  h2{
+    font-size:18px;
+    letter-spacing:.04em;
+    margin-bottom:10px;
+    color: rgba(42,42,42,.92);
+  }
+
+  .form{ display:flex; flex-direction:column; gap:12px; }
+
+  label{
+    font-size:13px;
+    font-weight:600;
+    color: rgba(42,42,42,.85);
+    letter-spacing:.02em;
+    margin-top:4px;
+  }
+
+  input, textarea, select{
+    width:100%;
+    padding: 12px 12px;
+    border-radius: 12px;
+    border:1px solid rgba(212,175,55,.38);
+    background: rgba(255,255,255,.62);
+    color: var(--text);
+    outline:none;
+    font-size:14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  textarea{ min-height: 92px; resize: vertical; }
+
+  input:focus, textarea:focus, select:focus{
+    border-color: rgba(212,175,55,.9);
+    box-shadow: 0 0 0 4px rgba(212,175,55,.18);
+  }
+
+  /* botões */
+  button, .upload-btn, .config-btn{
+    appearance:none;
+    border-radius: 12px;
+    border:1px solid rgba(212,175,55,.85);
+    background: rgba(255,255,255,.20);
+    color: rgba(42,42,42,.92);
+    font-weight:700;
+    letter-spacing:.04em;
+    padding: 12px 16px;
+    cursor:pointer;
+    transition: transform .15s ease, filter .15s ease, background .15s ease, box-shadow .15s ease;
+    box-shadow: 0 10px 22px rgba(0,0,0,.12);
+  }
+  button:hover, .upload-btn:hover, .config-btn:hover{
+    filter: brightness(1.02);
+    transform: translateY(-1px);
+    background: rgba(255,255,255,.28);
+  }
+  button:active, .upload-btn:active, .config-btn:active{ transform: translateY(0); }
+
+  button:disabled{
+    opacity:.65;
+    cursor:not-allowed;
+    transform:none;
+  }
+
+  .upload-btn{
+    display:inline-flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    text-align:center;
+  }
+
+  #fotos{ display:none; }
+
+  .action-buttons{ display:flex; gap:8px; }
+  .action-buttons button{ flex:1; padding:10px 12px; }
+
+  /* tabela */
+  table{
+    width:100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    overflow:hidden;
+    border-radius: 16px;
+    border:1px solid rgba(212,175,55,.45);
+    background: rgba(255,255,255,.06);
+  }
+  table th, table td{
+    padding: 10px 10px;
+    text-align:left;
+    border-bottom: 1px solid rgba(212,175,55,.22);
+    font-size: 13px;
+    color: rgba(42,42,42,.88);
+  }
+  table th{
+    background: rgba(255,255,255,.18);
+    font-weight:700;
+    letter-spacing:.04em;
+  }
+  table tr:last-child td{ border-bottom:none; }
+
+  /* preview imagens */
+  .preview-container{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 10px; }
+  .preview{ position:relative; }
+  .preview img{
+    width:82px; height:82px;
+    object-fit:cover;
+    border-radius: 12px;
+    border:1px solid rgba(212,175,55,.55);
+    box-shadow: 0 10px 20px rgba(0,0,0,.12);
+    background: rgba(255,255,255,.35);
+  }
+  .preview input[type="radio"]{
+    position:absolute; top:8px; left:8px;
+    transform: scale(1.15);
+    accent-color: var(--gold);
+  }
+  .preview .remove{
+    position:absolute; right:8px; top:8px;
+    border:1px solid rgba(212,175,55,.6);
+    background: rgba(255,255,255,.30);
+    color: rgba(42,42,42,.92);
+    font-size:12px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    cursor:pointer;
+    box-shadow: 0 8px 16px rgba(0,0,0,.10);
+  }
+
+  /* alerts */
+  .alert{
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    text-align:center;
+    display:none;
+    border:1px solid rgba(212,175,55,.35);
+    background: rgba(255,255,255,.22);
+    color: rgba(42,42,42,.92);
+    box-shadow: 0 10px 22px rgba(0,0,0,.10);
+  }
+  .alert.success{ background: rgba(40,167,69,.18); border-color: rgba(40,167,69,.35); }
+  .alert.info{ background: rgba(212,175,55,.18); border-color: rgba(212,175,55,.35); }
+  .alert.error{ background: rgba(192,57,43,.16); border-color: rgba(192,57,43,.32); }
+
+  .help{ font-size:12px; opacity:.78; word-break: break-word; }
+
+  /* modais (glass) */
+  .modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background: rgba(0,0,0,0.55);
+    justify-content:center;
+    align-items:center;
+    z-index: 3000;
+    padding: 18px;
+  }
+  .modal.show{ display:flex !important; }
+
+  .modal-content{
+    width:min(820px, 92vw);
+    max-height:min(88vh, 900px);
+    overflow:hidden;
+    position:relative;
+    padding: 18px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.12));
+    border:1px solid rgba(212,175,55,.60);
+    box-shadow: 0 18px 42px rgba(0,0,0,.40), 0 0 26px rgba(212,175,55,.18);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: rgba(42,42,42,.92);
+  }
+
+  /* manter scroll invisível no edit form */
+  #editModal .form{ flex:1; overflow:auto; padding-right:8px; }
+  #editModal .form::-webkit-scrollbar{ width:0; height:0; }
+  #editModal .form{ scrollbar-width:none; -ms-overflow-style:none; }
+
+  .badge{
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(212,175,55,.35);
+    padding: 3px 10px;
+    font-size:12px;
+    border-radius: 999px;
+    color: rgba(42,42,42,.9);
+  }
+
+  body.modal-open{ overflow:hidden; }
+
+  @media (max-width: 700px){
+    .card{ padding: 18px 14px 26px; border-radius: 24px; }
+    .form-section, .list-section{ padding: 14px; border-radius: 18px; }
+    .brand-neo{ padding: 10px 14px; }
+    .panel-subtitle{ font-size:12px; }
+  }
+
+</style>
+</head>
+<body>
+  <canvas id="reactiveField" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="card">
+<header class="panel-header">
+  <div class="brand-neo" aria-label="Vintage Wear"><span class="brand-text">VINTAGE WEAR</span></div>
+  <div class="panel-subtitle">Admin Panel</div>
+</header>
+
+
+<div class="container">
+  <div class="form-section">
+    <form class="form" id="formProduto">
+      <input id="titulo" placeholder="Título do produto" required type="text"/>
+      <input id="valor" placeholder="Preço (€)" required step="0.01" type="number"/>
+      <textarea id="descricao" placeholder="Descrição do produto"></textarea>
+
+      <label>Categoria</label>
+      <select id="categoria" required>
+        <option value="">Selecione…</option>
+        <option value="Dresses &amp; Skirts">Dresses &amp; Skirts</option>
+        <option value="Trousers">Trousers</option>
+        <option value="Shirts &amp; Tees">Shirts &amp; Tees</option>
+        <option value="Hoodies &amp; Sweatshirts">Hoodies &amp; Sweatshirts</option>
+        <option value="Puffers">Puffers</option>
+        <option value="Coats &amp; Outerwear">Coats &amp; Outerwear</option>
+        <option value="Leatherwear">Leatherwear</option>
+        <option value="Shoes">Shoes</option>
+        <option value="Bags &amp; Accessories">Bags &amp; Accessories</option>
+        <option value="Activewear">Activewear</option>
+        <option value="Curated Pieces">Curated Pieces</option>
+      </select>
+
+      <label>Estoque</label>
+      <input id="estoque" min="0" placeholder="Quantidade em estoque" type="number" value="0"/>
+
+      <label class="upload-btn" for="fotos">📷 Adicionar imagens</label>
+      <input accept="image/*" id="fotos" multiple type="file"/>
+      <div class="preview-container" id="preview"></div>
+
+      <button type="submit" id="addBtn">Adicionar produto</button>
+      <div class="alert info" id="statusMessage">⏳ Enviando...</div>
+      <div class="alert success" id="alertBox">✅ Produto salvo no GitHub!</div>
+    </form>
+  </div>
+
+  <div class="list-section">
+    <h2>Produtos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Preço (€)</th>
+          <th>Categoria</th>
+          <th>Estoque</th>
+          <th>Data</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="listaProdutos"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- GitHub Config Modal -->
+
+
+<!-- Edit Modal -->
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <div class="header">
+      <h2 style="color:var(--orange);">Editar produto</h2>
+      <span class="badge" id="editIdBadge"></span>
+      <button style="position:absolute; top:10px; right:10px; background:var(--orange); border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;" id="editCloseBtn">X</button>
+    </div>
+    <form class="form" id="editForm">
+      <label>Título</label>
+      <input id="editTitulo" type="text" required/>
+
+      <label>Preço (€)</label>
+      <input id="editValor" type="number" step="0.01" required/>
+
+      <label>Descrição</label>
+      <textarea id="editDescricao" class="autosize"></textarea>
+
+      <label>Categoria</label>
+      <select id="editCategoria" required>
+        <option value="">Selecione…</option>
+        <option value="Dresses &amp; Skirts">Dresses &amp; Skirts</option>
+        <option value="Trousers">Trousers</option>
+        <option value="Shirts &amp; Tees">Shirts &amp; Tees</option>
+        <option value="Hoodies &amp; Sweatshirts">Hoodies &amp; Sweatshirts</option>
+        <option value="Puffers">Puffers</option>
+        <option value="Coats &amp; Outerwear">Coats &amp; Outerwear</option>
+        <option value="Leatherwear">Leatherwear</option>
+        <option value="Shoes">Shoes</option>
+        <option value="Bags &amp; Accessories">Bags &amp; Accessories</option>
+        <option value="Activewear">Activewear</option>
+        <option value="Curated Pieces">Curated Pieces</option>
+      </select>
+
+      <label>Estoque</label>
+      <input id="editEstoque" type="number" min="0"/>
+
+      <div class="section-title">Imagens <span class="help">— selecione a capa (bolinha)</span></div>
+      <div class="preview-container" id="editPreview"></div>
+
+      <div>
+        <label class="upload-btn" for="editFotos">📷 Adicionar novas imagens</label>
+        <input id="editFotos" type="file" multiple accept="image/*" style="display:none;"/>
+        <div class="help">As novas imagens serão enviadas ao salvar. As existentes permanecem.</div>
+      </div>
+
+      <div class="footer">
+        <button id="editCancel" type="button">Cancelar</button>
+        <button id="editSave" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+  </div>
+
+<!-- All scripts are placed LAST to ensure elements exist -->
+<script>
+(() => {
+  // Campo reativo dourado (mesmo efeito do Artesanato)
+  const GOLD = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#D4AF37';
+  const GOLD_LIGHT = getComputedStyle(document.documentElement).getPropertyValue('--gold-light').trim() || '#F5D76E';
+  const GOLD_DEEP = getComputedStyle(document.documentElement).getPropertyValue('--gold-deep').trim() || '#8D6E21';
+
+  const MAX_PARTICLES_BASE = 135;
+  const LINK_DIST = 170;
+  const SAFETY_MARGIN = 22;
+  const MOUSE_REPEL_RADIUS = 120 + SAFETY_MARGIN;
+  const MOUSE_FORCE = 0.14;
+  const SPEED = 0.55;
+  const FRICTION = 0.965;
+  const CURVE = true;
+  const GLOW = true;
+
+  const canvas = document.getElementById('reactiveField');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d', { alpha: true });
+  let DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  let W = 0, H = 0;
+
+  function resize(){
+    W = canvas.clientWidth = window.innerWidth;
+    H = canvas.clientHeight = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  resize();
+
+  window.addEventListener('resize', () => {
+    DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    resize();
+    init();
+  });
+
+  const pts = [];
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  function init(){
+    pts.length = 0;
+    const area = W * H;
+    const target = Math.min(250, Math.round(MAX_PARTICLES_BASE * (area / (1200*900))));
+    for(let i=0;i<target;i++){
+      pts.push({
+        x: rand(0,W),
+        y: rand(0,H),
+        vx: rand(-SPEED,SPEED),
+        vy: rand(-SPEED,SPEED),
+        r: rand(2.1,3.6)
+      });
+    }
+  }
+  init();
+
+  const mouse = { x:-9999, y:-9999, active:false };
+  document.addEventListener('mousemove', (e)=>{
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  }, {passive:true});
+  document.addEventListener('mouseleave', ()=>{ mouse.active = false; }, {passive:true});
+
+  function drawDot(p){
+    const g = ctx.createRadialGradient(p.x-1, p.y-1, 0, p.x, p.y, p.r*1.6);
+    g.addColorStop(0, GOLD_LIGHT);
+    g.addColorStop(0.55, GOLD);
+    g.addColorStop(1, GOLD_DEEP);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+    if(GLOW){
+      ctx.save();
+      ctx.globalAlpha = .25;
+      ctx.shadowColor = GOLD;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawLink(a,b,dist){
+    const t = 1 - (dist / LINK_DIST);
+    const lw = 1 + t * 2.2;
+    const alpha = 0.12 + t * 0.6;
+
+    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, GOLD);
+    grad.addColorStop(0.5, GOLD_LIGHT);
+    grad.addColorStop(1, GOLD);
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = lw;
+    ctx.globalAlpha = alpha;
+
+    if(CURVE){
+      const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len = Math.hypot(dx,dy) || 1;
+      const nx = -dy/len, ny = dx/len;
+      const bend = 10 + 26 * t;
+      const cx = mx + nx * bend;
+      const cy = my + ny * bend;
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.quadraticCurveTo(cx,cy,b.x,b.y);
+      ctx.stroke();
+    }else{
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function step(){
+    ctx.clearRect(0,0,W,H);
+
+    for(const p of pts){
+      if(mouse.active){
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const d2 = dx*dx + dy*dy;
+        const r2 = MOUSE_REPEL_RADIUS * MOUSE_REPEL_RADIUS;
+        if(d2 < r2){
+          const d = Math.sqrt(d2) || 0.0001;
+          const force = (1 - d / MOUSE_REPEL_RADIUS) * MOUSE_FORCE;
+          p.vx += (dx / d) * force * 5.0;
+          p.vy += (dy / d) * force * 5.0;
+        }
+      }
+
+      p.vx += (Math.random()-0.5)*0.02;
+      p.vy += (Math.random()-0.5)*0.02;
+
+      p.vx *= FRICTION;
+      p.vy *= FRICTION;
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if(p.x < 0){ p.x = 0; p.vx = Math.abs(p.vx); }
+      if(p.x > W){ p.x = W; p.vx = -Math.abs(p.vx); }
+      if(p.y < 0){ p.y = 0; p.vy = Math.abs(p.vy); }
+      if(p.y > H){ p.y = H; p.vy = -Math.abs(p.vy); }
+    }
+
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const a = pts[i], b = pts[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.hypot(dx,dy);
+        if(dist < LINK_DIST){
+          drawLink(a,b,dist);
+        }
+      }
+    }
+
+    for(const p of pts) drawDot(p);
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+</script>
+<script>
+(function(){
+  'use strict';
+
+  // --- Utilities ---
+  const $ = (id) => document.getElementById(id);
+  const on = (el, ev, cb) => el && el.addEventListener(ev, cb);
+  const setText = (el, t) => { if(el) el.textContent = t; };
+
+  // --- Backend ---
+  const BACKEND_URL = "https://login-oo7o.onrender.com";
+  const TOKEN_KEYS = ["vw_admin_token","vw_token","token","vw_admin"];
+
+  function getAuthToken(){
+    for (const k of TOKEN_KEYS){
+      const v = localStorage.getItem(k);
+      if (v) return v;
+    }
+    return null;
+  }
+
+  function authHeaders(extra){
+    const h = Object.assign({}, extra || {});
+    const token = getAuthToken();
+    if(token) h["Authorization"] = "Bearer " + token;
+    return h;
+  }
+
+  async function apiFetch(path, options){
+    const opts = Object.assign({ credentials: "include" }, options || {});
+    opts.headers = authHeaders(opts.headers);
+    return fetch(BACKEND_URL + path, opts);
+  }
+
+  // --- State ---
+  let produtos = [];
+  let editIndex = null;
+  let editPendingUploads = []; // [{file, previewUrl}]
+  let editImageList = [];      // [{kind:'existing'|'new', url, file?}]
+
+  // --- UI helpers ---
+  function showStatus(kind, msg){
+    const box = $("statusMessage");
+    if(!box) return;
+    box.className = "alert " + (kind || "info");
+    setText(box, msg || "");
+    box.style.display = "block";
+  }
+  function hideStatus(){
+    const box = $("statusMessage");
+    if(box) box.style.display = "none";
+  }
+  function showSaved(msg){
+    const box = $("alertBox");
+    if(!box) return;
+    box.className = "alert success";
+    setText(box, msg || "✅ Produto salvo no GitHub!");
+    box.style.display = "block";
+    setTimeout(()=> box.style.display="none", 3000);
+  }
+
+  function formatEuro(v){
+    const n = Number(v || 0);
+    return "€ " + n.toFixed(2);
+  }
+
+  function productDate(p){
+    try{
+      return p?.createdAt ? new Date(p.createdAt).toLocaleDateString() : "";
+    }catch{ return ""; }
+  }
+
+  // --- Render list ---
+  function renderProdutos(){
+    const lista = $("listaProdutos");
+    if(!lista) return;
+    lista.innerHTML = "";
+
+    produtos.forEach((p, i) => {
+      const tr = document.createElement("tr");
+      const stock = Number.isFinite(p.stock) ? p.stock : parseInt(p.stock || "0", 10);
+      tr.innerHTML = `
+        <td>${escapeHtml(p.title || "")}</td>
+        <td>${formatEuro(p.price)}</td>
+        <td>${escapeHtml(p.category || "")}</td>
+        <td>${stock}</td>
+        <td>${productDate(p)}</td>
+        <td>
+          <div class="action-buttons">
+            <button type="button" data-edit="${i}">Editar</button>
+            <button type="button" data-del="${i}">Excluir</button>
+          </div>
+        </td>
+      `;
+      lista.appendChild(tr);
+    });
+
+    // actions
+    lista.querySelectorAll("[data-edit]").forEach(btn => {
+      on(btn, "click", () => editarProduto(parseInt(btn.getAttribute("data-edit"), 10)));
+    });
+    lista.querySelectorAll("[data-del]").forEach(btn => {
+      on(btn, "click", async () => {
+        const idx = parseInt(btn.getAttribute("data-del"), 10);
+        if(!Number.isInteger(idx)) return;
+        if(!confirm("Excluir este produto?")) return;
+
+        try{
+          showStatus("info", "⏳ Excluindo...");
+          produtos.splice(idx, 1);
+          await publicarProdutosBackend(produtos);
+          await carregarProdutosBackend();
+          showSaved("✅ Produto excluído e publicado!");
+        }catch(e){
+          console.error(e);
+          showStatus("error", "❌ Falha ao excluir: " + (e?.message || e));
+        }
+      });
+    });
+  }
+
+  function escapeHtml(str){
+    return String(str || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // --- Backend calls ---
+  async function carregarProdutosBackend(){
+    try{
+      hideStatus();
+      const r = await apiFetch("/github/products");
+      const data = await r.json().catch(()=> ({}));
+
+      if(!r.ok || !data.ok){
+        throw new Error((data.error || ("HTTP_" + r.status)) + (data.details?.result?.message ? (": " + data.details.result.message) : "") + (data.details?.message ? (": " + data.details.message) : ""));
+      }
+      produtos = Array.isArray(data.products) ? data.products : [];
+      renderProdutos();
+    }catch(e){
+      console.error("load products error:", e);
+      showStatus("error", "❌ Não consegui carregar os produtos (ver console).");
+    }
+  }
+
+  async function publicarProdutosBackend(produtosNovos){
+    const r = await apiFetch("/github/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ products: produtosNovos || [] })
+    });
+    const data = await r.json().catch(()=> ({}));
+    if(!r.ok || !data.ok){
+      console.error("publish error details:", data);
+      throw new Error((data.error || ("HTTP_" + r.status)) + (data.details?.result?.message ? (": " + data.details.result.message) : "") + (data.details?.message ? (": " + data.details.message) : ""));
+    }
+    return data;
+  }
+
+  async function fileToBase64(file){
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("file-read-failed"));
+      reader.onload = () => {
+        const res = String(reader.result || "");
+        const parts = res.split(",");
+        resolve(parts[1] || "");
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadImagens(produtoId, files){
+    const arr = Array.from(files || []);
+    if(arr.length === 0) return [];
+
+    const images = [];
+    for(const f of arr){
+      const b64 = await fileToBase64(f);
+      images.push({ name: f.name, type: f.type, content: b64 });
+    }
+
+    const r = await apiFetch("/github/upload-images", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: String(produtoId || ""), images })
+    });
+
+    const data = await r.json().catch(()=> ({}));
+    if(!r.ok || !data.ok){
+      console.error("upload error details:", data);
+      throw new Error((data.error || ("HTTP_" + r.status)) + (data.details?.result?.message ? (": " + data.details.result.message) : "") + (data.details?.message ? (": " + data.details.message) : ""));
+    }
+    return Array.isArray(data.urls) ? data.urls : [];
+  }
+
+  // --- Create product preview ---
+  function renderNewPreviews(files){
+    const preview = $("preview");
+    if(!preview) return;
+    preview.innerHTML = "";
+
+    const arr = Array.from(files || []);
+    arr.forEach((f, i) => {
+      const url = URL.createObjectURL(f);
+      const div = document.createElement("div");
+      div.className = "preview";
+      div.innerHTML = `
+        <input type="radio" name="capa" ${i===0 ? "checked" : ""} value="${i}">
+        <img src="${url}" alt="preview">
+      `;
+      preview.appendChild(div);
+    });
+  }
+
+  on($("fotos"), "change", (e) => {
+    renderNewPreviews(e.target.files);
+  });
+
+  // --- Create form submit ---
+  on($("formProduto"), "submit", async (e) => {
+    e.preventDefault();
+
+    const addBtn = $("addBtn");
+    if(addBtn){ addBtn.disabled = true; addBtn.textContent = "Enviando..."; }
+
+    const titulo = ($("titulo")?.value || "").trim();
+    const valor = Number($("valor")?.value || 0);
+    const descricao = ($("descricao")?.value || "").trim();
+    const categoria = ($("categoria")?.value || "").trim();
+    const estoque = parseInt($("estoque")?.value || "0", 10);
+
+    const fotosInput = $("fotos");
+    const fotos = fotosInput?.files || [];
+    const produtoId = Date.now().toString();
+
+    const capaIndex = parseInt(document.querySelector('input[name="capa"]:checked')?.value || "0", 10);
+
+    try{
+      showStatus("info", "⏳ Enviando imagens...");
+      const uploaded = await uploadImagens(produtoId, fotos);
+
+      const cover = uploaded[capaIndex] || uploaded[0] || "";
+      const galleryClean = uploaded
+        .filter(Boolean)
+        .filter((u, i) => i !== capaIndex)
+        .filter((u, idx, arr) => arr.indexOf(u) === idx);
+
+      const produto = {
+        id: produtoId,
+        title: titulo,
+        price: valor,
+        description: descricao,
+        category: categoria,
+        stock: Number.isFinite(estoque) ? estoque : 0,
+        image: cover,
+        gallery: galleryClean,
+        createdAt: Date.now(),
+        status: "published"
+      };
+
+      showStatus("info", "⏳ Publicando produtos...");
+      produtos.push(produto);
+      await publicarProdutosBackend(produtos);
+      await carregarProdutosBackend();
+
+      // reset form
+      $("formProduto")?.reset();
+      $("preview") && ($("preview").innerHTML = "");
+      if(fotosInput) fotosInput.value = "";
+
+      hideStatus();
+      showSaved("✅ Produto publicado!");
+    }catch(err){
+      console.error(err);
+      showStatus("error", "❌ Falha: " + (err?.message || err));
+    }finally{
+      if(addBtn){ addBtn.disabled = false; addBtn.textContent = "Adicionar produto"; }
+    }
+  });
+
+  // --- Edit Modal logic ---
+  function openEditModal(){
+    $("editModal")?.classList.add("show");
+    document.body.classList.add("modal-open");
+  }
+  function closeEditModal(){
+    $("editModal")?.classList.remove("show");
+    document.body.classList.remove("modal-open");
+    editIndex = null;
+    editPendingUploads = [];
+    editImageList = [];
+    const f = $("editForm");
+    if(f) f.reset();
+    const p = $("editPreview");
+    if(p) p.innerHTML = "";
+  }
+
+  function renderEditImages(p){
+    const container = $("editPreview");
+    if(!container) return;
+    container.innerHTML = "";
+
+    const existing = [p.image, ...(p.gallery || [])].filter(Boolean);
+    editImageList = [
+      ...existing.map(u => ({kind:"existing", url:u})),
+      ...editPendingUploads.map(x => ({kind:"new", url:x.previewUrl, file:x.file}))
+    ];
+
+    editImageList.forEach((img, idx) => {
+      const div = document.createElement("div");
+      div.className = "preview";
+      const removeBtn = img.kind === "new"
+        ? `<button type="button" class="remove" data-remove="${idx}">x</button>`
+        : "";
+      div.innerHTML = `
+        <input type="radio" name="editCapa" value="${idx}">
+        <img src="${img.url}" alt="img">
+        ${removeBtn}
+      `;
+      container.appendChild(div);
+    });
+
+    // default cover
+    const radio0 = container.querySelector('input[name="editCapa"][value="0"]');
+    if(radio0) radio0.checked = true;
+
+    // remove new
+    container.querySelectorAll(".remove").forEach(btn => {
+      on(btn, "click", () => {
+        const idx = parseInt(btn.getAttribute("data-remove"), 10);
+        if(!Number.isInteger(idx)) return;
+        const item = editImageList[idx];
+        if(item?.kind !== "new") return;
+
+        // remove from pending uploads by matching previewUrl
+        editPendingUploads = editPendingUploads.filter(x => x.previewUrl !== item.url);
+        renderEditImages(p);
+      });
+    });
+  }
+
+  function editarProduto(index){
+    editIndex = index;
+    const p = produtos[index];
+    if(!p) return;
+
+    $("editIdBadge") && ( $("editIdBadge").textContent = p.id ? `ID: ${p.id}` : "" );
+    $("editTitulo") && ( $("editTitulo").value = p.title || "" );
+    $("editValor") && ( $("editValor").value = Number(p.price || 0) );
+    $("editDescricao") && ( $("editDescricao").value = p.description || "" );
+    $("editCategoria") && ( $("editCategoria").value = p.category || "" );
+    $("editEstoque") && ( $("editEstoque").value = Number.isFinite(p.stock) ? p.stock : parseInt(p.stock || "0", 10) );
+
+    editPendingUploads = [];
+    renderEditImages(p);
+    openEditModal();
+  }
+
+  on($("editFotos"), "change", (e) => {
+    const files = Array.from(e.target.files || []);
+    const p = produtos[editIndex];
+    files.forEach(f => {
+      const url = URL.createObjectURL(f);
+      editPendingUploads.push({ file: f, previewUrl: url });
+    });
+    if(p) renderEditImages(p);
+    e.target.value = "";
+  });
+
+  on($("editCancel"), "click", (e)=>{ e.preventDefault(); closeEditModal(); });
+  on($("editCloseBtn"), "click", (e)=>{ e.preventDefault(); closeEditModal(); });
+
+  on($("editForm"), "submit", async (e) => {
+    e.preventDefault();
+    if(editIndex === null) return;
+
+    const saveBtn = $("editSave");
+    if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = "Salvando..."; }
+
+    try{
+      const p = produtos[editIndex];
+      const productId = p.id || p.ID || Date.now().toString();
+
+      showStatus("info", "⏳ Enviando imagens...");
+      // Upload only new files, preserving order in editImageList
+      const newFiles = editImageList.filter(x => x.kind === "new").map(x => x.file);
+      const uploadedNewUrls = await uploadImagens(productId, newFiles);
+
+      // Build final ordered list: replace "new" items with uploaded URLs in order
+      let upIdx = 0;
+      const finalUrls = editImageList.map(item => {
+        if(item.kind === "existing") return item.url;
+        const u = uploadedNewUrls[upIdx] || "";
+        upIdx++;
+        return u;
+      }).filter(Boolean).filter((u, idx, arr) => arr.indexOf(u) === idx);
+
+      const sel = parseInt(document.querySelector('input[name="editCapa"]:checked')?.value || "0", 10);
+      const selIdx = Math.max(0, Math.min(sel, finalUrls.length - 1));
+
+      p.title = ($("editTitulo")?.value || "").trim();
+      p.price = Number($("editValor")?.value || 0);
+      p.description = ($("editDescricao")?.value || "").trim();
+      p.category = ($("editCategoria")?.value || "").trim();
+      p.stock = parseInt($("editEstoque")?.value || "0", 10);
+
+      p.image = finalUrls[selIdx] || finalUrls[0] || "";
+      p.gallery = finalUrls.filter((u, i) => i !== selIdx);
+
+      showStatus("info", "⏳ Publicando alterações...");
+      await publicarProdutosBackend(produtos);
+      await carregarProdutosBackend();
+
+      hideStatus();
+      showSaved("✅ Produto atualizado!");
+      closeEditModal();
+    }catch(err){
+      console.error(err);
+      showStatus("error", "❌ Falha ao salvar: " + (err?.message || err));
+    }finally{
+      if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = "Salvar"; }
+    }
+  });
+
+  // initial load
+  carregarProdutosBackend();
+})();
+</script>
+
+</body>
+</html>

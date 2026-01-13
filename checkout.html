@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout</title>
+<link rel="icon" href="data:,">
+<link rel="shortcut icon" href="data:,">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#f6f1e7;
+  --cream-2:#f3e9d8;
+  --text:#2a2a2a;
+  --muted:#6f6f6f;
+  --olive:#6b7b2a;
+  --mustard:#f1b332;
+  --coral:#ff8e7f;
+  --terracotta:#b33b2e;
+  --card:#ffffff;
+}
+*{ box-sizing:border-box; margin:0; padding:0; font-family:'Poppins',sans-serif; }
+body{
+  background: linear-gradient(180deg, var(--cream), var(--cream-2));
+  color:var(--text);
+  display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px;
+}
+.checkout-card{
+  background:var(--card);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:18px;
+  box-shadow:0 10px 28px rgba(0,0,0,.08);
+  max-width:660px; width:100%; padding:28px 22px; text-align:center;
+}
+.logo{
+  width:220px; border-radius:16px; border:2px solid var(--mustard);
+  box-shadow:0 10px 24px rgba(0,0,0,.10);
+  margin:0 auto 14px;
+  display:block;
+}
+h1{ color:var(--terracotta); font-size:22px; margin-bottom:12px; text-transform:uppercase; letter-spacing:.06em; }
+.summary{ margin:18px 0; }
+.row{ display:flex; justify-content:space-between; align-items:center; margin:8px 0; font-size:14px; }
+.row.total{ font-size:20px; font-weight:900; color:var(--olive); margin-top:12px; }
+.items{ text-align:left; margin:10px 0 6px; }
+.item{ display:flex; justify-content:space-between; gap:12px; margin:6px 0; }
+.item-title{ font-size:14px; font-weight:600; color:#2a2a2a; }
+.item-sub{ font-weight:800; color:var(--terracotta); }
+#paypal-section{ margin-top:16px; }
+#paypal-button-paypal, #paypal-button-card{ margin-bottom:12px; }
+.helper{ margin-top:12px; font-size:13px; color:var(--muted); }
+footer{ margin-top:16px; color:var(--muted); font-size:12px; }
+.hidden{ display:none !important; }
+
+/* Fulfilment options */
+.fulfilment{
+  margin-top:10px;
+  border:1px dashed rgba(0,0,0,.1);
+  border-radius:14px;
+  padding:14px;
+  text-align:left;
+}
+.fulfilment h2{
+  font-size:14px; letter-spacing:.04em; text-transform:uppercase;
+  color:var(--olive);
+  margin-bottom:10px;
+}
+.opts{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.opt{
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:12px;
+  padding:10px;
+  display:flex; align-items:flex-start; gap:8px;
+  cursor:pointer;
+}
+.opt input{ margin-top:2px; }
+.opt .label{ font-weight:700; font-size:14px; }
+.opt .sub{ font-size:12px; color:var(--muted); }
+.badge{
+  display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--cream-2); border:1px solid rgba(0,0,0,.06); margin-left:6px;
+}
+.info{
+  font-size:13px; color:var(--muted);
+  background: #fff9f4;
+  border:1px solid rgba(0,0,0,.05);
+  padding:10px 12px; border-radius:12px;
+}
+.addr{ font-weight:600; color:var(--text); }
+</style>
+</head>
+<body>
+
+<div class="checkout-card">
+<img src="LOGO.png" alt="Checkout" class="logo">
+  <h1>Checkout</h1>
+  <a class="policy-btn" href="return-refund-policy.html" aria-label="Return & Refund Policy" style="display:inline-block;margin:6px 0 16px;background: var(--terracotta);color:#fff;padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px;text-decoration:none;box-shadow: 0 6px 16px rgba(0,0,0,.12);">Return Policy</a>
+
+  <div class="items" id="cartList"></div>
+
+  <!-- Fulfilment Options -->
+  <div class="fulfilment" id="fulfilmentBox">
+    <h2>Delivery / Pickup</h2>
+    <div class="opts">
+      <label class="opt" for="opt-delivery">
+        <input type="radio" name="fulfilment" id="opt-delivery" value="delivery">
+        <div>
+          <div class="label">Delivery <span class="badge">Shipping (€9)</span></div>
+          <div class="sub">Estimated delivery time: 7 to 10 business days.</div>
+        </div>
+      </label>
+      <label class="opt" for="opt-pickup">
+        <input type="radio" name="fulfilment" id="opt-pickup" value="pickup">
+        <div>
+          <div class="label">Pickup <span class="badge">Free</span></div>
+          <div class="sub">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</div>
+        </div>
+      </label>
+    </div>
+    <div class="info" id="fulfilmentInfo">
+      Estimated delivery time: 7 to 10 business days.
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="row"><span class="label">Products Subtotal</span><span class="value" id="subtotalValue">€ 0.00</span></div>
+    <div class="row"><span class="label" id="shippingLabel">Shipping</span><span class="value" id="shippingValue">€ 0.00</span></div>
+    <div class="row total">Total: € <span id="totalAmount">0.00</span></div>
+  </div>
+
+  <div id="paypal-section">
+    <div id="paypal-button-paypal"></div>
+    <div id="paypal-button-card"></div>
+    <div id="helperMsg" class="helper hidden">Add products to your cart to enable payment.</div>
+  </div>
+
+  <footer>© <span id="year"></span> Checkout</footer>
+</div>
+
+<script src="https://www.paypal.com/sdk/js?client-id=AfTde7kvXeDpijvvMVxUcfb7b-XIQgWMnQ8W2rcUd8PX5wyHAddc-Xf0_VG_wLUVl0dNw_9HXAzpo6dt&currency=EUR&intent=capture&commit=true&locale=en_IE&components=buttons,funding-eligibility&enable-funding=card"></script>
+<script>
+// ===== Keys used by the site =====
+const CART_KEYS_ORDER = ['vw_cart','hs_cart','cart','v_cart','cartItems','cart_items','cartData'];
+const FULFILMENT_KEY = 'fulfilment_mode'; // 'delivery' | 'pickup'
+
+// Year
+document.getElementById('year').textContent = new Date().getFullYear();
+
+function fmtEUR(n){ return '€ ' + Number(n).toFixed(2); }
+function readJSON(key){ try{ return JSON.parse(localStorage.getItem(key)); }catch(e){ return null; } }
+
+// Cart: accepts ?cart=... (from index redirect) OR localStorage (first key with non-empty array)
+function readCart(){
+  // 1) URL param (?cart=...) has priority (index.html uses this)
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const cartParam = params.get('cart');
+    if(cartParam){
+      const decoded = decodeURIComponent(cartParam);
+      const parsed = JSON.parse(decoded);
+      if(Array.isArray(parsed) && parsed.length){
+        // Persist to vw_cart for consistency across pages
+        try{ localStorage.setItem('vw_cart', JSON.stringify(parsed)); }catch(_){}
+        return parsed;
+      }
+    }
+  }catch(e){ /* ignore */ }
+
+  // 2) localStorage: first key that contains a non-empty array
+  for(const k of CART_KEYS_ORDER){
+    const v = readJSON(k);
+    if(Array.isArray(v) && v.length) return v;
+  }
+  return [];
+}
+
+// Read fulfilment (default: delivery)
+function readFulfilment(){
+  const v = localStorage.getItem(FULFILMENT_KEY);
+  if(v === 'pickup' || v === 'delivery') return v;
+  return 'delivery';
+}
+
+// Shipping: fixed by fulfilment selection. Delivery = €9; Pickup = €0
+function computeShipping(fulfilment){
+  if(fulfilment === 'pickup'){
+    return { amount: 0, label: 'Pickup (Free)' };
+  }
+  return { amount: 9, label: 'Shipping (€9)' };
+}
+
+// Normalize cart items and PRESERVE the product id so PayPal/webhook can remove the correct product
+function normalizeCart(arr){
+  return (Array.isArray(arr) ? arr : []).map(item=>{
+    const id = item?.id ?? item?.product?.id ?? item?.sku ?? item?.custom_id ?? null;
+    const qty = Number(item?.qty ?? item?.quantity ?? 1) || 0;
+    const price = Number(item?.price ?? item?.unitPrice ?? 0) || 0;
+    const title = item?.title ?? item?.name ?? item?.product?.title ?? 'Product';
+    return { id: id != null ? String(id) : null, qty, price, title };
+  }).filter(x => x.id && x.qty > 0 && x.price >= 0);
+}
+
+let cart = normalizeCart(readCart());
+let fulfilment = readFulfilment();
+
+// Initialize UI radios and info panel
+function initFulfilmentUI(){
+  const radioDelivery = document.getElementById('opt-delivery');
+  const radioPickup = document.getElementById('opt-pickup');
+  const info = document.getElementById('fulfilmentInfo');
+
+  if(fulfilment === 'pickup'){ radioPickup.checked = true; }
+  else { radioDelivery.checked = true; }
+
+  function updateInfo(){
+    info.textContent = (fulfilment === 'pickup')
+      ? 'Pickup at: Shopping Centre Athenry Prospect Unit 11B - H65 VA48'
+      : 'Estimated delivery time: 7 to 10 business days.';
+  }
+
+  radioDelivery.addEventListener('change', () => {
+    fulfilment = 'delivery';
+    localStorage.setItem(FULFILMENT_KEY, fulfilment);
+    updateInfo();
+    renderSummary();
+  });
+  radioPickup.addEventListener('change', () => {
+    fulfilment = 'pickup';
+    localStorage.setItem(FULFILMENT_KEY, fulfilment);
+    updateInfo();
+    renderSummary();
+  });
+
+  updateInfo();
+}
+
+function renderSummary(){
+  const list = document.getElementById('cartList');
+  let subtotal = 0;
+  if(!cart.length){
+    list.innerHTML = '<p style="color:#6f6f6f;text-align:center;">Your cart is empty.</p>';
+  }else{
+    list.innerHTML = cart.map(item=>{
+      const sub = item.qty * item.price; subtotal += sub;
+      return `<div class="item">
+                <div class="item-title">${item.qty}× ${item.title}</div>
+                <div class="item-sub">${fmtEUR(sub)}</div>
+              </div>`;
+    }).join('');
+  }
+  const ship = computeShipping(fulfilment);
+  document.getElementById('subtotalValue').textContent = fmtEUR(subtotal);
+  document.getElementById('shippingLabel').textContent = ship.label || 'Shipping';
+  document.getElementById('shippingValue').textContent = fmtEUR(ship.amount || 0);
+
+  let effectiveTotal = 0;
+  const helper = document.getElementById('helperMsg');
+  const payBtn = document.getElementById('paypal-button-paypal');
+  const cardBtn = document.getElementById('paypal-button-card');
+  if(subtotal > 0){
+    effectiveTotal = subtotal + Number(ship.amount||0);
+    helper.classList.add('hidden');
+    payBtn.classList.remove('hidden');
+    cardBtn.classList.remove('hidden');
+  }else{
+    effectiveTotal = 0;
+    helper.classList.remove('hidden');
+    payBtn.classList.add('hidden');
+    cardBtn.classList.add('hidden');
+  }
+  document.getElementById('totalAmount').textContent = effectiveTotal.toFixed(2);
+  return { subtotal, shipping: Number(ship.amount||0), total: effectiveTotal };
+}
+
+const state = renderSummary();
+initFulfilmentUI();
+
+function commonConfig(){
+  return {
+    onClick: function(data, actions){
+      const { subtotal } = renderSummary();
+      if(subtotal <= 0){
+        alert('Please add products before paying.');
+        return actions.reject();
+      }
+      return actions.resolve();
+    },
+    createOrder: function(data, actions){
+      const { subtotal, shipping, total } = renderSummary();
+      if(subtotal <= 0){ throw new Error('Empty subtotal'); }
+
+      // Safety: ensure every cart item has an id
+      const missingId = cart.find(i => !i.id);
+      if(missingId){ throw new Error('Cart item missing id'); }
+
+      const shippingPref = (fulfilment === 'pickup') ? 'NO_SHIPPING' : 'GET_FROM_FILE';
+
+      // 🔥 reference_id = ID DO PRODUTO (PayPal SEMPRE DEVOLVE)
+      return actions.order.create({
+        intent: 'CAPTURE',
+        application_context: {
+          shipping_preference: shippingPref,
+          user_action: 'PAY_NOW',
+          locale: 'en-IE'
+        },
+        purchase_units: [{
+          reference_id: String(cart[0].id),
+          description: cart[0].title,
+          amount: {
+            currency_code: 'EUR',
+            value: total.toFixed(2)
+          }
+        }]
+      });
+    },
+    onApprove: function(data, actions){
+      return actions.order.capture().then(function(details){
+        alert('✅ Payment completed by ' + (details?.payer?.name?.given_name || 'customer') + '!');
+        // clear cart + fulfilment
+        CART_KEYS_ORDER.forEach(k=>localStorage.removeItem(k));
+        localStorage.removeItem(FULFILMENT_KEY);
+        document.getElementById('cartList').innerHTML = '<p style="color:var(--olive);text-align:center;">Payment Approved!</p>';
+        document.getElementById('subtotalValue').textContent = fmtEUR(0);
+        document.getElementById('shippingValue').textContent = fmtEUR(0);
+        document.getElementById('totalAmount').textContent = '0.00';
+        document.getElementById('paypal-button-paypal').classList.add('hidden');
+        document.getElementById('paypal-button-card').classList.add('hidden');
+      });
+    },
+    onError: function(err){ console.error('PayPal error:', err); alert('❌ There was an issue with PayPal Checkout. Please try again.'); }
+  };
+}
+
+// Render PayPal buttons when subtotal > 0
+if(typeof paypal !== 'undefined' && state.subtotal > 0){
+  const btnPayPal = paypal.Buttons(Object.assign({}, commonConfig(), {
+    fundingSource: paypal.FUNDING.PAYPAL,
+    style:{ layout:'vertical', color:'gold', shape:'pill', label:'paypal', height:45 }
+  }));
+  if(btnPayPal.isEligible()) btnPayPal.render('#paypal-button-paypal');
+
+  const btnCard = paypal.Buttons(Object.assign({}, commonConfig(), {
+    fundingSource: paypal.FUNDING.CARD,
+    style:{ layout:'vertical', color:'black', shape:'pill', label:'pay', height:45 }
+  }));
+  if(btnCard.isEligible()) btnCard.render('#paypal-button-card');
+}
+</script>
+
+</body>
+</html>
