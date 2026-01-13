@@ -1,4 +1,4 @@
-const { Resend } = require("@resend/node");
+const { Resend } = require("resend");
 const { cfg } = require("../config");
 
 let client = null;
