@@ -967,13 +967,35 @@
   });
 
   // --- Edit Modal logic ---
+  const editModalEl = $("editModal");
+  const editContentEl = editModalEl ? editModalEl.querySelector(".modal-content") : null;
+  let editScrollToggleBound = false;
+
+  function lockBodyScroll(){ document.body.classList.add("modal-open"); }
+  function unlockBodyScroll(){ document.body.classList.remove("modal-open"); }
+
+  function bindEditScrollToggle(){
+    if(editScrollToggleBound || !editContentEl) return;
+    editScrollToggleBound = true;
+
+    // Enquanto o mouse estiver dentro do "Editar", trava o scroll do fundo.
+    // Quando o mouse sair do "Editar", libera o scroll da página de trás.
+    editContentEl.addEventListener("mouseenter", lockBodyScroll, { passive:true });
+    editContentEl.addEventListener("mouseleave", unlockBodyScroll, { passive:true });
+
+    // Fallback (ponteiro)
+    editContentEl.addEventListener("pointerenter", lockBodyScroll, { passive:true });
+    editContentEl.addEventListener("pointerleave", unlockBodyScroll, { passive:true });
+  }
+
   function openEditModal(){
     $("editModal")?.classList.add("show");
-    document.body.classList.add("modal-open");
+    lockBodyScroll();
+    bindEditScrollToggle();
   }
   function closeEditModal(){
     $("editModal")?.classList.remove("show");
-    document.body.classList.remove("modal-open");
+    unlockBodyScroll();
     editIndex = null;
     editPendingUploads = [];
     editImageList = [];
@@ -983,7 +1005,7 @@
     if(p) p.innerHTML = "";
   }
 
-  function renderEditImages(p){
+function renderEditImages(p){
     const container = $("editPreview");
     if(!container) return;
     container.innerHTML = "";
