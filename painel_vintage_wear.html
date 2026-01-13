@@ -363,12 +363,21 @@
     color: rgba(42,42,42,.92);
   }
 
-  /* manter scroll invisível no edit form */
-  #editModal .form{ flex:1; overflow:auto; padding-right:8px; }
-  #editModal .form::-webkit-scrollbar{ width:0; height:0; }
-  #editModal .form{ scrollbar-width:none; -ms-overflow-style:none; }
+  /* scroll invisível NO FUNDO (quando o Editar estiver aberto) */
+body.bg-scroll-invisible{ -ms-overflow-style:none; scrollbar-width:none; }
+body.bg-scroll-invisible::-webkit-scrollbar{ width:0; height:0; }
 
-  .badge{
+/* scroll invisível DENTRO do modal Editar (para alcançar Salvar/Cancelar) */
+#editModal .modal-content{
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
+}
+#editModal .modal-content::-webkit-scrollbar{ width:0; height:0; }
+#editModal .modal-content{ scrollbar-width:none; -ms-overflow-style:none; }
+
+/* evita scroll duplo: o scroll fica no modal-content */
+#editModal .form{ overflow:visible; }
+.badge{
     background: rgba(255,255,255,.18);
     border: 1px solid rgba(212,175,55,.35);
     padding: 3px 10px;
@@ -990,11 +999,13 @@
 
   function openEditModal(){
     $("editModal")?.classList.add("show");
+    document.body.classList.add("bg-scroll-invisible");
     lockBodyScroll();
     bindEditScrollToggle();
   }
   function closeEditModal(){
     $("editModal")?.classList.remove("show");
+    document.body.classList.remove("bg-scroll-invisible");
     unlockBodyScroll();
     editIndex = null;
     editPendingUploads = [];
