@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vintage Wear — Admin Panel (Fix)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root { --black:#0d0d0d; --white:#ffffff; --orange:#f1b332; --card:#1a1a1a; --dark:#0f1a1c; --green:#28a745; --red:#c0392b; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+  body { background: var(--black); color: var(--white); padding: 20px; }
+  h1 { text-align: center; margin-bottom: 20px; color: var(--orange); }
+  .container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; }
+  .form-section, .list-section {
+    flex: 1 1 480px; background: var(--card); padding: 20px; border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  }
+  .form { display: flex; flex-direction: column; gap: 12px; }
+  input, textarea, select {
+    padding: 12px; border-radius: 8px; border: none; font-size: 14px; background:#111; color:#fff;
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  .upload-btn {
+    display: inline-block; padding: 12px; border-radius: 8px;
+    background: var(--orange); color: var(--white); text-align: center;
+    font-weight: 600; cursor: pointer; transition: 0.2s;
+  }
+  .upload-btn:hover { filter: brightness(1.1); }
+  #fotos { display: none; }
+  button {
+    background: var(--orange); border: none; padding: 12px 16px;
+    border-radius: 8px; cursor: pointer; color: var(--white);
+    font-weight: 600; transition: 0.2s; font-size: 15px;
+  }
+  button:hover { filter: brightness(1.1); }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  table th, table td { border: 1px solid #333; padding: 8px; text-align: left; }
+  table th { background: #222; }
+
+  .preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .preview { position: relative; }
+  .preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid transparent; }
+  .preview input[type="radio"] { position: absolute; top: 6px; left: 6px; transform: scale(1.2); }
+  .preview .remove { position:absolute; right:6px; top:6px; background:#c0392b; border:none; color:#fff; font-size:12px; padding:2px 6px; border-radius:6px; cursor:pointer; }
+
+  .alert { margin-top: 10px; padding: 10px; border-radius: 6px; text-align: center; display: none; }
+  .alert.success { background: var(--green); color: white; display: none; }
+  .alert.info { background: var(--orange); color: #000; display: none; }
+  .alert.error { background: var(--red); color: white; display: none; }
+
+  .config-btn {
+    display:block; margin:0 auto 20px; background:var(--orange); border:none; color:#fff;
+    padding:8px 16px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .config-btn:hover { filter:brightness(1.1); }
+
+  .modal{display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); justify-content:center; align-items:center; z-index:3000;}
+  .modal.show{display:flex !important;}
+  .modal-content{background:#1a1a1a; padding:20px; border-radius:12px; max-width:400px; width:90%; color:#fff; position:relative;}
+
+  .action-buttons { display:flex; gap:6px; }
+  .action-buttons button { flex:1; }
+
+  #editModal { overflow: hidden; }
+  body.modal-open { overflow: hidden; }
+  #editModal .modal-content { width: min(820px, 92vw); max-height: min(88vh, 900px); display: flex; flex-direction: column; overflow: hidden; }
+  #editModal .form { flex: 1; overflow: auto; padding-right: 8px; }
+  #editModal .form::-webkit-scrollbar { width: 0; height: 0; }
+  #editModal .form { scrollbar-width: none; -ms-overflow-style: none; }
+  #editModal .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  #editModal .footer { display:flex; gap:10px; justify-content:flex-end; margin-top:10px; }
+  #editModal .section-title { font-size:14px; opacity:0.85; margin-top:8px; }
+  .badge { background:#222; border:1px solid #333; padding:2px 8px; font-size:12px; border-radius:999px; }
+  .help { font-size:12px; opacity:0.7; word-break: break-word; }
+</style>
+</head>
+<body>
+<h1>Vintage Wear — Admin Panel</h1>
+<button class="config-btn" id="openGithubModal">Configurações do GitHub</button>
+
+<div class="container">
+  <div class="form-section">
+    <form class="form" id="formProduto">
+      <input id="titulo" placeholder="Título do produto" required type="text"/>
+      <input id="valor" placeholder="Preço (€)" required step="0.01" type="number"/>
+      <textarea id="descricao" placeholder="Descrição do produto"></textarea>
+
+      <label>Categoria</label>
+      <select id="categoria" required>
+        <option value="">Selecione…</option>
+        <option value="Dresses &amp; Skirts">Dresses &amp; Skirts</option>
+        <option value="Trousers">Trousers</option>
+        <option value="Shirts &amp; Tees">Shirts &amp; Tees</option>
+        <option value="Hoodies &amp; Sweatshirts">Hoodies &amp; Sweatshirts</option>
+        <option value="Puffers">Puffers</option>
+        <option value="Coats &amp; Outerwear">Coats &amp; Outerwear</option>
+        <option value="Leatherwear">Leatherwear</option>
+        <option value="Shoes">Shoes</option>
+        <option value="Bags &amp; Accessories">Bags &amp; Accessories</option>
+        <option value="Activewear">Activewear</option>
+        <option value="Curated Pieces">Curated Pieces</option>
+      </select>
+
+      <label>Estoque</label>
+      <input id="estoque" min="0" placeholder="Quantidade em estoque" type="number" value="0"/>
+
+      <label class="upload-btn" for="fotos">📷 Adicionar imagens</label>
+      <input accept="image/*" id="fotos" multiple type="file"/>
+      <div class="preview-container" id="preview"></div>
+
+      <button type="submit" id="addBtn">Adicionar produto</button>
+      <div class="alert info" id="statusMessage">⏳ Enviando...</div>
+      <div class="alert success" id="alertBox">✅ Produto salvo no GitHub!</div>
+    </form>
+  </div>
+
+  <div class="list-section">
+    <h2>Produtos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Preço (€)</th>
+          <th>Categoria</th>
+          <th>Estoque</th>
+          <th>Data</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="listaProdutos"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- GitHub Config Modal -->
+<div class="modal" id="githubModal">
+  <div class="modal-content">
+    <button id="closeGithubModal" style="position:absolute; top:10px; right:10px; background:var(--orange); border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;">X</button>
+    <h2 style="margin-bottom:14px; color:var(--orange);">Configurações do GitHub</h2>
+    <label>Repositório (owner/repo)</label>
+    <input id="ghRepo" placeholder="ex.: usuario/repositorio" style="width:100%; margin-bottom:10px;" type="text"/>
+    <label>Branch</label>
+    <input id="ghBranch" placeholder="main" style="width:100%; margin-bottom:10px;" type="text"/>
+    <label>Caminho do arquivo</label>
+    <input id="ghPath" placeholder="products.json" style="width:100%; margin-bottom:10px;" type="text"/>
+    <label>Personal Access Token</label>
+    <input id="ghToken" placeholder="ghp_xxx" style="width:100%; margin-bottom:16px;" type="password"/>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-bottom:10px; flex-wrap: wrap;">
+      <button id="saveGithubConfig">Salvar</button>
+      <button id="testGithubConfig">Testar</button>
+      <button id="downloadProducts" title="Baixar products.json">Baixar products.json</button>
+    </div>
+    <div id="ghAlert" class="help" style="margin-top:10px; display:none; padding:8px; border-radius:6px; text-align:center;"></div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <div class="header">
+      <h2 style="color:var(--orange);">Editar produto</h2>
+      <span class="badge" id="editIdBadge"></span>
+      <button style="position:absolute; top:10px; right:10px; background:var(--orange); border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;" id="editCloseBtn">X</button>
+    </div>
+    <form class="form" id="editForm">
+      <label>Título</label>
+      <input id="editTitulo" type="text" required/>
+
+      <label>Preço (€)</label>
+      <input id="editValor" type="number" step="0.01" required/>
+
+      <label>Descrição</label>
+      <textarea id="editDescricao" class="autosize"></textarea>
+
+      <label>Categoria</label>
+      <select id="editCategoria" required>
+        <option value="">Selecione…</option>
+        <option value="Dresses &amp; Skirts">Dresses &amp; Skirts</option>
+        <option value="Trousers">Trousers</option>
+        <option value="Shirts &amp; Tees">Shirts &amp; Tees</option>
+        <option value="Hoodies &amp; Sweatshirts">Hoodies &amp; Sweatshirts</option>
+        <option value="Puffers">Puffers</option>
+        <option value="Coats &amp; Outerwear">Coats &amp; Outerwear</option>
+        <option value="Leatherwear">Leatherwear</option>
+        <option value="Shoes">Shoes</option>
+        <option value="Bags &amp; Accessories">Bags &amp; Accessories</option>
+        <option value="Activewear">Activewear</option>
+        <option value="Curated Pieces">Curated Pieces</option>
+      </select>
+
+      <label>Estoque</label>
+      <input id="editEstoque" type="number" min="0"/>
+
+      <div class="section-title">Imagens <span class="help">— selecione a capa (bolinha)</span></div>
+      <div class="preview-container" id="editPreview"></div>
+
+      <div>
+        <label class="upload-btn" for="editFotos">📷 Adicionar novas imagens</label>
+        <input id="editFotos" type="file" multiple accept="image/*" style="display:none;"/>
+        <div class="help">As novas imagens serão enviadas ao salvar. As existentes permanecem.</div>
+      </div>
+
+      <div class="footer">
+        <button id="editCancel" type="button">Cancelar</button>
+        <button id="editSave" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- All scripts are placed LAST to ensure elements exist -->
+<script>
+(function(){
+  'use strict';
+
+  // --- Utilities ---
+  const $ = (id) => document.getElementById(id);
+  const on = (el, ev, cb) => el && el.addEventListener(ev, cb);
+  const text = (el, t) => { if(el) el.textContent = t; };
+
+  function decodeBase64Utf8(b64){
+    try{
+      b64 = (b64 || '').replace(/\\n/g,'');
+      if('TextDecoder' in window){
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+        return new TextDecoder().decode(bytes);
+      }
+      return decodeURIComponent(escape(atob(b64 || '')));
+    }catch(e){ return atob(b64 || ''); }
+  }
+  function encodeBase64Utf8(str){
+    try{
+      if('TextEncoder' in window){
+        const bytes = new TextEncoder().encode(str);
+        let bin = '';
+        bytes.forEach(b => bin += String.fromCharCode(b));
+        return btoa(bin);
+      }
+      return btoa(unescape(encodeURIComponent(str)));
+    }catch(e){ return btoa(str || ''); }
+  }
+
+  // --- State ---
+  let produtos = [];
+  let editIndex = null;
+  let editPendingUploads = []; // {file, url}
+  let editImageList = [];
+  let editExistingCount = 0;
+
+  // --- GitHub helpers ---
+  async function carregarProdutosGitHub(){
+    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
+    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token) return;
+    try {
+      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, {
+        headers: { Authorization: `token ${cfg.token}` }
+      });
+      if(res.ok){
+        const data = await res.json();
+        const raw = decodeBase64Utf8(data.content || '');
+        produtos = JSON.parse(raw || '[]');
+        renderProdutos();
+      }
+    } catch(e){
+      console.error("Error loading products:", e);
+    }
+  }
+
+  async function salvarNoGitHub(produtosNovos){
+    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
+    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){
+      alert("Preencha as configurações do GitHub primeiro.");
+      return false;
+    }
+    const url = `https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}`;
+    let sha = null;
+
+    try {
+      const res = await fetch(url+`?ref=${cfg.branch}`, {
+        headers: { "Authorization": `token ${cfg.token}`, "Accept": "application/vnd.github+json" }
+      });
+      if(res.ok){
+        const data = await res.json();
+        sha = data.sha;
+      }
+    } catch(e){ console.error("Error getting SHA:", e); }
+
+    produtosNovos = (produtosNovos || []).map(p => ({
+      ...p,
+      title: p.title ?? 'Untitled',
+      description: p.description ?? '',
+      category: p.category || 'uncategorized',
+      price: Number(p.price || 0),
+      stock: Number.isFinite(p.stock) ? p.stock : parseInt(p.stock || '0', 10),
+      gallery: (Array.isArray(p.gallery) ? p.gallery.filter(Boolean) : (p.gallery ? [p.gallery] : [])).filter(u => u && u !== p.image).filter((u, idx, arr) => arr.indexOf(u) === idx),
+      image: p.image || '',
+      createdAt: p.createdAt || Date.now(),
+      status: p.status || 'published',
+      id: p.id || String(p.ID || Date.now())
+    }));
+
+    const novoConteudo = encodeBase64Utf8(JSON.stringify(produtosNovos, null, 2));
+    const body = { message: "Update products.json via panel", branch: cfg.branch, content: novoConteudo };
+    if(sha) body.sha = sha;
+
+    try {
+      const putRes = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${cfg.token}`,
+          "Accept": "application/vnd.github+json",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if(putRes.ok){
+        const box = $("alertBox");
+        if(box){
+          box.textContent = "✅ Enviado — publicação concluída!";
+          box.classList.add("success");
+          box.style.display = "block";
+          setTimeout(()=> box.style.display="none", 3000);
+        }
+        try { await carregarProdutosGitHub(); } catch(_) {}
+        return true;
+      } else {
+        const txt = await putRes.text().catch(()=> "");
+        alert("Erro ao salvar no GitHub: " + putRes.status + (txt ? "\\n" + txt : ""));
+        return false;
+      }
+    } catch(e){
+      alert("Erro ao salvar no GitHub: " + e.message);
+      return false;
+    }
+  }
+
+  async function uploadImagens(produtoId, files){
+    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
+    const uploadedLinks = [];
+    for(let i=0; i<files.length; i++){
+      const file = files[i];
+      const reader = new FileReader();
+      const base64 = await new Promise(res=>{
+        reader.onload = () => res(reader.result.split(",")[1]);
+        reader.readAsDataURL(file);
+      });
+
+      const imgPath = `products/${produtoId}/${file.name.replace(/\\s+/g,'_')}`;
+      const url = `https://api.github.com/repos/${cfg.repo}/contents/${imgPath}`;
+      await fetch(url, {
+        method: "PUT",
+        headers: { "Authorization": `token ${cfg.token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Add image ${file.name} of product ${produtoId}`,
+          branch: cfg.branch,
+          content: base64
+        })
+      });
+
+      uploadedLinks.push(`https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch}/${imgPath}`);
+    }
+    return uploadedLinks;
+  }
+
+  async function downloadProductsJson(){
+    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
+    let content = null;
+    if(produtos && produtos.length){
+      content = JSON.stringify(produtos, null, 2);
+    } else if(cfg.repo && cfg.branch && cfg.path && cfg.token){
+      try{
+        const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, {
+          headers: { Authorization: `token ${cfg.token}` }
+        });
+        if(res.ok){
+          const data = await res.json();
+          content = decodeBase64Utf8(data.content || '');
+        } else {
+          content = '[]';
+        }
+      }catch(e){ content = '[]'; }
+    } else {
+      content = '[]';
+    }
+
+    const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 1000);
+  }
+
+  // --- UI rendering ---
+  function renderProdutos() {
+    const lista = $("listaProdutos");
+    if(!lista) return;
+    lista.innerHTML = '';
+    produtos.forEach((p, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${p.title || ''}</td>
+        <td>€ ${Number(p.price || 0).toFixed(2)}</td>
+        <td>${p.category || ''}</td>
+        <td>${Number.isFinite(p.stock) ? p.stock : parseInt(p.stock || '0', 10)}</td>
+        <td>${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}</td>
+        <td><div class='action-buttons'><button data-edit="${i}">Editar</button><button data-del="${i}">Excluir</button></div></td>
+      `;
+      lista.appendChild(tr);
+    });
+
+    // bind action buttons using delegation
+    lista.querySelectorAll("[data-edit]").forEach(btn => {
+      on(btn, 'click', () => editarProduto(parseInt(btn.getAttribute('data-edit'))));
+    });
+    lista.querySelectorAll("[data-del]").forEach(btn => {
+      on(btn, 'click', async () => {
+        const idx = parseInt(btn.getAttribute('data-del'));
+        if(Number.isInteger(idx)){
+          produtos.splice(idx,1);
+          await salvarNoGitHub(produtos);
+          renderProdutos();
+        }
+      });
+    });
+  }
+
+  // --- Create form ---
+  on($("fotos"), 'change', (e) => {
+    const files = Array.from(e.target.files || []);
+    const preview = $("preview");
+    if(!preview) return;
+    preview.innerHTML = '';
+    files.forEach((f, i) => {
+      const url = URL.createObjectURL(f);
+      const div = document.createElement('div');
+      div.className = 'preview';
+      div.innerHTML = `<input type="radio" name="capa" ${i===0? 'checked' : ''} value="${i}"><img src="${url}" alt="preview">`;
+      preview.appendChild(div);
+    });
+  });
+
+  on($("formProduto"), 'submit', async (e) => {
+    e.preventDefault();
+    const addBtn = $("addBtn");
+    const statusMessage = $("statusMessage");
+    const alertBox = $("alertBox");
+
+    const titulo = $("titulo").value;
+    const valor = Number($("valor").value || 0);
+    const descricao = $("descricao").value;
+    const categoria = $("categoria").value;
+    const estoque = parseInt($("estoque").value || '0', 10);
+
+    const fotosInput = $("fotos");
+    const produtoId = Date.now().toString();
+    const fotos = fotosInput.files || [];
+    const capaIndex = parseInt(document.querySelector('input[name="capa"]:checked')?.value || 0);
+
+    if(statusMessage){
+      text(statusMessage, '⏳ Enviando...');
+      statusMessage.className = 'alert info';
+      statusMessage.style.display = 'block';
+    }
+    if(alertBox) alertBox.style.display = 'none';
+    if(addBtn){ addBtn.disabled = true; addBtn.textContent = 'Enviando...'; }
+
+    try {
+      const uploaded = await uploadImagens(produtoId, fotos);
+
+      const cover = uploaded[capaIndex] || "";
+      const galleryClean = (uploaded || [])
+        .filter(Boolean)
+        .filter((u, i) => i !== capaIndex)
+        .filter((u, idx, arr) => arr.indexOf(u) === idx);
+      const produto = {
+        id: produtoId,
+        title: titulo,
+        price: valor,
+        description: descricao,
+        category: categoria,
+        stock: estoque,
+        image: cover,
+        gallery: galleryClean,
+        createdAt: Date.now(),
+        status: "published"
+      };
+
+      produtos.push(produto);
+      const ok = await salvarNoGitHub(produtos);
+      if(ok){
+        if(statusMessage) statusMessage.style.display = 'none';
+        $("formProduto").reset();
+        $("preview").innerHTML = '';
+        renderProdutos();
+      } else {
+        if(statusMessage){
+          text(statusMessage, '❌ Erro ao enviar. Verifique a configuração do GitHub.');
+          statusMessage.className = 'alert error';
+          statusMessage.style.display = 'block';
+        }
+      }
+    } catch(e){
+      if(statusMessage){
+        text(statusMessage, '❌ Falha: ' + (e.message || e));
+        statusMessage.className = 'alert error';
+        statusMessage.style.display = 'block';
+      }
+    } finally {
+      if(addBtn){ addBtn.disabled = false; addBtn.textContent = 'Adicionar produto'; }
+      if(statusMessage && statusMessage.classList.contains('info')){
+        setTimeout(()=> statusMessage.style.display='none', 3000);
+      }
+    }
+  });
+
+  // --- Editor modal logic ---
+  function openEditModal(){
+    $("editModal").classList.add('show');
+    document.body.classList.add('modal-open');
+  }
+  function closeEditModal(){
+    $("editModal").classList.remove('show');
+    document.body.classList.remove('modal-open');
+    editIndex = null;
+    editPendingUploads = [];
+    editImageList = [];
+    editExistingCount = 0;
+    const f = $("editForm");
+    if(f) f.reset();
+    const p = $("editPreview");
+    if(p) p.innerHTML = '';
+  }
+
+  function renderEditImages(p){
+    const container = $("editPreview");
+    if(!container) return;
+    container.innerHTML = '';
+    const existing = [p.image, ...(p.gallery||[])].filter(Boolean);
+    editExistingCount = existing.length;
+    editImageList = [
+      ...existing.map(u => ({kind:'existing', url:u})),
+      ...editPendingUploads.map(x => ({kind:'new', url:x.url, file:x.file}))
+    ];
+    editImageList.forEach((img, idx) => {
+      const div = document.createElement('div');
+      div.className = 'preview';
+      const removeBtn = img.kind === 'new'
+        ? '<button type="button" class="remove" data-remove="'+idx+'">x</button>'
+        : '';
+      div.innerHTML = `
+        <input type="radio" name="editCapa" value="${idx}">
+        <img src="${img.url}" alt="img">
+        ${removeBtn}
+      `;
+      container.appendChild(div);
+    });
+
+    const radio = container.querySelector('input[name="editCapa"][value="0"]');
+    if(radio) radio.checked = true;
+
+    container.querySelectorAll('.remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-remove'));
+        const pendingIdx = idx - editExistingCount;
+        if(pendingIdx >= 0){
+          editPendingUploads.splice(pendingIdx, 1);
+          renderEditImages(p);
+        }
+      });
+    });
+  }
+
+  function editarProduto(index){
+    editIndex = index;
+    const p = produtos[index];
+    if(!p) return;
+    $("editIdBadge").textContent = p.id ? `ID: ${p.id}` : '';
+    $("editTitulo").value = p.title || '';
+    $("editValor").value = Number(p.price || 0);
+    $("editDescricao").value = p.description || '';
+    $("editCategoria").value = p.category || '';
+    $("editEstoque").value = Number.isFinite(p.stock) ? p.stock : parseInt(p.stock || '0', 10);
+
+    editPendingUploads = [];
+    renderEditImages(p);
+    openEditModal();
+  }
+
+  on($("editFotos"), 'change', (e) => {
+    const files = Array.from(e.target.files || []);
+    const p = produtos[editIndex];
+    files.forEach(f => {
+      const url = URL.createObjectURL(f);
+      editPendingUploads.push({file:f, url});
+    });
+    if(p) renderEditImages(p);
+    e.target.value = '';
+  });
+
+  on($("editCancel"), 'click', (e)=>{ e.preventDefault(); closeEditModal(); });
+  on($("editCloseBtn"), 'click', (e)=>{ e.preventDefault(); closeEditModal(); });
+
+  on($("editForm"), 'submit', async (e) => {
+    e.preventDefault();
+    if(editIndex === null) return;
+    const saveBtn = $("editSave");
+    if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Salvando...'; }
+
+    try{
+      const p = produtos[editIndex];
+      let newUrls = [];
+      if(editPendingUploads.length){
+        newUrls = await uploadImagens(p.id || p.ID || Date.now().toString(), editPendingUploads.map(x=>x.file));
+      }
+      const existing = [p.image, ...(p.gallery||[])].filter(Boolean);
+      const images = [...existing, ...newUrls].filter(Boolean)
+        .filter((u, idx, arr) => arr.indexOf(u) === idx);
+
+      const sel = parseInt(document.querySelector('input[name="editCapa"]:checked')?.value || '0', 10);
+      const selIdx = Math.max(0, Math.min(sel, images.length - 1));
+
+      p.title = $("editTitulo").value;
+      p.price = Number($("editValor").value || 0);
+      p.description = $("editDescricao").value || '';
+      p.category = $("editCategoria").value || '';
+      p.stock = parseInt($("editEstoque").value || '0', 10);
+
+      p.image = images[selIdx] || images[0] || '';
+      p.gallery = images.filter((u, i) => i !== selIdx);
+
+      const ok = await salvarNoGitHub(produtos);
+      if(ok){
+        renderProdutos();
+        closeEditModal();
+      }else{
+        alert('Erro ao salvar no GitHub.');
+      }
+    }catch(err){
+      alert('Falha ao salvar: ' + (err?.message || err));
+    }finally{
+      if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = 'Salvar'; }
+    }
+  });
+
+  // --- GitHub modal bindings ---
+  const ghModal = $("githubModal");
+  on($("openGithubModal"), 'click', () => {
+    loadGithubConfig();
+    ghModal.classList.add('show');
+    document.body.classList.add('modal-open');
+    carregarProdutosGitHub();
+  });
+  on($("closeGithubModal"), 'click', () => {
+    ghModal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    carregarProdutosGitHub();
+  });
+
+  function showGhAlert(msg, ok){
+    const el = $("ghAlert");
+    if(!el) return;
+    text(el, msg);
+    el.style.display = 'block';
+    el.style.background = ok ? '#28a745' : '#c0392b';
+    el.style.color = '#fff';
+    setTimeout(()=> el.style.display='none', 3000);
+  }
+  function loadGithubConfig(){
+    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
+    if(cfg.repo) $("ghRepo").value = cfg.repo;
+    if(cfg.branch) $("ghBranch").value = cfg.branch;
+    if(cfg.path) $("ghPath").value = cfg.path;
+    if(cfg.token) $("ghToken").value = cfg.token;
+  }
+  function saveGithubConfig(){
+    const cfg = {
+      repo: $("ghRepo").value,
+      branch: $("ghBranch").value,
+      path: $("ghPath").value,
+      token: $("ghToken").value
+    };
+    localStorage.setItem('ghConfig', JSON.stringify(cfg));
+    showGhAlert('✅ Configurações salvas!', true);
+  }
+  async function testGithubConfig(){
+    const cfg = JSON.parse(localStorage.getItem('ghConfig')||'{}');
+    if(!cfg.repo || !cfg.branch || !cfg.path || !cfg.token){ showGhAlert('Preencha todos os campos antes de testar.', false); return; }
+    try{
+      const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}?ref=${cfg.branch}`, {
+        headers: { Authorization: `token ${cfg.token}` }
+      });
+      if(res.ok){
+        showGhAlert('✅ Conexão bem-sucedida!', true);
+      } else {
+        showGhAlert('❌ Erro: ' + res.status, false);
+      }
+    }catch(e){ showGhAlert('❌ Falha: ' + e.message, false); }
+  }
+
+  on($("saveGithubConfig"), 'click', saveGithubConfig);
+  on($("testGithubConfig"), 'click', testGithubConfig);
+  on($("downloadProducts"), 'click', downloadProductsJson);
+
+  // initial load
+  carregarProdutosGitHub();
+})();</script>
+</body>
+</html>
