@@ -600,7 +600,7 @@
               </div>
 
               <div class="row" style="margin-top:10px;">
-                <button class="btn small" id="btnPickAvatar">📷 Adicionar foto</button>
+                <label for="avatarFileInput" class="btn small" style="cursor:pointer;">📷 Adicionar foto</label>
                 <span class="pill" id="avatarFileName"><strong>—</strong></span>
               </div>
 
@@ -679,7 +679,7 @@
     </div>
   </div>
 
-  <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
+  <input id="avatarFileInput" type="file" accept="image/*" capture="environment" style="position:absolute; left:-9999px;" />
   <script src="auth-guard.js"></script>
 
 
@@ -988,11 +988,7 @@
       $('avatarFileName').innerHTML = `<strong>${name || '—'}</strong>`;
     }
 
-    function openAvatarPicker(){
-      const input = $('avatarFileInput');
-      input.value = '';
-      input.click();
-    }
+    // openAvatarPicker removido: uso de <label for> para compatibilidade mobile
 
     async function setAvatar(file){
       if (!file) return;
@@ -1136,8 +1132,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadDemo();
 
-      $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
-      $('avatarFileInput')?.addEventListener('change', (e) => {
+            $('avatarFileInput')?.addEventListener('change', (e) => {
         const file = e.target.files ? e.target.files[0] : null;
         if (file) setAvatar(file);
       });
