@@ -600,7 +600,7 @@
               </div>
 
               <div class="row" style="margin-top:10px;">
-                <label for="avatarFileInput" class="btn small" style="cursor:pointer;">📷 Adicionar foto</label>
+                <button class="btn small" id="btnPickAvatar">📷 Adicionar foto</button>
                 <span class="pill" id="avatarFileName"><strong>—</strong></span>
               </div>
 
@@ -679,7 +679,7 @@
     </div>
   </div>
 
-  <input id="avatarFileInput" type="file" accept="image/*" capture="environment" style="position:absolute; left:-9999px;" />
+  <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
   <script src="auth-guard.js"></script>
 
 
@@ -988,7 +988,11 @@
       $('avatarFileName').innerHTML = `<strong>${name || '—'}</strong>`;
     }
 
-    // openAvatarPicker removido: uso de <label for> para compatibilidade mobile
+    function openAvatarPicker(){
+      const input = $('avatarFileInput');
+      input.value = '';
+      input.click();
+    }
 
     async function setAvatar(file){
       if (!file) return;
@@ -1132,7 +1136,8 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadDemo();
 
-            $('avatarFileInput')?.addEventListener('change', (e) => {
+      $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
+      $('avatarFileInput')?.addEventListener('change', (e) => {
         const file = e.target.files ? e.target.files[0] : null;
         if (file) setAvatar(file);
       });
@@ -1258,76 +1263,202 @@
       draw();
     })();
   </script>
+</body>
+</html><script>
+const API_ROOT = "https://painel-p2al.onrender.com";
+const API_BASE = API_ROOT + "/user";
 
-<script>
-const API_BASE = "https://painel-p2al.onrender.com";
-const TOKEN_KEY = "vw_token";
-
-function authHeaders(extra={}) {
-  const t = localStorage.getItem(TOKEN_KEY);
-  return Object.assign({
-    "Authorization": "Bearer " + t
-  }, extra);
+function authHeaders(extra = {}) {
+  let t = null;
+  try {
+    t = localStorage.getItem("vw_token");
+  } catch (_) {}
+  return Object.assign(
+    t ? { "Authorization": "Bearer " + t } : {},
+    extra
+  );
 }
 
-// SAVE ACCOUNT (name, email, phone)
-async function saveAccount(){
-  const name = document.getElementById('accName').value.trim();
-  const email = document.getElementById('accEmail').value.trim();
-  const phone = document.getElementById('accPhone').value.trim();
+async function handleUnauthorized(res) {
+  if (!res) return false;
+  if (res.status === 401 || res.status === 403) {
+    try { localStorage.removeItem("vw_token"); } catch (_) {}
+    window.location.href = "cliente-login-2.html";
+    return true;
+  }
+  return false;
+}
 
-  const res = await fetch(API_BASE + "/me/profile", {
-    method: "POST",
-    headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ name, email, phone })
-  });
+// ===== Carrega dados reais da API =====
+async function initFromApi() {
+  // /user/me
+  try {
+    const resMe = await fetch(API_BASE + "/me", {
+      headers: authHeaders()
+    });
+    if (resMe.ok) {
+      const me = await resMe.json();
+      if (window.state && typeof state === "object") {
+        state.me = state.me || {};
+        state.me.name = me.name || "";
+        state.me.email = me.email || "";
+        state.me.phone = me.phone || "";
+        state.me.avatar = me.avatar_url || state.me.avatar || null;
+      }
+    } else {
+      await handleUnauthorized(resMe);
+    }
+  } catch (err) {
+    console.error("Error loading /me", err);
+  }
 
-  if(res.ok){
-    document.getElementById('accountMsg').textContent = "✅ Changes saved.";
-  } else {
-    document.getElementById('accountMsg').textContent = "❌ Error saving data.";
+  // /user/settings (endereço, etc)
+  try {
+    const resSet = await fetch(API_BASE + "/settings", {
+      headers: authHeaders()
+    });
+    if (resSet.ok) {
+      const settings = await resSet.json();
+      const addr = settings.address || {};
+      if (window.state && typeof state === "object") {
+        state.address = {
+          eircode: addr.eircode || "",
+          county: addr.county || "",
+          city: addr.city || "",
+          street: addr.street || "",
+          country: addr.country || "Ireland"
+        };
+      }
+    }
+  } catch (err) {
+    console.error("Error loading /settings", err);
+  }
+
+  if (typeof renderAll === "function") {
+    renderAll();
   }
 }
 
-// SAVE ADDRESS
-async function saveAddress(){
+// ===== Salvar conta (nome, email, telefone) =====
+async function saveAccount() {
+  const nameEl = document.getElementById("accName");
+  const emailEl = document.getElementById("accEmail");
+  const phoneEl = document.getElementById("accPhone");
+  const msgEl = document.getElementById("accountMsg");
+
+  const name = nameEl?.value.trim() || "";
+  const email = emailEl?.value.trim() || "";
+  const phone = phoneEl?.value.trim() || "";
+
+  try {
+    const res = await fetch(API_BASE + "/me/profile", {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ name, email, phone })
+    });
+
+    if (await handleUnauthorized(res)) return;
+
+    if (res.ok) {
+      if (window.state && state.me) {
+        state.me.name = name;
+        state.me.email = email;
+        state.me.phone = phone;
+      }
+      if (typeof renderHero === "function") renderHero();
+      if (msgEl) msgEl.textContent = "✅ Changes saved.";
+    } else {
+      if (msgEl) msgEl.textContent = "❌ Error saving data.";
+    }
+  } catch (err) {
+    console.error(err);
+    if (msgEl) msgEl.textContent = "❌ Error saving data.";
+  }
+}
+
+// ===== Salvar endereço =====
+async function saveAddress() {
+  const eir = document.getElementById("addrEircode");
+  const cou = document.getElementById("addrCounty");
+  const cit = document.getElementById("addrCity");
+  const str = document.getElementById("addrStreet");
+  const msgEl = document.getElementById("addrMsg");
+
   const data = {
-    eircode: addrEircode.value,
-    county: addrCounty.value,
-    city: addrCity.value,
-    street: addrStreet.value,
+    eircode: eir?.value.trim() || "",
+    county: cou?.value.trim() || "",
+    city: cit?.value.trim() || "",
+    street: str?.value.trim() || "",
     country: "Ireland"
   };
 
-  const res = await fetch(API_BASE + "/me/address", {
-    method: "POST",
-    headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify(data)
-  });
+  try {
+    const res = await fetch(API_BASE + "/me/address", {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data)
+    });
 
-  addrMsg.textContent = res.ok ? "✅ Address saved." : "❌ Error saving address.";
+    if (await handleUnauthorized(res)) return;
+
+    if (res.ok) {
+      if (window.state) {
+        state.address = data;
+      }
+      if (msgEl) msgEl.textContent = "✅ Address saved.";
+    } else {
+      if (msgEl) msgEl.textContent = "❌ Error saving address.";
+    }
+  } catch (err) {
+    console.error(err);
+    if (msgEl) msgEl.textContent = "❌ Error saving address.";
+  }
 }
 
-// UPLOAD AVATAR
-document.getElementById('avatarFileInput')?.addEventListener('change', async e => {
+// ===== Upload de avatar =====
+document.getElementById("avatarFileInput")?.addEventListener("change", async (e) => {
   const file = e.target.files[0];
-  if(!file) return;
+  const msgEl = document.getElementById("accountMsg");
+  const avatarImg = document.getElementById("avatar");
+  if (!file) return;
 
   const fd = new FormData();
   fd.append("avatar", file);
 
-  const res = await fetch(API_BASE + "/me/avatar", {
-    method: "POST",
-    headers: authHeaders(),
-    body: fd
-  });
+  try {
+    const res = await fetch(API_BASE + "/me/avatar", {
+      method: "POST",
+      headers: authHeaders(),
+      body: fd
+    });
 
-  if(res.ok){
-    avatar.src = URL.createObjectURL(file);
-    accountMsg.textContent = "✅ Photo uploaded.";
-  } else {
-    accountMsg.textContent = "❌ Error uploading photo.";
+    if (await handleUnauthorized(res)) return;
+
+    if (res.ok) {
+      try {
+        const data = await res.json();
+        if (data && data.avatar_url) {
+          if (avatarImg) avatarImg.src = data.avatar_url;
+          if (window.state && state.me) state.me.avatar = data.avatar_url;
+        } else if (avatarImg) {
+          avatarImg.src = URL.createObjectURL(file);
+        }
+      } catch (_) {
+        if (avatarImg) avatarImg.src = URL.createObjectURL(file);
+      }
+      if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
+    } else {
+      if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
+    }
+  } catch (err) {
+    console.error(err);
+    if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
   }
+});
+
+// Depois que a página estiver pronta, busca dados reais
+document.addEventListener("DOMContentLoaded", () => {
+  initFromApi();
 });
 </script>
 </body>
