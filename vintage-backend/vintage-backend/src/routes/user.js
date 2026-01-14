@@ -84,5 +84,52 @@ router.post("/avatar", requireAuth, upload.single("avatar"), async (req, res, ne
     res.json({ ok: true, avatar_url: url });
   }catch(e){ next(e); }
 });
+const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
+const auth = require("../middleware/auth");
+
+// pasta de upload
+const uploadDir = path.join(__dirname, "../../uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// config do multer
+const storage = multer.diskStorage({
+  destination: (_, __, cb) => cb(null, uploadDir),
+  filename: (_, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar_${Date.now()}${ext}`);
+  },
+});
+
+const upload = multer({ storage });
+
+// ===== ROTA DE UPLOAD DE FOTO =====
+router.post(
+  "/me/avatar",
+  auth,
+  upload.single("avatar"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file sent" });
+      }
+
+      const avatarUrl = `${process.env.PUBLIC_BASE_URL}/uploads/${req.file.filename}`;
+
+      await req.db.query(
+        "UPDATE users SET avatar_url = ? WHERE id = ?",
+        [avatarUrl, req.user.id]
+      );
+
+      res.json({ ok: true, avatar_url: avatarUrl });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Upload failed" });
+    }
+  }
+);
 
 module.exports = router;
