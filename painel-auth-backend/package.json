@@ -1,0 +1,29 @@
+{
+  "name": "painel-auth-backend",
+  "version": "1.0.0",
+  "description": "Backend de login do painel do cliente (JWT + MySQL + Google/OTP opcional)",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "migrate": "node src/db/migrate.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.10.3",
+    "nanoid": "^5.0.7",
+    "twilio": "^5.3.2",
+    "zod": "^3.23.8",
+    "google-auth-library": "^9.14.1"
+  }
+}
