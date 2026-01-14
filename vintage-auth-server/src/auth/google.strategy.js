@@ -30,7 +30,7 @@ passport.use(
           user = rows[0];
         } else {
           const [result] = await pool.execute(
-            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, NULL)",
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, 'GOOGLE')",
             [name, email]
           );
 
