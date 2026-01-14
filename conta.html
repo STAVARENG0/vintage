@@ -681,62 +681,29 @@
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
   <script src="auth-guard.js"></script>
-
-
   <script>
-    // ====== Estado (demo) ======
-    const state = {
-      me: null,
-      spentMonth: 0,
-      spentTotal: 0,
-      points: 0,
-      spinsPerDay: 1,
-      spinsLeftToday: 1,
-      cart: [],
-      orders: [],
-      cashbackHistory: [],
-      address: { eircode:'', county:'', city:'', street:'', country:'Ireland' },
-      avatarFile: null,
-    };
-    // ====== Simple access guard (prototype) ======
+    const API_ROOT = "https://painel-p2al.onrender.com";
     const TOKEN_KEY = "vw_token";
-    try{
-      if(!localStorage.getItem(TOKEN_KEY)){
+
+    function getToken() {
+      try { return localStorage.getItem(TOKEN_KEY); } catch (_) { return null; }
+    }
+
+    function requireTokenOrRedirect() {
+      const t = getToken();
+      if (!t) {
         window.location.href = "cliente-login-2.html";
       }
-    }catch(_){}
-
-
-    const fmtEUR = (n) => {
-      const v = Number(n);
-      if (Number.isNaN(v)) return '€ ' + (n ?? '');
-      return '€ ' + v.toFixed(2);
-    };
-
-    const pointsToCash = (points) => Number(points || 0) * 0.5; // 10 pts = €5
-    const calcPointsEarned = (totalSpent) => Math.floor((Number(totalSpent) || 0) / 55) * 10;
-
-    function determineLevel(spentMonth){
-      const v = Number(spentMonth) || 0;
-      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:'You're at the top of the leaderboard.' };
-      if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
-      return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
+      return t;
     }
 
-    function levelProgress(spentMonth){
-      const v = Number(spentMonth) || 0;
-      // Bronze: 0-300, Silver: 300-800, Gold: >=800
-      if (v < 300) return { pct: (v/300)*100, text: `€${v.toFixed(0)} this month` };
-      if (v < 800) return { pct: ((v-300)/(800-300))*100, text: `€${v.toFixed(0)} this month` };
-      return { pct: 100, text: `€${v.toFixed(0)} this month` };
+    function authHeaders(extra) {
+      const t = getToken();
+      const base = t ? { "Authorization": "Bearer " + t } : {};
+      return Object.assign(base, extra || {});
     }
 
-    function $(id){ return document.getElementById(id); }
-
-    function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
-    function setHTML(id, t){ const el=$(id); if(el) el.innerHTML = t; }
-
-    function defaultAvatarDataUri(){
+    function defaultAvatarDataUri() {
       const svg = encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
           <defs>
@@ -753,713 +720,258 @@
       return `data:image/svg+xml;charset=utf-8,${svg}`;
     }
 
-    // ====== Render ======
-    function renderHero(){
-      const me = state.me || {};
-      setText('userName', me.name || 'Your Name');
-      setText('userEmail', me.email || 'email@example.com');
+    let currentUser = null;
+    let currentAddress = null;
 
-      // avatar
-      const img = $('avatar');
-      if (img){
-        img.src = me.avatar || defaultAvatarDataUri();
+    function $(id) { return document.getElementById(id); }
+
+    function fillProfileUI() {
+      const u = currentUser || {};
+      if (document.getElementById("userName")) document.getElementById("userName").textContent = u.name || "Your Name";
+      if (document.getElementById("userEmail")) document.getElementById("userEmail").textContent = u.email || "email@example.com";
+
+      if (document.getElementById("accName")) document.getElementById("accName").value = u.name || "";
+      if (document.getElementById("accEmail")) document.getElementById("accEmail").value = u.email || "";
+      if (document.getElementById("accPhone")) document.getElementById("accPhone").value = u.phone || "";
+
+      const avatar = document.getElementById("avatar");
+      if (avatar) {
+        avatar.src = u.avatar_url || defaultAvatarDataUri();
       }
-
-      // points + cash
-      setText('pointsNow', String(state.points || 0));
-      setText('cashValue', `= ${fmtEUR(pointsToCash(state.points || 0))}`);
-
-      // level
-      const lvl = determineLevel(state.spentMonth);
-      const prog = levelProgress(state.spentMonth);
-
-      setText('levelLabel', lvl.label);
-      const dot = $('levelDot');
-      if (dot){
-        dot.style.background = lvl.dot;
-        dot.style.boxShadow = `0 0 0 4px rgba(0,0,0,.08)`;
-      }
-
-      const fill = $('levelFill');
-      if (fill){
-        fill.style.width = Math.max(0, Math.min(100, prog.pct)) + '%';
-        fill.style.background = `linear-gradient(90deg, ${lvl.fill[0]}, ${lvl.fill[1]})`;
-      }
-
-      setText('levelProgressText', prog.text);
-      setText('levelHint', lvl.hint);
-
-      // highlight splits
-      $('lvlBronze')?.classList.add('on');
-      $('lvlSilver')?.classList.remove('on','silver');
-      $('lvlGold')?.classList.remove('on','gold');
-
-      if (lvl.key === 'SILVER'){
-        $('lvlSilver')?.classList.add('on','silver');
-        $('lvlBronze')?.classList.add('on');
-      } else if (lvl.key === 'GOLD'){
-        $('lvlSilver')?.classList.add('on','silver');
-        $('lvlGold')?.classList.add('on','gold');
-      } else {
-        // bronze only
-        $('lvlBronze')?.classList.add('on');
-      }
-
-      // spins
-      state.spinsPerDay = lvl.spinsPerDay;
-      setText('spinsPerDay', String(state.spinsPerDay));
-      setText('spinsLeft', `left today: ${state.spinsLeftToday}`);
-      setText('spinStatus', `${state.spinsLeftToday}/${state.spinsPerDay}`);
     }
 
-    function renderAccount(){
-  const nameEl = $('accName');
-  const emailEl = $('accEmail');
-  const phoneEl = $('accPhone');
-  if (!nameEl || !emailEl || !phoneEl) return;
-
-  const me = state.me || {};
-  nameEl.value = me.name || '';
-  emailEl.value = me.email || '';
-  phoneEl.value = me.phone || '';
-}
-
-    function renderAddress(){
-      const a = state.address || {};
-      const eir = $('addrEircode');
-      const cou = $('addrCounty');
-      const cit = $('addrCity');
-      const str = $('addrStreet');
-      if (eir) eir.value = a.eircode || '';
-      if (cou) cou.value = a.county || '';
-      if (cit) cit.value = a.city || '';
-      if (str) str.value = a.street || '';
+    function fillAddressUI() {
+      const a = currentAddress || {};
+      if (document.getElementById("addrEircode")) document.getElementById("addrEircode").value = a.eircode || "";
+      if (document.getElementById("addrCounty")) document.getElementById("addrCounty").value = a.county || "";
+      if (document.getElementById("addrCity")) document.getElementById("addrCity").value = a.city || "";
+      if (document.getElementById("addrStreet")) document.getElementById("addrStreet").value = a.street || "";
     }
 
-    function saveAddress(){
-      const eircode = $('addrEircode')?.value?.trim() || '';
-      const county  = $('addrCounty')?.value?.trim() || '';
-      const city    = $('addrCity')?.value?.trim() || '';
-      const street  = $('addrStreet')?.value?.trim() || '';
-      state.address = { eircode, county, city, street, country: 'Ireland' };
-      setText('addrMsg', '✅ Address salvo.');
-    }
-
-    function renderCart(){
-      const cart = Array.isArray(state.cart) ? state.cart : [];
-      const totalItems = cart.reduce((s, it) => s + Number(it.qty || 1), 0);
-      const total = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
-
-      setHTML('cartCountTag', `<strong>${totalItems}</strong> items`);
-      setHTML('cartTotalTag', `<strong>${fmtEUR(total)}</strong>`);
-
-      const wrap = $('cartList');
-      if (!wrap) return;
-
-      if (!cart.length){
-        wrap.innerHTML = `<div class="muted" style="font-weight:700;">Your cart is empty.</div>`;
-        return;
-      }
-
-      wrap.innerHTML = cart.map(it => `
-        <div class="card" style="padding:12px; margin:0;">
-          <div class="row" style="flex-wrap:nowrap;">
-            <div style="display:flex; gap:10px; align-items:center; min-width: 0;">
-              <div style="width:44px;height:44px;border-radius:14px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-weight:900;color:#3b2206;">
-                ${String(it.title||'').slice(0,1).toUpperCase() || '•'}
-              </div>
-              <div style="min-width:0;">
-                <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${it.title || 'Item'}</div>
-                <div class="muted">${fmtEUR(it.price)} • qty: <strong>${it.qty || 1}</strong></div>
-              </div>
-            </div>
-            <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function statusToStepIndex(status){
-      const s = String(status || '').toLowerCase();
-      if (s.includes('entreg')) return 4;
-      if (s.includes('caminh') || s.includes('a caminho')) return 3;
-      if (s.includes('prepar') || s.includes('em preparo')) return 2;
-      return 1; // confirmado
-    }
-
-    function renderOrders(){
-      const orders = Array.isArray(state.orders) ? state.orders : [];
-      const wrap = $('ordersList');
-      if (!wrap) return;
-
-      if (!orders.length){
-        wrap.innerHTML = `<div class="muted" style="font-weight:700;">No orders found.</div>`;
-        return;
-      }
-
-      wrap.innerHTML = orders.map(o => {
-        const step = statusToStepIndex(o.status);
-        const pct = ((step-1)/3)*100;
-
-        return `
-          <div class="card" style="margin:0;">
-            <div class="row">
-              <div>
-                <div style="font-weight:900">${o.id || '#—'}</div>
-                <div class="muted" style="margin-top:4px">${o.date || ''} • ${fmtEUR(o.total || 0)}</div>
-              </div>
-              <span class="pill"><strong>${o.status || 'Confirmed'}</strong></span>
-            </div>
-
-            <div class="stepper-line"><span style="width:${pct}%;"></span></div>
-
-            <div class="stepper" aria-label="Progresso do pedido">
-              <div class="step ${step>=1?'done':''}">Confirmed</div>
-              <div class="step ${step>=2?'done':''}">Processing</div>
-              <div class="step ${step>=3?'done':''}">On the way</div>
-              <div class="step ${step>=4?'done':''}">Delivered</div>
-            </div>
-
-            <div class="muted" style="margin-top:10px; font-weight:700;">
-              Tracking: <strong>${o.tracking || '—'}</strong>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderCashback(){
-      setText('cashBalance', fmtEUR(pointsToCash(state.points || 0)));
-      setText('pointsBalance', String(state.points || 0));
-
-      const list = Array.isArray(state.cashbackHistory) ? state.cashbackHistory : [];
-      const wrap = $('cashHistory');
-      if (!wrap) return;
-
-      if (!list.length){
-        wrap.innerHTML = `<div class="muted" style="font-weight:700;">No activity yet.</div>`;
-        return;
-      }
-
-      wrap.innerHTML = list.map(h => {
-        const delta = Number(h.delta || 0);
-        const sign = delta >= 0 ? '+' : '';
-        const color = delta >= 0 ? '#2e3a12' : '#6b1710';
-        return `
-          <div class="card" style="margin:0;">
-            <div class="row">
-              <div>
-                <div style="font-weight:900">${h.title || 'Activity'}</div>
-                <div class="muted" style="margin-top:4px">${h.date || ''} • ${h.detail || ''}</div>
-              </div>
-              <span class="pill" style="border-color:rgba(0,0,0,.06)">
-                <strong style="color:${color}">${sign}${delta} pts</strong>
-              </span>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderAll(){
-      renderHero();
-      renderAccount();
-      renderAddress();
-      renderCart();
-      renderOrders();
-      renderCashback();
-      setText('year', new Date().getFullYear());
-    }
-
-    // ====== Ações ======
-    window.removeCartItem = function(id){
-      state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
-      renderCart();
-    };
-
-    function clearCart(){
-      if (!confirm('Clear the cart?')) return;
-      state.cart = [];
-      renderCart();
-    }
-
-    // Avatar picker (somente na Account)
-    function setAvatarFileName(name){
-      $('avatarFileName').innerHTML = `<strong>${name || '—'}</strong>`;
-    }
-
-    function openAvatarPicker(){
-      const input = $('avatarFileInput');
-      input.value = '';
-      input.click();
-    }
-
-    async function setAvatar(file){
-      if (!file) return;
-      state.avatarFile = file;
-      setAvatarFileName(file.name);
-      // preview imediato
-      const url = URL.createObjectURL(file);
-      state.me.avatar = url;
-      renderHero();
-      setText('accountMsg', '✅ Foto atualizada.');
-    }
-
-    // Salvar conta (demo)
-    function saveAccount(){
-      const name = $('accName').value.trim();
-      const email = $('accEmail').value.trim();
-      const phone = $('accPhone').value.trim();
-      state.me.name = name || state.me.name;
-      state.me.email = email || state.me.email;
-      state.me.phone = phone || state.me.phone;
-      setText('accountMsg', '✅ Changes saved.');
-      renderHero();
-    }
-
-    // Senha (demo)
-    function changePassword(){
-      const n1 = $('passNew').value.trim();
-      const n2 = $('passConfirm').value.trim();
-
-      if (!n1 || n1.length < 6){
-        setText('passMsg', 'Use at least 6 characters.');
-        return;
-      }
-      if (n1 !== n2){
-        setText('passMsg', 'Confirmation doesn't match.');
-        return;
-      }
-      $('passCurrent').value = '';
-      $('passNew').value = '';
-      $('passConfirm').value = '';
-      setText('passMsg', '✅ Password updated.');
-    }
-
-    // Wheel (demo)
-    let spinning = false;
-    const PRIZES = [
-      { label:'€20',         type:'cash',       value:20 },
-      { label:'5% OFF',      type:'discount',   value:5  },
-      { label:'10% OFF',     type:'discount',   value:10 },
-      { label:'10 POINTS',   type:'points',     value:10 },
-      { label:'FREE SHIPPING', type:'shipping', value:1  },
-      { label:'EXTRA SPIN',  type:'extra_spin', value:1  },
-    ];
-
-    function animateWheel(){
-      return new Promise((resolve) => {
-        const el = $('wheelVisual');
-        if (!el) return resolve();
-        const turns = 5 + Math.random() * 3;
-        el.style.transition = 'transform 2.2s cubic-bezier(.2,.9,.2,1)';
-        el.style.transform = `rotate(${turns * 360}deg)`;
-        setTimeout(() => {
-          el.style.transition = '';
-          resolve();
-        }, 2300);
-      });
-    }
-
-    async function spin(){
-      if (spinning) return;
-      if (state.spinsLeftToday <= 0){
-        setText('spinResultMsg', 'You've already used today's spins.');
-        return;
-      }
-
-      spinning = true;
-      setText('spinResultMsg', 'Spinning…');
-      try{
-        await animateWheel();
-
-        const prize = PRIZES[Math.floor(Math.random()*PRIZES.length)];
-
-        state.spinsLeftToday -= 1;
-        if (prize.type === 'points'){
-          state.points = Number(state.points||0) + Number(prize.value||0);
-          state.cashbackHistory.unshift({ date: new Date().toISOString().slice(0,10), title:'Credit', delta:+Number(prize.value||0), detail:'Wheel' });
-        } else if (prize.type === 'cash'){
-          const pts = Math.round((Number(prize.value||0) / 0.5)); // €20 => 40 pts
-          state.points = Number(state.points||0) + pts;
-          state.cashbackHistory.unshift({ date: new Date().toISOString().slice(0,10), title:'Credit', delta:+pts, detail:'Wheel (+€20)' });
-        } else if (prize.type === 'extra_spin'){
-          state.spinsLeftToday += 1;
+    async function loadProfile() {
+      try {
+        const res = await fetch(API_ROOT + "/user/me", {
+          headers: authHeaders()
+        });
+        if (!res.ok) {
+          console.warn("Falha ao carregar /user/me:", res.status);
+          return;
         }
-
-        renderAll();
-        setText('spinResultMsg', `🎁 ${prize.label}`);
-      } finally {
-        spinning = false;
+        const data = await res.json();
+        currentUser = data || {};
+        fillProfileUI();
+      } catch (err) {
+        console.error("Erro carregando /user/me", err);
       }
     }
 
-    function logout(){
-  if(window.VintageAuth && typeof window.VintageAuth.logout==='function'){
-    window.VintageAuth.logout();
-    return;
-  }
-  localStorage.removeItem('vw_token');
-  window.location.href = 'cliente-login-2.html';
-}
-
-    // ====== Dados demo ======
-    function loadDemo(){
-      // Clean defaults (demo)
-      state.me = {
-        name: '',
-        email: '',
-        phone: '',
-        avatar: defaultAvatarDataUri(),
-      };
-
-      state.spentTotal = 0;
-      state.spentMonth = 0;
-      state.points = 0;
-
-      state.spinsLeftToday = 1;
-
-      state.cart = [];
-      state.orders = [];
-      state.cashbackHistory = [];
-      state.address = { eircode:'', county:'', city:'', street:'', country:'Ireland' };
-
-      setText('accountMsg', '—');
-      setText('addrMsg', '—');
-      setText('passMsg', '—');
-      setText('spinResultMsg', '—');
-
-      renderAll();
-    }
-
-    // ====== Eventos ======
-    document.addEventListener('DOMContentLoaded', () => {
-      loadDemo();
-
-      $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
-      $('avatarFileInput')?.addEventListener('change', (e) => {
-        const file = e.target.files ? e.target.files[0] : null;
-        if (file) setAvatar(file);
-      });
-
-      $('btnSaveAccount')?.addEventListener('click', saveAccount);
-      $('btnChangePass')?.addEventListener('click', changePassword);
-      $('btnSaveAddress')?.addEventListener('click', saveAddress);
-            $('btnClearCart')?.addEventListener('click', clearCart);
-      $('btnLogout')?.addEventListener('click', logout);
-
-      $('btnSpin')?.addEventListener('click', spin);
-});
-
-    // ======= Campo reativo dourado =======
-    (() => {
-      const MAX_PARTICLES_BASE = 120;
-      const LINK_DIST = 170;
-      const SAFETY_MARGIN = 22;
-      const MOUSE_REPEL_RADIUS = 120 + SAFETY_MARGIN;
-      const MOUSE_FORCE = 0.14;
-      const SPEED = 0.55;
-      const FRICTION = 0.965;
-
-      const canvas = document.getElementById('reactiveField');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d', { alpha: true });
-      let DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      let W = 0, H = 0;
-
-      function resize(){
-        W = canvas.clientWidth = window.innerWidth;
-        H = canvas.clientHeight = window.innerHeight;
-        canvas.width = Math.floor(W * DPR);
-        canvas.height = Math.floor(H * DPR);
-        ctx.setTransform(DPR,0,0,DPR,0,0);
-      }
-      resize();
-
-      window.addEventListener('resize', () => {
-        DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-        resize();
-        init();
-      });
-
-      const pts = [];
-      function rand(min,max){ return Math.random()*(max-min)+min; }
-
-      function init(){
-        pts.length = 0;
-        const area = W * H;
-        const max = Math.max(70, Math.min(MAX_PARTICLES_BASE, Math.floor(area / 14000)));
-        for (let i=0;i<max;i++){
-          pts.push({
-            x: rand(0,W),
-            y: rand(0,H),
-            vx: rand(-SPEED, SPEED),
-            vy: rand(-SPEED, SPEED),
-            r: rand(1.2, 2.2),
-          });
+    async function loadSettings() {
+      try {
+        const res = await fetch(API_ROOT + "/user/settings", {
+          headers: authHeaders()
+        });
+        if (!res.ok) {
+          console.warn("Falha ao carregar /user/settings:", res.status);
+          return;
         }
-      }
-      init();
-
-      const mouse = { x: -9999, y: -9999, active: false };
-      window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
-      window.addEventListener('mouseleave', () => { mouse.active = false; mouse.x = -9999; mouse.y = -9999; });
-
-      function draw(){
-        ctx.clearRect(0,0,W,H);
-
-        for (const p of pts){
-          if (mouse.active){
-            const dx = p.x - mouse.x;
-            const dy = p.y - mouse.y;
-            const d2 = dx*dx + dy*dy;
-            if (d2 < MOUSE_REPEL_RADIUS*MOUSE_REPEL_RADIUS){
-              const d = Math.sqrt(d2) || 1;
-              const f = (1 - d / MOUSE_REPEL_RADIUS) * MOUSE_FORCE;
-              p.vx += (dx / d) * f;
-              p.vy += (dy / d) * f;
-            }
-          }
-
-          p.vx *= FRICTION;
-          p.vy *= FRICTION;
-
-          p.x += p.vx;
-          p.y += p.vy;
-
-          if (p.x < -20) p.x = W + 20;
-          if (p.x > W + 20) p.x = -20;
-          if (p.y < -20) p.y = H + 20;
-          if (p.y > H + 20) p.y = -20;
-        }
-
-        for (let i=0;i<pts.length;i++){
-          for (let j=i+1;j<pts.length;j++){
-            const a = pts[i], b = pts[j];
-            const dx = a.x - b.x;
-            const dy = a.y - b.y;
-            const d = Math.sqrt(dx*dx + dy*dy);
-            if (d < LINK_DIST){
-              const alpha = (1 - d/LINK_DIST) * 0.22;
-              ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
-              ctx.lineWidth = 1;
-              ctx.beginPath();
-              ctx.moveTo(a.x,a.y);
-              ctx.lineTo(b.x,b.y);
-              ctx.stroke();
-            }
-          }
-        }
-
-        for (const p of pts){
-          ctx.fillStyle = 'rgba(212,175,55,0.35)';
-          ctx.beginPath();
-          ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-          ctx.fill();
-        }
-
-        requestAnimationFrame(draw);
-      }
-      draw();
-    })();
-  </script>
-</body>
-</html><script>
-const API_ROOT = "https://painel-p2al.onrender.com";
-const API_BASE = API_ROOT + "/user";
-
-function authHeaders(extra = {}) {
-  let t = null;
-  try {
-    t = localStorage.getItem("vw_token");
-  } catch (_) {}
-  return Object.assign(
-    t ? { "Authorization": "Bearer " + t } : {},
-    extra
-  );
-}
-
-async function handleUnauthorized(res) {
-  if (!res) return false;
-  if (res.status === 401 || res.status === 403) {
-    try { localStorage.removeItem("vw_token"); } catch (_) {}
-    window.location.href = "cliente-login-2.html";
-    return true;
-  }
-  return false;
-}
-
-// ===== Carrega dados reais da API =====
-async function initFromApi() {
-  // /user/me
-  try {
-    const resMe = await fetch(API_BASE + "/me", {
-      headers: authHeaders()
-    });
-    if (resMe.ok) {
-      const me = await resMe.json();
-      if (window.state && typeof state === "object") {
-        state.me = state.me || {};
-        state.me.name = me.name || "";
-        state.me.email = me.email || "";
-        state.me.phone = me.phone || "";
-        state.me.avatar = me.avatar_url || state.me.avatar || null;
-      }
-    } else {
-      await handleUnauthorized(resMe);
-    }
-  } catch (err) {
-    console.error("Error loading /me", err);
-  }
-
-  // /user/settings (endereço, etc)
-  try {
-    const resSet = await fetch(API_BASE + "/settings", {
-      headers: authHeaders()
-    });
-    if (resSet.ok) {
-      const settings = await resSet.json();
-      const addr = settings.address || {};
-      if (window.state && typeof state === "object") {
-        state.address = {
+        const data = await res.json();
+        const addr = (data && data.address) || {};
+        currentAddress = {
           eircode: addr.eircode || "",
           county: addr.county || "",
           city: addr.city || "",
           street: addr.street || "",
           country: addr.country || "Ireland"
         };
+        fillAddressUI();
+      } catch (err) {
+        console.error("Erro carregando /user/settings", err);
       }
     }
-  } catch (err) {
-    console.error("Error loading /settings", err);
-  }
 
-  if (typeof renderAll === "function") {
-    renderAll();
-  }
-}
+    async function saveAccount() {
+      const name = document.getElementById("accName")?.value.trim() || "";
+      const email = document.getElementById("accEmail")?.value.trim() || "";
+      const phone = document.getElementById("accPhone")?.value.trim() || "";
+      const msgEl = document.getElementById("accountMsg");
+      if (msgEl) msgEl.textContent = "Saving changes…";
 
-// ===== Salvar conta (nome, email, telefone) =====
-async function saveAccount() {
-  const nameEl = document.getElementById("accName");
-  const emailEl = document.getElementById("accEmail");
-  const phoneEl = document.getElementById("accPhone");
-  const msgEl = document.getElementById("accountMsg");
-
-  const name = nameEl?.value.trim() || "";
-  const email = emailEl?.value.trim() || "";
-  const phone = phoneEl?.value.trim() || "";
-
-  try {
-    const res = await fetch(API_BASE + "/me/profile", {
-      method: "POST",
-      headers: authHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ name, email, phone })
-    });
-
-    if (await handleUnauthorized(res)) return;
-
-    if (res.ok) {
-      if (window.state && state.me) {
-        state.me.name = name;
-        state.me.email = email;
-        state.me.phone = phone;
-      }
-      if (typeof renderHero === "function") renderHero();
-      if (msgEl) msgEl.textContent = "✅ Changes saved.";
-    } else {
-      if (msgEl) msgEl.textContent = "❌ Error saving data.";
-    }
-  } catch (err) {
-    console.error(err);
-    if (msgEl) msgEl.textContent = "❌ Error saving data.";
-  }
-}
-
-// ===== Salvar endereço =====
-async function saveAddress() {
-  const eir = document.getElementById("addrEircode");
-  const cou = document.getElementById("addrCounty");
-  const cit = document.getElementById("addrCity");
-  const str = document.getElementById("addrStreet");
-  const msgEl = document.getElementById("addrMsg");
-
-  const data = {
-    eircode: eir?.value.trim() || "",
-    county: cou?.value.trim() || "",
-    city: cit?.value.trim() || "",
-    street: str?.value.trim() || "",
-    country: "Ireland"
-  };
-
-  try {
-    const res = await fetch(API_BASE + "/me/address", {
-      method: "POST",
-      headers: authHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify(data)
-    });
-
-    if (await handleUnauthorized(res)) return;
-
-    if (res.ok) {
-      if (window.state) {
-        state.address = data;
-      }
-      if (msgEl) msgEl.textContent = "✅ Address saved.";
-    } else {
-      if (msgEl) msgEl.textContent = "❌ Error saving address.";
-    }
-  } catch (err) {
-    console.error(err);
-    if (msgEl) msgEl.textContent = "❌ Error saving address.";
-  }
-}
-
-// ===== Upload de avatar =====
-document.getElementById("avatarFileInput")?.addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  const msgEl = document.getElementById("accountMsg");
-  const avatarImg = document.getElementById("avatar");
-  if (!file) return;
-
-  const fd = new FormData();
-  fd.append("avatar", file);
-
-  try {
-    const res = await fetch(API_BASE + "/me/avatar", {
-      method: "POST",
-      headers: authHeaders(),
-      body: fd
-    });
-
-    if (await handleUnauthorized(res)) return;
-
-    if (res.ok) {
       try {
-        const data = await res.json();
+        const res = await fetch(API_ROOT + "/user/me/profile", {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ name, email, phone })
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          requireTokenOrRedirect();
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error("Erro ao salvar");
+        }
+
+        currentUser = Object.assign({}, currentUser || {}, { name, email, phone });
+        fillProfileUI();
+        if (msgEl) msgEl.textContent = "✅ Changes saved.";
+      } catch (err) {
+        console.error(err);
+        if (msgEl) msgEl.textContent = "❌ Error saving data.";
+      }
+    }
+
+    async function saveAddress() {
+      const msgEl = document.getElementById("addrMsg");
+      if (msgEl) msgEl.textContent = "Saving address…";
+
+      const data = {
+        eircode: document.getElementById("addrEircode")?.value.trim() || "",
+        county: document.getElementById("addrCounty")?.value.trim() || "",
+        city: document.getElementById("addrCity")?.value.trim() || "",
+        street: document.getElementById("addrStreet")?.value.trim() || "",
+        country: "Ireland"
+      };
+
+      try {
+        const res = await fetch(API_ROOT + "/user/me/address", {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify(data)
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          requireTokenOrRedirect();
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error("Erro ao salvar endereço");
+        }
+
+        currentAddress = data;
+        if (msgEl) msgEl.textContent = "✅ Address saved.";
+      } catch (err) {
+        console.error(err);
+        if (msgEl) msgEl.textContent = "❌ Error saving address.";
+      }
+    }
+
+    async function uploadAvatar(file) {
+      const msgEl = document.getElementById("accountMsg");
+      const avatarImg = document.getElementById("avatar");
+      if (!file) return;
+      if (msgEl) msgEl.textContent = "Uploading photo…";
+
+      const fd = new FormData();
+      fd.append("avatar", file);
+
+      try {
+        const res = await fetch(API_ROOT + "/user/me/avatar", {
+          method: "POST",
+          headers: authHeaders(),
+          body: fd
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          requireTokenOrRedirect();
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error("Erro ao fazer upload");
+        }
+
+        let data = null;
+        try { data = await res.json(); } catch (_) {}
+
         if (data && data.avatar_url) {
           if (avatarImg) avatarImg.src = data.avatar_url;
-          if (window.state && state.me) state.me.avatar = data.avatar_url;
+          currentUser = currentUser || {};
+          currentUser.avatar_url = data.avatar_url;
         } else if (avatarImg) {
           avatarImg.src = URL.createObjectURL(file);
         }
-      } catch (_) {
-        if (avatarImg) avatarImg.src = URL.createObjectURL(file);
-      }
-      if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
-    } else {
-      if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
-    }
-  } catch (err) {
-    console.error(err);
-    if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
-  }
-});
 
-// Depois que a página estiver pronta, busca dados reais
-document.addEventListener("DOMContentLoaded", () => {
-  initFromApi();
-});
-</script>
+        if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
+      } catch (err) {
+        console.error(err);
+        if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
+      }
+    }
+
+    function changePassword() {
+      const p1 = document.getElementById("passNew")?.value || "";
+      const p2 = document.getElementById("passConfirm")?.value || "";
+      const msgEl = document.getElementById("passMsg");
+
+      if (!p1 || p1.length < 6) {
+        if (msgEl) msgEl.textContent = "Use at least 6 characters.";
+        return;
+      }
+      if (p1 !== p2) {
+        if (msgEl) msgEl.textContent = "Confirmation doesn't match.";
+        return;
+      }
+
+      if (document.getElementById("passCurrent")) document.getElementById("passCurrent").value = "";
+      if (document.getElementById("passNew")) document.getElementById("passNew").value = "";
+      if (document.getElementById("passConfirm")) document.getElementById("passConfirm").value = "";
+      if (msgEl) msgEl.textContent = "✅ Password updated (local).";
+    }
+
+    function logout() {
+      try { localStorage.removeItem(TOKEN_KEY); } catch (_) {}
+      window.location.href = "cliente-login-2.html";
+    }
+
+    function attachEvents() {
+      const pick = document.getElementById("btnPickAvatar");
+      if (pick) pick.addEventListener("click", () => {
+        const input = document.getElementById("avatarFileInput");
+        if (input) input.click();
+      });
+
+      const input = document.getElementById("avatarFileInput");
+      if (input) input.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) uploadAvatar(file);
+      });
+
+      const btnAcc = document.getElementById("btnSaveAccount");
+      if (btnAcc) btnAcc.addEventListener("click", (e) => {
+        e.preventDefault();
+        saveAccount();
+      });
+
+      const btnAddr = document.getElementById("btnSaveAddress");
+      if (btnAddr) btnAddr.addEventListener("click", (e) => {
+        e.preventDefault();
+        saveAddress();
+      });
+
+      const btnPass = document.getElementById("btnChangePass");
+      if (btnPass) btnPass.addEventListener("click", (e) => {
+        e.preventDefault();
+        changePassword();
+      });
+
+      const btnLogout = document.getElementById("btnLogout");
+      if (btnLogout) btnLogout.addEventListener("click", (e) => {
+        e.preventDefault();
+        logout();
+      });
+    }
+
+    async function initPage() {
+      requireTokenOrRedirect();
+      if (document.getElementById("year")) document.getElementById("year").textContent = new Date().getFullYear();
+      attachEvents();
+      await loadProfile();
+      await loadSettings();
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+  </script>
 </body>
 </html>
