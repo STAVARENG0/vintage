@@ -1,4 +1,5 @@
 const express = require("express");
+const passport = require("passport");
 const bcrypt = require("bcryptjs");
 const { z } = require("zod");
 const { pool } = require("../db");
@@ -395,5 +396,31 @@ router.post("/password/reset/finish", async (req, res) => {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
+// ---- GOOGLE LOGIN ----
+
+// INICIAR LOGIN COM GOOGLE
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  })
+);
+
+// CALLBACK DO GOOGLE
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/login",
+  }),
+  (req, res) => {
+    const { token } = req.user;
+
+    res.redirect(
+      `${process.env.FRONTEND_URL}/cliente-login-2.html?token=${token}`
+    );
+  }
+);
 
 module.exports = router;
