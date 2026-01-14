@@ -1258,5 +1258,77 @@
       draw();
     })();
   </script>
+
+<script>
+const API_BASE = "https://painel-p2al.onrender.com";
+const TOKEN_KEY = "vw_token";
+
+function authHeaders(extra={}) {
+  const t = localStorage.getItem(TOKEN_KEY);
+  return Object.assign({
+    "Authorization": "Bearer " + t
+  }, extra);
+}
+
+// SAVE ACCOUNT (name, email, phone)
+async function saveAccount(){
+  const name = document.getElementById('accName').value.trim();
+  const email = document.getElementById('accEmail').value.trim();
+  const phone = document.getElementById('accPhone').value.trim();
+
+  const res = await fetch(API_BASE + "/me/profile", {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify({ name, email, phone })
+  });
+
+  if(res.ok){
+    document.getElementById('accountMsg').textContent = "✅ Changes saved.";
+  } else {
+    document.getElementById('accountMsg').textContent = "❌ Error saving data.";
+  }
+}
+
+// SAVE ADDRESS
+async function saveAddress(){
+  const data = {
+    eircode: addrEircode.value,
+    county: addrCounty.value,
+    city: addrCity.value,
+    street: addrStreet.value,
+    country: "Ireland"
+  };
+
+  const res = await fetch(API_BASE + "/me/address", {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(data)
+  });
+
+  addrMsg.textContent = res.ok ? "✅ Address saved." : "❌ Error saving address.";
+}
+
+// UPLOAD AVATAR
+document.getElementById('avatarFileInput')?.addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const fd = new FormData();
+  fd.append("avatar", file);
+
+  const res = await fetch(API_BASE + "/me/avatar", {
+    method: "POST",
+    headers: authHeaders(),
+    body: fd
+  });
+
+  if(res.ok){
+    avatar.src = URL.createObjectURL(file);
+    accountMsg.textContent = "✅ Photo uploaded.";
+  } else {
+    accountMsg.textContent = "❌ Error uploading photo.";
+  }
+});
+</script>
 </body>
 </html>
