@@ -2,6 +2,8 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
+const passport = require("passport");
+require("./auth/google.strategy");
 const { cfg } = require("./config");
 const { ping } = require("./db");
 const authRoutes = require("./routes/auth");
@@ -12,6 +14,8 @@ app.set("trust proxy", 1);
 
 app.use(helmet());
 app.use(express.json({ limit: "200kb" }));
+app.use(passport.initialize());
+
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
