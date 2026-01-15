@@ -4,10 +4,11 @@
   - Ajuste o API_BASE se você mudar a URL do seu backend.
 */
 (function(){
-  const API_BASE   = "https://clientes-0r5d.onrender.com"; // <-- troque se precisar
-  const TOKEN_KEY  = "vw_token";
-  const LOGIN_PAGE = "cliente-login-2.html";
-  const ME_PATH    = "/auth/me"; // <-- crie no backend (GET) quando puder
+  const API_BASE = "https://clientes-0r5d.onrender.com";
+const TOKEN_KEY = "vw_token";
+const LOGIN_PAGE = "cliente-login-2.html";
+const ME_PATH = "/user/me";
+
 
   function getToken(){ return localStorage.getItem(TOKEN_KEY); }
 
