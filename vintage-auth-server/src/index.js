@@ -28,6 +28,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// 🌐 CORS DA API (JSON)
 const allowedOrigins = [
   "https://vintage-clothes.ie",
   "https://www.vintage-clothes.ie",
@@ -46,10 +47,23 @@ app.use(
   })
 );
 
-// ✅ servir uploads (avatar)
+/**
+ * 🔥 CORS EXPLÍCITO PARA IMAGENS (UPLOADS)
+ * ISSO RESOLVE DEFINITIVAMENTE O ERR_BLOCKED_BY_RESPONSE.NotSameOrigin
+ */
 const uploadsRoot = process.env.UPLOAD_DIR || "uploads";
-app.use("/uploads", express.static(path.join(process.cwd(), uploadsRoot)));
 
+app.use(
+  "/uploads",
+  express.static(path.join(process.cwd(), uploadsRoot), {
+    setHeaders: (res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET");
+    }
+  })
+);
+
+// Health
 app.get("/health", async (req, res) => {
   try {
     await ping();
@@ -59,11 +73,11 @@ app.get("/health", async (req, res) => {
   }
 });
 
-// ✅ rotas
+// Rotas
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 
-// Basic 404
+// 404
 app.use((req, res) => res.status(404).json({ message: "Not found" }));
 
 // Error handler
