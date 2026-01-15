@@ -1395,13 +1395,17 @@ async function spin(){
     }
 
     function logout(){
-  if(window.VintageAuth && typeof window.VintageAuth.logout==='function'){
+  if (window.VintageAuth && typeof window.VintageAuth.logout === 'function'){
     window.VintageAuth.logout();
     return;
   }
-  localStorage.removeItem('vw_token');
-  window.location.href = 'cliente-login-2.html';
+  // Fallback
+  ['vw_token','token','authToken','auth_token','access_token'].forEach((k)=>{ try{ localStorage.removeItem(k); }catch(_){} });
+  try{ sessionStorage.removeItem('vw_token'); }catch(_){}
+  try{ document.cookie = 'vw_token=; Path=/; Max-Age=0; SameSite=Lax'; }catch(_){}
+  window.location.href = 'cliente-login-2.html?back=painel.html';
 }
+
 
     // ====== Dados demo ======
     function loadDemo(){

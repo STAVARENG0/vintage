@@ -1,96 +1,129 @@
-/*
-  Vintage - Auth Guard (Front-end)
-  - Protege páginas do painel: só abre se existir token e (se existir no backend) validar em /auth/me
-  - Ajuste o API_BASE se você mudar a URL do seu backend.
+/* auth-guard.js — Vintage Wear Ireland
+   Guard simples e estável para manter login persistente.
+   - Lê token de localStorage/sessionStorage/cookie
+   - Normaliza para localStorage['vw_token']
+   - Redireciona para cliente-login-2.html?back=<pagina> quando não autenticado
 */
 (function(){
-  const API_BASE = "https://clientes-0r5d.onrender.com";
-const TOKEN_KEY = "vw_token";
-const LOGIN_PAGE = "cliente-login-2.html";
-const ME_PATH = "/user/me";
+  const TOKEN_KEY = 'vw_token';
+  const TOKEN_KEYS = [TOKEN_KEY, 'token', 'authToken', 'auth_token', 'access_token'];
 
-
-  function getToken(){ return localStorage.getItem(TOKEN_KEY); }
-
-  function goLogin(){
-    // opcional: guardar a página atual pra voltar depois
-    const back = encodeURIComponent(window.location.pathname.split("/").pop() || "painel.html");
-    window.location.href = LOGIN_PAGE + "?back=" + back;
-  }
-
-  function logout(){
-    localStorage.removeItem(TOKEN_KEY);
-    goLogin();
-  }
-
-  async function fetchMe(){
-    const token = getToken();
-    if(!token) return null;
-
-    let res;
+  function readCookie(name){
     try{
-      res = await fetch(API_BASE + ME_PATH, {
-        headers: { "Authorization": "Bearer " + token }
-      });
-    }catch(err){
-      // se der erro de rede, não derruba a página (mas avisa no console)
-      console.warn("[Auth] Falha de rede ao validar token:", err);
-      return null;
-    }
-
-    if(res.status === 401 || res.status === 403){
-      logout();
-      return null;
-    }
-
-    if(res.status === 404){
-      // ainda não criou /auth/me no backend
-      console.warn("[Auth] Endpoint /auth/me não existe ainda. Página liberada só pelo token local.");
-      return null;
-    }
-
-    if(!res.ok){
-      console.warn("[Auth] Resposta inesperada ao validar token:", res.status);
-      return null;
-    }
-
-    try{
-      return await res.json();
-    }catch(err){
-      console.warn("[Auth] Não consegui ler JSON do /auth/me:", err);
-      return null;
-    }
+      const escaped = name.replace(/[.$?*|{}()\[\]\\\/\+^]/g,'\\$&');
+      const m = document.cookie.match(new RegExp('(?:^|; )' + escaped + '=([^;]*)'));
+      return m ? decodeURIComponent(m[1]) : null;
+    }catch(_){ return null; }
   }
 
-  async function requireLogin(){
-    const token = getToken();
-    if(!token) goLogin();
-    const me = await fetchMe();
-    return me;
-  }
-
-  function applyMeToUI(me){
-    if(!me) return;
-    const nameEl  = document.getElementById("userName");
-    const emailEl = document.getElementById("userEmail");
-
-    if(nameEl)  nameEl.textContent  = me.name  || "Usuário";
-    if(emailEl) emailEl.textContent = me.email || me.phone || "";
-
-    // se existir "state" no seu script, tenta preencher também
+  function writeCookie(name, value, maxAgeSeconds){
     try{
-      if(typeof state !== "undefined" && state){
-        state.me = Object.assign(state.me || {}, me);
-      }
+      const maxAge = typeof maxAgeSeconds === 'number' ? `; Max-Age=${maxAgeSeconds}` : '';
+      document.cookie = `${name}=${encodeURIComponent(value)}; Path=/${maxAge}; SameSite=Lax`;
     }catch(_){}
   }
 
-  // expõe pra você usar depois
-  window.VintageAuth = { API_BASE, TOKEN_KEY, LOGIN_PAGE, ME_PATH, getToken, requireLogin, fetchMe, logout, applyMeToUI };
+  function clearCookie(name){
+    try{
+      document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+    }catch(_){}
+  }
 
-  // roda automaticamente ao abrir a página
-  document.addEventListener("DOMContentLoaded", async () => {
-    const me = await requireLogin();
-    applyMeToUI(me);
-  });
+  function getTokenRaw(){
+    // localStorage
+    for (const k of TOKEN_KEYS){
+      try{
+        const v = localStorage.getItem(k);
+        if (v && typeof v === 'string' && v.trim()) return v.trim();
+      }catch(_){}
+    }
+    // sessionStorage
+    try{
+      const v = sessionStorage.getItem(TOKEN_KEY);
+      if (v && typeof v === 'string' && v.trim()) return v.trim();
+    }catch(_){}
+    // cookie
+    const c = readCookie(TOKEN_KEY);
+    if (c && c.trim()) return c.trim();
+    return null;
+  }
+
+  function setToken(token){
+    if (!token || typeof token !== 'string') return;
+    try{ localStorage.setItem(TOKEN_KEY, token); }catch(_){}
+    try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(_){}
+    // 30 dias
+    writeCookie(TOKEN_KEY, token, 60*60*24*30);
+  }
+
+  function clearToken(){
+    TOKEN_KEYS.forEach((k)=>{ try{ localStorage.removeItem(k); }catch(_){} });
+    try{ sessionStorage.removeItem(TOKEN_KEY); }catch(_){}
+    clearCookie(TOKEN_KEY);
+  }
+
+  function isJwtExpired(token){
+    // Se não for JWT, não tenta validar expiração.
+    if (!token || token.split('.').length !== 3) return false;
+    try{
+      const payloadB64 = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      const pad = payloadB64.length % 4 ? '='.repeat(4 - (payloadB64.length % 4)) : '';
+      const jsonStr = atob(payloadB64 + pad);
+      const payload = JSON.parse(jsonStr);
+      if (!payload || typeof payload.exp !== 'number') return false;
+      const now = Math.floor(Date.now()/1000);
+      // margem de 30s
+      return payload.exp <= (now + 30);
+    }catch(_){
+      return false;
+    }
+  }
+
+  function pageName(){
+    return (location.pathname.split('/').pop() || 'painel.html');
+  }
+
+  function redirectToLogin(){
+    const url = `cliente-login-2.html?back=${encodeURIComponent(pageName())}`;
+    // replace evita voltar pra página protegida via "voltar"
+    location.replace(url);
+  }
+
+  function getToken(){
+    const t = getTokenRaw();
+    if (t) setToken(t); // normaliza e garante persistência
+    return t;
+  }
+
+  function requireAuth(){
+    const t = getToken();
+    if (!t){ redirectToLogin(); return null; }
+    if (isJwtExpired(t)){ clearToken(); redirectToLogin(); return null; }
+    return t;
+  }
+
+  function logout(){
+    clearToken();
+    redirectToLogin();
+  }
+
+  async function authFetch(input, init){
+    const token = getToken();
+    const headers = new Headers((init && init.headers) || {});
+    if (token && !headers.has('Authorization')){
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    return fetch(input, { ...(init||{}), headers });
+  }
+
+  // API pública
+  window.VintageAuth = window.VintageAuth || {};
+  window.VintageAuth.getToken = getToken;
+  window.VintageAuth.requireAuth = requireAuth;
+  window.VintageAuth.clearToken = clearToken;
+  window.VintageAuth.logout = logout;
+  window.VintageAuth.authFetch = authFetch;
+
+  // Executa imediatamente
+  requireAuth();
 })();
