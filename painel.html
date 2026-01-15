@@ -1367,6 +1367,33 @@ async function spin(){
       state.cashbackHistory.unshift({ date: dateKey, title:'Bonus', delta:0, detail:'Wheel (Extra spin)' });
     }
 
+    // ===== Sincroniza prêmios com o banco (MySQL) via API =====
+    try{
+      const api = window.VW_API;
+      if (api && api.apiJson){
+        if (winner.type === 'points'){
+          const r = await api.creditPoints(Number(winner.value||0), 'wheel');
+          if (r && typeof r.points === 'number') state.points = r.points;
+        } else if (winner.type === 'cash'){
+          const ptsAdded = Math.round((Number(winner.value||0) / 0.5));
+          const r = await api.creditPoints(ptsAdded, 'wheel_cash');
+          if (r && typeof r.points === 'number') state.points = r.points;
+        } else if (winner.type === 'discount'){
+          const r = await api.grantDiscount(Number(winner.value||0));
+          const ad = r?.activeDiscount || r?.active_discount;
+          if (ad){
+            state.activeDiscount = {
+              id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
+              percent: Number(ad.percent ?? winner.value ?? 0),
+              expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+            };
+          }
+        }
+      }
+    } catch(err){
+      console.warn('Falha ao sincronizar prêmio com API:', err?.message || err);
+    }
+
     savePersisted();
 
     renderAll();
@@ -1600,6 +1627,94 @@ async function spin(){
     return t ? { Authorization: "Bearer " + t } : {};
   }
 
+
+  async function apiJson(path, opts = {}){
+    const url = API_ROOT + path;
+    const init = {
+      method: opts.method || 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(opts.headers || {}),
+        ...authHeaders(),
+      },
+    };
+    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+
+    const res = await fetch(url, init);
+    if (res.status === 401 || res.status === 403){
+      requireTokenOrRedirect();
+      throw new Error('unauthorized');
+    }
+
+    const text = await res.text();
+    let data = null;
+    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
+
+    if (!res.ok){
+      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function syncPointsUI(points){
+    const p = document.getElementById('pointsNow');
+    if (p) p.textContent = String(points ?? 0);
+    const cash = document.getElementById('cashValue');
+    if (cash){
+      const eur = (Number(points||0) * 0.5);
+      cash.textContent = '= € ' + eur.toFixed(2);
+    }
+  }
+
+  async function loadRewardsStatus(){
+    try{
+      const data = await apiJson('/rewards/status', { method:'GET' });
+
+      const points = Number(data?.points ?? data?.user?.points ?? 0);
+      if (typeof state !== 'undefined') state.points = points;
+
+      const ad = data?.activeDiscount || data?.active_discount || null;
+      if (typeof state !== 'undefined'){
+        state.activeDiscount = ad ? {
+          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
+          percent: Number(ad.percent ?? ad.value ?? 0),
+          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+        } : null;
+      }
+
+      const ar = data?.appliedReward || data?.applied_redemption || data?.redemption || null;
+      if (typeof state !== 'undefined' && ar){
+        state.appliedReward = {
+          id: ar.id ?? ar.redemption_id ?? ar.redemptionId ?? null,
+          type: ar.type || null,
+          amountEUR: Number(ar.amountEUR ?? ar.amount_eur ?? 0),
+          pointsUsed: Number(ar.pointsUsed ?? ar.points_used ?? 0),
+          percent: Number(ar.percent ?? 0),
+        };
+      }
+
+      syncPointsUI(points);
+      if (typeof renderAll === 'function') renderAll();
+      if (typeof renderCart === 'function') renderCart();
+
+      return data;
+    } catch(err){
+      console.warn('Rewards status not loaded:', err?.message || err);
+      return null;
+    }
+  }
+
+  window.VW_API = window.VW_API || {};
+  window.VW_API.root = API_ROOT;
+  window.VW_API.apiJson = apiJson;
+  window.VW_API.loadRewardsStatus = loadRewardsStatus;
+  window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
+  window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
+  window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
+  window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
+  window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
+
   function defaultAvatarDataUri(){
     const svg = encodeURIComponent(`
       <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
@@ -1664,6 +1779,9 @@ async function spin(){
       if (emailEl) emailEl.textContent = user.email || "email@example.com";
 
       applyAvatar(user);
+
+      // carrega pontos + desconto (DB)
+      loadRewardsStatus();
     } catch (err) {
       console.error("Erro carregando /user/me", err);
     }

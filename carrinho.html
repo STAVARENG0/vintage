@@ -596,6 +596,37 @@
                 Your cart is saved to your account and will appear here when you sign in.
               </div>
 
+              <!-- BENEFÍCIOS (pontos / desconto 24h) -->
+              <div style="margin-top:14px; padding-top:12px; border-top:1px dashed rgba(212,175,55,.45);">
+                <div style="font-weight:900; letter-spacing:.04em;">Benefícios</div>
+                <div class="muted" style="margin-top:6px; line-height:1.6;">
+                  Escolha <strong>apenas um</strong>: usar <strong>pontos (cashback)</strong> ou um <strong>desconto da roleta</strong> (válido por 24h).
+                </div>
+
+                <div class="field" style="margin-top:10px;">
+                  <label style="font-weight:900;">Usar pontos</label>
+                  <div class="muted" style="margin-top:4px; font-weight:700;">
+                    Saldo: <strong><span id="pointsBalanceCart">0</span> pts</strong> (<span id="pointsCashCart">€ 0.00</span>)
+                  </div>
+                  <div class="row" style="margin-top:8px; gap:8px;">
+                    <input id="pointsToUse" type="number" min="0" step="1" placeholder="Pontos para usar (vazio = tudo)" style="flex:1;"/>
+                    <button class="btn small" id="btnApplyPoints" type="button">Usar pontos</button>
+                  </div>
+                </div>
+
+                <div class="field" style="margin-top:10px;">
+                  <label style="font-weight:900;">Usar desconto da roleta (24h)</label>
+                  <div class="row" style="margin-top:8px; gap:8px;">
+                    <span class="pill" id="discountPill"><strong id="discountLabel">Sem desconto ativo</strong></span>
+                    <button class="btn small" id="btnApplyDiscount" type="button" disabled>Usar desconto</button>
+                  </div>
+                  <div class="muted" style="margin-top:6px; font-weight:700;" id="discountExpires"></div>
+                </div>
+
+                <div class="muted" style="margin-top:10px; font-weight:900;" id="rewardAppliedMsg">—</div>
+                <div class="muted" style="margin-top:10px; line-height:1.8;" id="totalsBreakdown"></div>
+              </div>
+
               <div class="row" style="margin-top:12px;">
                 <a class="btn primary" id="btnResumeCheckout" href="checkout.html">➡️ Resume checkout</a>
                 <button class="btn danger" id="btnClearCart">Clear cart</button>
@@ -627,6 +658,8 @@
       cashbackHistory: [],
       addresses: [],
       avatarFile: null,
+      activeDiscount: null, // {id, percent, expiresAt}
+      appliedReward: null,  // {id, type:'points'|'discount', amountEUR, pointsUsed, percent}
     };
     // ====== Simple access guard (prototype) ======
     const TOKEN_KEY = "vw_token";
@@ -783,10 +816,39 @@
     function renderCart(){
       const cart = Array.isArray(state.cart) ? state.cart : [];
       const totalItems = cart.reduce((s, it) => s + Number(it.qty || 1), 0);
-      const total = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+      const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+
+      // aplica benefício (pontos OU desconto)
+      const ar = state.appliedReward;
+      let discountAmount = 0;
+      let pointsAmount = 0;
+      if (ar && ar.type === 'discount'){
+        const pct = Number(ar.percent || 0);
+        discountAmount = subtotal * (pct/100);
+      } else if (ar && ar.type === 'points'){
+        pointsAmount = Number(ar.amountEUR || 0);
+      }
+
+      const total = Math.max(0, subtotal - discountAmount - pointsAmount);
 
       setHTML('cartCountTag', `<strong>${totalItems}</strong> items`);
       setHTML('cartTotalTag', `<strong>${fmtEUR(total)}</strong>`);
+
+      // breakdown
+      const bd = $('totalsBreakdown');
+      if (bd){
+        let html = `<div>Subtotal: <strong>${fmtEUR(subtotal)}</strong></div>`;
+        if (discountAmount > 0){
+          html += `<div>Desconto: <strong>- ${fmtEUR(discountAmount)}</strong> (${Number(ar.percent||0)}%)</div>`;
+        }
+        if (pointsAmount > 0){
+          html += `<div>Pontos: <strong>- ${fmtEUR(pointsAmount)}</strong> (${Number(ar.pointsUsed||0)} pts)</div>`;
+        }
+        html += `<div style="margin-top:6px;">Total: <strong>${fmtEUR(total)}</strong></div>`;
+        bd.innerHTML = html;
+      }
+
+      renderRewardsBox && renderRewardsBox();
 
       const wrap = $('cartList');
       if (!wrap) return;
@@ -812,6 +874,139 @@
           </div>
         </div>
       `).join('');
+    }
+
+
+
+    function fmtDateTime(dt){
+      if (!dt) return '';
+      try{
+        const d = new Date(dt);
+        if (Number.isNaN(d.getTime())) return String(dt);
+        return d.toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+      } catch(_){
+        return String(dt);
+      }
+    }
+
+    function renderRewardsBox(){
+      // pontos
+      const pts = Number(state.points || 0);
+      const elPts = $('pointsBalanceCart');
+      if (elPts) elPts.textContent = String(pts);
+      const elPtsCash = $('pointsCashCart');
+      if (elPtsCash) elPtsCash.textContent = fmtEUR(pointsToCash(pts));
+
+      // desconto ativo
+      const d = state.activeDiscount;
+      const lbl = $('discountLabel');
+      const exp = $('discountExpires');
+      const btnD = $('btnApplyDiscount');
+
+      let hasActive = false;
+      if (d && Number(d.percent||0) > 0 && d.expiresAt){
+        const expMs = new Date(d.expiresAt).getTime();
+        hasActive = !Number.isNaN(expMs) && expMs > Date.now();
+      }
+
+      if (hasActive){
+        if (lbl) lbl.textContent = `${Number(d.percent||0)}% OFF`;
+        if (exp) exp.textContent = `Válido até: ${fmtDateTime(d.expiresAt)}`;
+        if (btnD) btnD.disabled = false;
+      } else {
+        if (lbl) lbl.textContent = 'Sem desconto ativo';
+        if (exp) exp.textContent = '';
+        if (btnD) btnD.disabled = true;
+      }
+
+      // se já aplicou um benefício, trava os botões
+      const ar = state.appliedReward;
+      const btnP = $('btnApplyPoints');
+      const msg = $('rewardAppliedMsg');
+      if (ar && ar.id){
+        if (btnP) btnP.disabled = true;
+        if (btnD) btnD.disabled = true;
+        if (msg){
+          if (ar.type === 'points'){
+            msg.textContent = `✅ Pontos aplicados (${Number(ar.pointsUsed||0)} pts = ${fmtEUR(Number(ar.amountEUR||0))}).`;
+          } else if (ar.type === 'discount'){
+            msg.textContent = `✅ Desconto aplicado (${Number(ar.percent||0)}%).`;
+          } else {
+            msg.textContent = '✅ Benefício aplicado.';
+          }
+        }
+      } else {
+        if (btnP) btnP.disabled = false;
+        if (msg) msg.textContent = '—';
+      }
+
+      // checkout link leva o redemption id
+      const ck = $('btnResumeCheckout');
+      if (ck){
+        if (ar && ar.id){
+          ck.href = `checkout.html?reward=${encodeURIComponent(String(ar.id))}`;
+        } else {
+          ck.href = 'checkout.html';
+        }
+      }
+    }
+
+    async function applyPointsFromCart(){
+      const api = window.VW_API;
+      const msg = $('rewardAppliedMsg');
+      if (!api || !api.apiJson){
+        if (msg) msg.textContent = '⚠️ API não disponível.';
+        return;
+      }
+      try{
+        const raw = ($('pointsToUse')?.value || '').trim();
+        const points = raw ? Number(raw) : null;
+        const res = await api.apiJson('/rewards/apply-points', { method:'POST', body: { points } });
+
+        // normaliza retorno
+        if (res && typeof res.points === 'number') state.points = res.points;
+        const red = res.redemption || res.appliedReward || res.applied_reward || res;
+        state.appliedReward = {
+          id: red.id || red.redemption_id || red.redemptionId,
+          type: 'points',
+          amountEUR: Number(red.amountEUR || red.amount_eur || red.amount || 0),
+          pointsUsed: Number(red.pointsUsed || red.points_used || points || 0),
+          percent: 0,
+        };
+
+        // ao usar pontos, desconto ativo (se existia) continua no banco, mas aqui forçamos uso exclusivo
+        renderCart();
+        if (typeof renderHero === 'function') renderHero();
+      } catch(err){
+        if (msg) msg.textContent = `⚠️ Não foi possível aplicar pontos: ${err.message || err}`;
+      }
+    }
+
+    async function applyDiscountFromCart(){
+      const api = window.VW_API;
+      const msg = $('rewardAppliedMsg');
+      if (!api || !api.apiJson){
+        if (msg) msg.textContent = '⚠️ API não disponível.';
+        return;
+      }
+      try{
+        const res = await api.apiJson('/rewards/apply-discount', { method:'POST', body: {} });
+        const red = res.redemption || res.appliedReward || res.applied_reward || res;
+        const pct = Number(red.percent || red.value || (state.activeDiscount && state.activeDiscount.percent) || 0);
+        state.appliedReward = {
+          id: red.id || red.redemption_id || red.redemptionId,
+          type: 'discount',
+          amountEUR: 0,
+          pointsUsed: 0,
+          percent: pct,
+        };
+        // desconto foi consumido -> some localmente
+        state.activeDiscount = null;
+        renderCart();
+        if (typeof renderHero === 'function') renderHero();
+      } catch(err){
+        if (msg) msg.textContent = `⚠️ Não foi possível aplicar desconto: ${err.message || err}`;
+      }
     }
 
     function statusToStepIndex(status){
@@ -1117,6 +1312,9 @@
       $('btnChangePass')?.addEventListener('click', changePassword);
       $('btnAddAddress')?.addEventListener('click', addAddress);
       $('btnClearCart')?.addEventListener('click', clearCart);
+
+      $('btnApplyPoints')?.addEventListener('click', applyPointsFromCart);
+      $('btnApplyDiscount')?.addEventListener('click', applyDiscountFromCart);
       $('btnLogout')?.addEventListener('click', logout);
 
       $('btnSpin')?.addEventListener('click', spin);
@@ -1256,6 +1454,95 @@
     return t ? { Authorization: "Bearer " + t } : {};
   }
 
+
+
+  async function apiJson(path, opts = {}){
+    const url = API_ROOT + path;
+    const init = {
+      method: opts.method || 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(opts.headers || {}),
+        ...authHeaders(),
+      },
+    };
+    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+
+    const res = await fetch(url, init);
+    if (res.status === 401 || res.status === 403){
+      requireTokenOrRedirect();
+      throw new Error('unauthorized');
+    }
+
+    const text = await res.text();
+    let data = null;
+    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
+
+    if (!res.ok){
+      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function syncPointsUI(points){
+    const p = document.getElementById('pointsNow');
+    if (p) p.textContent = String(points ?? 0);
+    const cash = document.getElementById('cashValue');
+    if (cash){
+      const eur = (Number(points||0) * 0.5);
+      cash.textContent = '= € ' + eur.toFixed(2);
+    }
+  }
+
+  async function loadRewardsStatus(){
+    try{
+      const data = await apiJson('/rewards/status', { method:'GET' });
+
+      const points = Number(data?.points ?? data?.user?.points ?? 0);
+      if (typeof state !== 'undefined') state.points = points;
+
+      const ad = data?.activeDiscount || data?.active_discount || null;
+      if (typeof state !== 'undefined'){
+        state.activeDiscount = ad ? {
+          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
+          percent: Number(ad.percent ?? ad.value ?? 0),
+          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+        } : null;
+      }
+
+      const ar = data?.appliedReward || data?.applied_redemption || data?.redemption || null;
+      if (typeof state !== 'undefined' && ar){
+        state.appliedReward = {
+          id: ar.id ?? ar.redemption_id ?? ar.redemptionId ?? null,
+          type: ar.type || null,
+          amountEUR: Number(ar.amountEUR ?? ar.amount_eur ?? 0),
+          pointsUsed: Number(ar.pointsUsed ?? ar.points_used ?? 0),
+          percent: Number(ar.percent ?? 0),
+        };
+      }
+
+      syncPointsUI(points);
+      if (typeof renderAll === 'function') renderAll();
+      if (typeof renderCart === 'function') renderCart();
+
+      return data;
+    } catch(err){
+      console.warn('Rewards status not loaded:', err?.message || err);
+      return null;
+    }
+  }
+
+  window.VW_API = window.VW_API || {};
+  window.VW_API.root = API_ROOT;
+  window.VW_API.apiJson = apiJson;
+  window.VW_API.loadRewardsStatus = loadRewardsStatus;
+  window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
+  window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
+  window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
+  window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
+  window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
+
   function defaultAvatarDataUri(){
     const svg = encodeURIComponent(`
       <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
@@ -1320,6 +1607,10 @@
       if (emailEl) emailEl.textContent = user.email || "email@example.com";
 
       applyAvatar(user);
+      loadRewardsStatus();
+
+      // carrega pontos + desconto (DB)
+      loadRewardsStatus();
     } catch (err) {
       console.error("Erro carregando /user/me", err);
     }
