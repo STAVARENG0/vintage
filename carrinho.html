@@ -183,7 +183,7 @@
       color: var(--muted);
     }
 
-    /* Barra de nível (3 níveis) */
+    /* Level bar (3 tiers) */
     .level-wrap{
       width: min(520px, 94%);
       margin-top: 2px;
@@ -260,7 +260,7 @@
     .level-splits .on.silver i{ background: var(--silver); }
     .level-splits .on.gold i{ background: var(--gold2); }
 
-    /* Navegação (topo abaixo do hero) */
+    /* Navigation */
     .nav{
       margin: 14px auto 0;
       width: min(900px, 100%);
@@ -330,7 +330,7 @@
     }
     .pill strong{ color: var(--text); }
 
-    /* Wheel (sempre visível) */
+    /* Wheel (always visible) */
 .wheel-area{
   width: min(980px, 100%);
   margin: 12px auto 0;
@@ -402,7 +402,7 @@
   line-height: 1.7;
 }
 
-    /* Seções */
+    /* Sections */
     section{
       width: min(980px, 100%);
       margin: 14px auto 0;
@@ -595,60 +595,51 @@
               <div class="muted" style="margin-top:10px; line-height:1.7;">
                 Your cart is saved to your account and will appear here when you sign in.
               </div>
-              <!-- BENEFÍCIOS (frete grátis + (pontos OU desconto 24h)) -->
-              <div style="margin-top:14px; padding-top:12px; border-top:1px dashed rgba(212,175,55,.45);">
-                <div style="font-weight:900; letter-spacing:.04em;">Benefícios</div>
+              <!-- REWARDS -->
+              <div style="margin-top:14px; padding-top:12px; border-top:1px dashed rgba(212,175,55,.45);" id="rewardsBox">
+                <div style="font-weight:900; letter-spacing:.04em;">Rewards</div>
                 <div class="muted" style="margin-top:6px; line-height:1.6;">
-                  Você pode usar <strong>frete grátis</strong> junto com <strong>1</strong> opção de valor:
-                  <strong>cashback (pontos)</strong> <em>ou</em> <strong>desconto da roleta</strong>.
-                  <br/>⚠️ Não é permitido usar <strong>cashback</strong> e <strong>desconto</strong> juntos.
+                  Choose your reward(s). You can combine <strong>Free Shipping</strong> with <strong>Points</strong> or a <strong>% Discount</strong>.
+                  You can’t combine <strong>Points</strong> and <strong>% Discount</strong>.
                 </div>
 
-                <div class="field" style="margin-top:10px;">
-                  <label style="font-weight:900;">1) Escolha 1 opção de valor</label>
+                <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
+                  <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+                    <input type="checkbox" id="benefitPoints" />
+                    <span>
+                      <div style="font-weight:900;">Use points (use full balance)</div>
+                      <div class="muted" style="margin-top:2px; font-weight:700;">
+                        Balance: <strong><span id="pointsBalanceCart">0</span> pts</strong> (<span id="pointsCashCart">€ 0.00</span>)
+                      </div>
+                    </span>
+                  </label>
 
-                  <div style="margin-top:8px; display:flex; flex-direction:column; gap:8px;">
+                  <div id="discountOption" style="display:none;">
                     <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
-                      <input type="radio" name="benefitMain" id="benefitNone" value="none" checked />
-                      <span class="muted" style="font-weight:800;">Não usar cashback/desconto</span>
-                    </label>
-
-                    <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
-                      <input type="radio" name="benefitMain" id="benefitPoints" value="points" />
+                      <input type="checkbox" id="benefitDiscount" />
                       <span>
-                        <div style="font-weight:900;">Usar cashback (todo saldo)</div>
+                        <div style="font-weight:900;">Use % discount (valid for 24h)</div>
                         <div class="muted" style="margin-top:2px; font-weight:700;">
-                          Saldo: <strong><span id="pointsBalanceCart">0</span> pts</strong> (<span id="pointsCashCart">€ 0.00</span>)
-                        </div>
-                      </span>
-                    </label>
-
-                    <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
-                      <input type="radio" name="benefitMain" id="benefitDiscount" value="discount" />
-                      <span>
-                        <div style="font-weight:900;">Usar desconto da roleta (24h)</div>
-                        <div class="muted" style="margin-top:2px; font-weight:700;">
-                          <span class="pill" id="discountPill"><strong id="discountLabel">Sem desconto ativo</strong></span>
+                          <span class="pill" id="discountPill"><strong id="discountLabel">—</strong></span>
                         </div>
                         <div class="muted" style="margin-top:6px; font-weight:700;" id="discountExpires"></div>
                       </span>
                     </label>
                   </div>
-                </div>
 
-                <div class="field" style="margin-top:10px;">
-                  <label style="font-weight:900;">2) Frete grátis (pode combinar)</label>
-                  <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer; margin-top:8px;">
-                    <input type="checkbox" id="benefitShipping" />
-                    <span>
-                      <div style="font-weight:900;" id="shippingLabel">Sem frete grátis disponível</div>
-                      <div class="muted" style="margin-top:6px; font-weight:700;" id="shippingExpires"></div>
-                    </span>
-                  </label>
+                  <div id="shippingOption" style="display:none;">
+                    <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+                      <input type="checkbox" id="benefitShipping" />
+                      <span>
+                        <div style="font-weight:900;" id="shippingLabel">Free shipping</div>
+                        <div class="muted" style="margin-top:6px; font-weight:700;" id="shippingExpires"></div>
+                      </span>
+                    </label>
+                  </div>
                 </div>
 
                 <div class="row" style="margin-top:10px; gap:8px;">
-                  <button class="btn small" id="btnApplyBenefits" type="button">Aplicar seleção</button>
+                  <button class="btn small" id="btnApplyBenefits" type="button">Apply</button>
                 </div>
 
                 <div class="muted" style="margin-top:10px; font-weight:900;" id="rewardAppliedMsg">—</div>
@@ -849,7 +840,7 @@
       const totalItems = cart.reduce((s, it) => s + Number(it.qty || 1), 0);
       const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
 
-      // aplica benefício de valor (cashback OU desconto)
+      // apply value benefit (points OR % discount)
       const ar = state.appliedValueReward;
       let discountAmount = 0;
       let pointsAmount = 0;
@@ -870,17 +861,17 @@
       if (bd){
         let html = `<div>Subtotal: <strong>${fmtEUR(subtotal)}</strong></div>`;
         if (discountAmount > 0){
-          html += `<div>Desconto: <strong>- ${fmtEUR(discountAmount)}</strong> (${Number(ar?.percent||0)}%)</div>`;
+          html += `<div>Discount: <strong>- ${fmtEUR(discountAmount)}</strong> (${Number(ar?.percent||0)}%)</div>`;
         }
         if (pointsAmount > 0){
-          html += `<div>Cashback: <strong>- ${fmtEUR(pointsAmount)}</strong> (${Number(ar?.pointsUsed||0)} pts)</div>`;
+          html += `<div>Points: <strong>- ${fmtEUR(pointsAmount)}</strong> (${Number(ar?.pointsUsed||0)} pts)</div>`;
         }
 
         const ship = state.appliedShippingReward;
         if (ship && ship.id){
-          html += `<div>Frete: <strong>GRÁTIS ✅</strong></div>`;
+          html += `<div>Shipping: <strong>FREE ✅</strong></div>`;
         } else {
-          html += `<div>Frete: <strong>calculado no checkout</strong></div>`;
+          html += `<div>Shipping: <strong>calculated at checkout</strong></div>`;
         }
 
         html += `<div style="margin-top:6px;">Total: <strong>${fmtEUR(total)}</strong></div>`;
@@ -920,43 +911,50 @@
       try{
         const d = new Date(dt);
         if (Number.isNaN(d.getTime())) return String(dt);
-        return d.toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+        return d.toLocaleString('en-IE', { dateStyle:'short', timeStyle:'short' });
       } catch(_){
         return String(dt);
       }
     }
 
     function renderRewardsBox(){
-      // pontos
+      // Points (always available)
       const pts = Number(state.points || 0);
       const elPts = $('pointsBalanceCart');
       if (elPts) elPts.textContent = String(pts);
       const elPtsCash = $('pointsCashCart');
       if (elPtsCash) elPtsCash.textContent = fmtEUR(pointsToCash(pts));
 
-      // desconto ativo
+      // Active % discount (only visible if available)
       const d = state.activeDiscount;
+      const discountWrap = $('discountOption');
       const lbl = $('discountLabel');
       const exp = $('discountExpires');
+      const chkDis = $('benefitDiscount');
 
       let hasDiscount = false;
-      if (d && Number(d.percent||0) > 0 && d.expiresAt){
+      let discountPct = 0;
+      if (d && Number(d.percent || 0) > 0 && d.expiresAt){
         const expMs = new Date(d.expiresAt).getTime();
         hasDiscount = !Number.isNaN(expMs) && expMs > Date.now();
+        discountPct = Number(d.percent || 0);
       }
 
-      if (hasDiscount){
-        if (lbl) lbl.textContent = `${Number(d.percent||0)}% OFF`;
-        if (exp) exp.textContent = `Válido até: ${fmtDateTime(d.expiresAt)}`;
-      } else {
-        if (lbl) lbl.textContent = 'Sem desconto ativo';
-        if (exp) exp.textContent = '';
+      if (discountWrap){
+        discountWrap.style.display = hasDiscount ? '' : 'none';
+      }
+      if (lbl) lbl.textContent = hasDiscount ? `${discountPct}% OFF` : '—';
+      if (exp) exp.textContent = hasDiscount ? `Valid until: ${fmtDateTime(d.expiresAt)}` : '';
+      if (chkDis && !hasDiscount){
+        chkDis.checked = false;
       }
 
-      // frete grátis ativo
+      // Active free shipping (only visible if available)
       const s = state.activeShipping;
+      const shipWrap = $('shippingOption');
       const shipLbl = $('shippingLabel');
       const shipExp = $('shippingExpires');
+      const chkShip = $('benefitShipping');
 
       let hasShipping = false;
       if (s){
@@ -968,60 +966,69 @@
         }
       }
 
-      if (hasShipping){
-        if (shipLbl) shipLbl.textContent = 'Frete grátis disponível';
-        if (shipExp) shipExp.textContent = s?.expiresAt ? `Válido até: ${fmtDateTime(s.expiresAt)}` : '';
-      } else {
-        if (shipLbl) shipLbl.textContent = 'Sem frete grátis disponível';
-        if (shipExp) shipExp.textContent = '';
+      if (shipWrap){
+        shipWrap.style.display = hasShipping ? '' : 'none';
+      }
+      if (shipLbl) shipLbl.textContent = hasShipping ? 'Free shipping' : 'Free shipping';
+      if (shipExp) shipExp.textContent = hasShipping && s?.expiresAt ? `Valid until: ${fmtDateTime(s.expiresAt)}` : '';
+      if (chkShip && !hasShipping){
+        chkShip.checked = false;
       }
 
-      // estado aplicado
-      const main = state.appliedValueReward;
-      const ship = state.appliedShippingReward;
+      // Applied state
+      const main = state.appliedValueReward;   // points OR discount
+      const ship = state.appliedShippingReward; // free shipping
       const mainLocked = !!(main && main.id);
       const shipLocked = !!(ship && ship.id);
 
-      // radios (cashback OU desconto)
-      const rNone = $('benefitNone');
-      const rPts  = $('benefitPoints');
-      const rDis  = $('benefitDiscount');
+      const chkPts = $('benefitPoints');
 
-      if (rNone) rNone.disabled = mainLocked;
-      if (rPts)  rPts.disabled  = mainLocked || pts <= 0;
-      if (rDis)  rDis.disabled  = mainLocked || !hasDiscount;
+      // Disable rules
+      if (chkPts) chkPts.disabled = mainLocked || pts <= 0;
+      if (chkDis) chkDis.disabled = mainLocked || !hasDiscount;
+      if (chkShip) chkShip.disabled = shipLocked || !hasShipping;
 
-      // sincroniza seleção com o aplicado
+      // Sync checks with applied
       if (mainLocked){
-        if (main.type === 'points' && rPts) rPts.checked = true;
-        if (main.type === 'discount' && rDis) rDis.checked = true;
+        if (chkPts) chkPts.checked = main.type === 'points';
+        if (chkDis) chkDis.checked = main.type === 'discount';
+      }
+      if (shipLocked && chkShip){
+        chkShip.checked = true;
       }
 
-      // frete grátis (pode combinar)
-      const chkShip = $('benefitShipping');
-      if (chkShip){
-        chkShip.disabled = shipLocked || !hasShipping;
-        if (shipLocked) chkShip.checked = true;
+      // Mutual exclusion: points vs discount (but shipping is independent)
+      if (chkPts && !mainLocked){
+        chkPts.onchange = () => {
+          if (chkPts.checked && chkDis) chkDis.checked = false;
+          renderRewardsBox();
+        };
+      }
+      if (chkDis && !mainLocked){
+        chkDis.onchange = () => {
+          if (chkDis.checked && chkPts) chkPts.checked = false;
+          renderRewardsBox();
+        };
       }
 
-      // mensagem
+      // Message
       const msg = $('rewardAppliedMsg');
       if (msg){
         const parts = [];
         if (mainLocked){
           if (main.type === 'points'){
-            parts.push(`✅ Cashback aplicado (${Number(main.pointsUsed||0)} pts = ${fmtEUR(Number(main.amountEUR||0))}).`);
+            parts.push(`✅ Points applied (${Number(main.pointsUsed||0)} pts = ${fmtEUR(Number(main.amountEUR||0))}).`);
           } else if (main.type === 'discount'){
-            parts.push(`✅ Desconto aplicado (${Number(main.percent||0)}%).`);
+            parts.push(`✅ Discount applied (${Number(main.percent||0)}%).`);
           }
         }
         if (shipLocked){
-          parts.push('✅ Frete grátis aplicado.');
+          parts.push('✅ Free shipping applied.');
         }
         msg.textContent = parts.length ? parts.join(' ') : '—';
       }
 
-      // checkout link leva os IDs aplicados
+      // Checkout URL carries applied IDs
       const ck = $('btnResumeCheckout');
       if (ck){
         const qs = [];
@@ -1030,43 +1037,57 @@
         ck.href = qs.length ? `checkout.html?${qs.join('&')}` : 'checkout.html';
       }
 
-      // botão aplicar
+      // Apply button
       const btn = $('btnApplyBenefits');
       if (btn){
-        // fica habilitado se ainda houver algo aplicável
-        const canMain = !mainLocked && ((pts > 0) || hasDiscount);
-        const canShip = !shipLocked && hasShipping;
-        btn.disabled = !(canMain || canShip);
+        const wantMain = !mainLocked && ((chkPts && chkPts.checked) || (chkDis && chkDis.checked));
+        const wantShip = !shipLocked && (chkShip && chkShip.checked);
+        btn.disabled = !(wantMain || wantShip);
       }
     }
 
-    async function applySelectedBenefits(){
+async function applySelectedBenefits(){
       const api = window.VW_API;
       const msg = $('rewardAppliedMsg');
       if (!api || !api.apiJson){
-        if (msg) msg.textContent = '⚠️ API não disponível.';
+        if (msg) msg.textContent = '⚠️ API is not available.';
         return;
       }
 
-      const mainChoice = document.querySelector('input[name="benefitMain"]:checked')?.value || 'none';
-      const shipChoice = !!$('benefitShipping')?.checked;
+      const chkPts = $('benefitPoints');
+      const chkDis = $('benefitDiscount');
+      const chkShip = $('benefitShipping');
 
-      // aplica o principal (cashback OU desconto)
+      const usePoints = !!(chkPts && chkPts.checked);
+      const useDiscount = !!(chkDis && chkDis.checked);
+      const useShipping = !!(chkShip && chkShip.checked);
+
+      if (usePoints && useDiscount){
+        if (msg) msg.textContent = '⚠️ Choose either Points or % Discount (not both).';
+        return;
+      }
+
+      // Apply main (points OR discount)
       try{
         if (!(state.appliedValueReward && state.appliedValueReward.id)){
-          if (mainChoice === 'points'){
+          if (usePoints){
             const beforePts = Number(state.points || 0);
-            const res = await api.apiJson('/rewards/apply-points', { method:'POST', body: { points: null } });
-            if (res && typeof res.points === 'number') state.points = res.points;
-            const red = res.redemption || res.appliedReward || res.applied_reward || res;
-            state.appliedValueReward = {
-              id: red.id || red.redemption_id || red.redemptionId,
-              type: 'points',
-              amountEUR: Number(red.amountEUR || red.amount_eur || red.amount || 0),
-              pointsUsed: Number(red.pointsUsed || red.points_used || beforePts || 0),
-              percent: 0,
-            };
-          } else if (mainChoice === 'discount'){
+            if (beforePts <= 0){
+              if (msg) msg.textContent = '⚠️ You have no points to use.';
+            } else {
+              const res = await api.apiJson('/rewards/apply-points', { method:'POST', body: { points: beforePts } });
+              if (res && typeof res.points === 'number') state.points = res.points;
+
+              const red = res.redemption || res.appliedReward || res.applied_reward || res;
+              state.appliedValueReward = {
+                id: red.id || red.redemption_id || red.redemptionId,
+                type: 'points',
+                amountEUR: Number(red.amountEUR || red.amount_eur || red.amount || 0),
+                pointsUsed: Number(red.pointsUsed || red.points_used || beforePts || 0),
+                percent: 0,
+              };
+            }
+          } else if (useDiscount){
             const res = await api.apiJson('/rewards/apply-discount', { method:'POST', body: {} });
             const red = res.redemption || res.appliedReward || res.applied_reward || res;
             const pct = Number(red.percent || red.value || (state.activeDiscount && state.activeDiscount.percent) || 0);
@@ -1077,40 +1098,40 @@
               pointsUsed: 0,
               percent: pct,
             };
-            // desconto consumido
+            // discount consumed
             state.activeDiscount = null;
           }
         }
       } catch(err){
-        if (msg) msg.textContent = `⚠️ Não foi possível aplicar: ${err.message || err}`;
+        if (msg) msg.textContent = `⚠️ Could not apply selection: ${err.message || err}`;
       }
 
-      // aplica frete grátis (pode combinar)
+      // Apply free shipping (can be combined)
       try{
-        if (shipChoice && !(state.appliedShippingReward && state.appliedShippingReward.id)){
+        if (useShipping && !(state.appliedShippingReward && state.appliedShippingReward.id)){
           const res = await api.apiJson('/rewards/apply-shipping', { method:'POST', body: {} });
           const red = res.redemption || res.appliedShipping || res.applied_shipping || res;
           state.appliedShippingReward = {
             id: red.id || red.redemption_id || red.redemptionId || red.shipping_id || red.shippingId,
             type: 'shipping',
           };
-          // frete consumido
+          // shipping consumed
           state.activeShipping = null;
         }
       } catch(err){
-        if (msg) msg.textContent = `⚠️ Não foi possível aplicar frete grátis: ${err.message || err}`;
+        if (msg) msg.textContent = `⚠️ Could not apply free shipping: ${err.message || err}`;
       }
 
       renderCart();
       if (typeof renderHero === 'function') renderHero();
     }
 
-    function statusToStepIndex(status){
+function statusToStepIndex(status){
       const s = String(status || '').toLowerCase();
-      if (s.includes('entreg')) return 4;
-      if (s.includes('caminh') || s.includes('a caminho')) return 3;
-      if (s.includes('prepar') || s.includes('em preparo')) return 2;
-      return 1; // confirmado
+      if (s.includes('deliv')) return 4;
+      if (s.includes('on the way') || s.includes('shipping') || s.includes('shipped')) return 3;
+      if (s.includes('prepar') || s.includes('process')) return 2;
+      return 1; // confirmed
     }
 
     function renderOrders(){
@@ -1139,7 +1160,7 @@
 
             <div class="stepper-line"><span style="width:${pct}%;"></span></div>
 
-            <div class="stepper" aria-label="Progresso do pedido">
+            <div class="stepper" aria-label="Order progress">
               <div class="step ${step>=1?'done':''}">Confirmed</div>
               <div class="step ${step>=2?'done':''}">Processing</div>
               <div class="step ${step>=3?'done':''}">On the way</div>
@@ -1208,7 +1229,7 @@
       const country = prompt('Country:', a.country || '');
       if (country === null) return;
       a.line1 = line1; a.line2 = line2; a.country = country;
-      setText('addrMsg', '✅ Address atualizado.');
+      setText('addrMsg', '✅ Address updated.');
       renderAddresses();
     };
 
@@ -1249,7 +1270,7 @@
       const url = URL.createObjectURL(file);
       state.me.avatar = url;
       renderHero();
-      setText('accountMsg', '✅ Foto atualizada.');
+      setText('accountMsg', '✅ Photo updated.');
     }
 
     // Salvar conta (demo)
@@ -1721,7 +1742,7 @@
       }
 
       if (!res.ok) {
-        console.warn("Falha ao carregar /user/me:", res.status);
+        console.warn("Failed to load /user/me:", res.status);
         return;
       }
 
@@ -1734,12 +1755,10 @@
       if (emailEl) emailEl.textContent = user.email || "email@example.com";
 
       applyAvatar(user);
-      loadRewardsStatus();
-
-      // carrega pontos + desconto (DB)
+      // Load rewards (points + discount + free shipping) from the backend
       loadRewardsStatus();
     } catch (err) {
-      console.error("Erro carregando /user/me", err);
+      console.error("Error loading /user/me", err);
     }
   }
 
