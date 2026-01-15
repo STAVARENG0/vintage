@@ -734,12 +734,21 @@
       if (document.getElementById("accEmail")) document.getElementById("accEmail").value = u.email || "";
       if (document.getElementById("accPhone")) document.getElementById("accPhone").value = u.phone || "";
 
-      const avatar = document.getElementById("avatar");
-      if (avatar) {
-        avatar.src = u.avatar_url || defaultAvatarDataUri();
-      }
+const avatar = document.getElementById("avatar");
+if (avatar) {
+  if (u.avatar_url && u.avatar_url.length > 0) {
+    if (u.avatar_url.startsWith("http")) {
+      avatar.src = u.avatar_url;
+    } else {
+      avatar.src = API_ROOT + u.avatar_url;
     }
+  } else {
+    avatar.src = defaultAvatarDataUri();
+  }
+}
 
+
+  
     function fillAddressUI() {
       const a = currentAddress || {};
       if (document.getElementById("addrEircode")) document.getElementById("addrEircode").value = a.eircode || "";
