@@ -184,6 +184,46 @@ a.small{
 }
 a.small:hover{ filter:brightness(1.05); }
 
+.loading-indicator{
+  display:none;
+  text-align:center;
+  margin-top:10px;
+  font-size:.9rem;
+  color:var(--muted);
+}
+
+.loading-indicator .loading-text{
+  margin-right:4px;
+}
+
+.loading-dots span{
+  display:inline-block;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  margin:0 2px;
+  background:#2ecc71;
+  animation: loading-bounce .8s infinite alternate;
+}
+
+.loading-dots span:nth-child(2){
+  animation-delay:.15s;
+}
+.loading-dots span:nth-child(3){
+  animation-delay:.3s;
+}
+
+@keyframes loading-bounce{
+  0%{
+    transform:translateY(0);
+    opacity:.6;
+  }
+  100%{
+    transform:translateY(-4px);
+    opacity:1;
+  }
+}
+
 @media (max-width: 600px){
   .brand img{ max-width:180px; }
   .card{ padding:26px 18px; }
@@ -205,6 +245,12 @@ a.small:hover{ filter:brightness(1.05); }
       <label for="p">Password</label>
       <input type="password" id="p" autocomplete="current-password" required placeholder="your password">
       <button type="submit">Sign in</button>
+      <div id="loadingPanel" class="loading-indicator" aria-live="polite">
+        <span class="loading-text">Loading panel</span>
+        <span class="loading-dots">
+          <span></span><span></span><span></span>
+        </span>
+      </div>
       <a class="small" href="index.html">← Back to site</a>
     </form>
   </div>
@@ -218,14 +264,17 @@ a.small:hover{ filter:brightness(1.05); }
   const form = document.getElementById("loginForm");
   const err = document.getElementById("err");
   const btn = form.querySelector('button[type="submit"]') || form.querySelector("button");
+  const loadingPanel = document.getElementById("loadingPanel");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     err.style.display = "none";
     if (btn) btn.disabled = true;
+    if (loadingPanel) loadingPanel.style.display = "block";
 
     const u = document.getElementById("u").value.trim();
     const p = document.getElementById("p").value;
+    let loginOk = false;
 
     try {
       const res = await fetch(`${BACKEND_URL}/auth/login`, {
@@ -249,6 +298,8 @@ a.small:hover{ filter:brightness(1.05); }
         localStorage.setItem(TOKEN_KEY, data.token);
       }
 
+      loginOk = true;
+
       // Login OK -> vai para o painel
       window.location.href = "painel_vintage_wear.html";
     } catch (e) {
@@ -256,7 +307,10 @@ a.small:hover{ filter:brightness(1.05); }
       err.style.display = "block";
       err.textContent = "Server error. Try again.";
     } finally {
-      if (btn) btn.disabled = false;
+      if (!loginOk) {
+        if (btn) btn.disabled = false;
+        if (loadingPanel) loadingPanel.style.display = "none";
+      }
     }
   });
 </script>
