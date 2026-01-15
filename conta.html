@@ -725,27 +725,40 @@
 
     function $(id) { return document.getElementById(id); }
 
-    function fillProfileUI() {
-      const u = currentUser || {};
-      if (document.getElementById("userName")) document.getElementById("userName").textContent = u.name || "Your Name";
-      if (document.getElementById("userEmail")) document.getElementById("userEmail").textContent = u.email || "email@example.com";
+   function fillProfileUI() {
+  const u = currentUser || {};
 
-      if (document.getElementById("accName")) document.getElementById("accName").value = u.name || "";
-      if (document.getElementById("accEmail")) document.getElementById("accEmail").value = u.email || "";
-      if (document.getElementById("accPhone")) document.getElementById("accPhone").value = u.phone || "";
+  if (document.getElementById("userName"))
+    document.getElementById("userName").textContent = u.name || "Your Name";
 
-const avatar = document.getElementById("avatar");
-if (avatar) {
-  if (u.avatar_url && u.avatar_url.length > 0) {
-    if (u.avatar_url.startsWith("http")) {
-      avatar.src = u.avatar_url;
+  if (document.getElementById("userEmail"))
+    document.getElementById("userEmail").textContent = u.email || "email@example.com";
+
+  if (document.getElementById("accName"))
+    document.getElementById("accName").value = u.name || "";
+
+  if (document.getElementById("accEmail"))
+    document.getElementById("accEmail").value = u.email || "";
+
+  if (document.getElementById("accPhone"))
+    document.getElementById("accPhone").value = u.phone || "";
+
+  const avatar = document.getElementById("avatar");
+
+  if (avatar) {
+    if (u.avatar_url && u.avatar_url.length > 0) {
+      if (u.avatar_url.startsWith("http")) {
+        avatar.src = u.avatar_url;
+      } else {
+        avatar.src = API_ROOT + u.avatar_url;
+      }
     } else {
-      avatar.src = API_ROOT + u.avatar_url;
+      avatar.src = defaultAvatarDataUri();
     }
-  } else {
-    avatar.src = defaultAvatarDataUri();
   }
 }
+
+
 
 
   
