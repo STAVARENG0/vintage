@@ -1,6 +1,8 @@
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
+const path = require("path");
+const userRoutes = require("./routes/user");
 const rateLimit = require("express-rate-limit");
 const passport = require("passport");
 require("./auth/google.strategy");
