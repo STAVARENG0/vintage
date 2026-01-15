@@ -16,7 +16,16 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-app.use(helmet());
+/**
+ * 🔥 HELMET AJUSTADO (ESSENCIAL)
+ * Libera imagens para outros domínios
+ */
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false
+  })
+);
+
 app.use(express.json({ limit: "200kb" }));
 app.use(passport.initialize());
 
@@ -28,7 +37,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// 🌐 CORS DA API (JSON)
+// 🌐 CORS DA API
 const allowedOrigins = [
   "https://vintage-clothes.ie",
   "https://www.vintage-clothes.ie",
@@ -48,8 +57,7 @@ app.use(
 );
 
 /**
- * 🔥 CORS EXPLÍCITO PARA IMAGENS (UPLOADS)
- * ISSO RESOLVE DEFINITIVAMENTE O ERR_BLOCKED_BY_RESPONSE.NotSameOrigin
+ * ✅ UPLOADS COM HEADERS CORRETOS
  */
 const uploadsRoot = process.env.UPLOAD_DIR || "uploads";
 
