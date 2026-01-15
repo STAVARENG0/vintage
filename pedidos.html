@@ -1217,5 +1217,100 @@
       draw();
     })();
   </script>
+<script>
+(function(){
+  const API_ROOT = "https://clientes-0r5d.onrender.com";
+  const TOKEN_KEY = "vw_token";
+
+  function getToken(){
+    try { return localStorage.getItem(TOKEN_KEY); } catch (_) { return null; }
+  }
+
+  function requireTokenOrRedirect(){
+    const t = getToken();
+    if (!t) {
+      window.location.href = "cliente-login-2.html";
+    }
+    return t;
+  }
+
+  function authHeaders(){
+    const t = getToken();
+    return t ? { Authorization: "Bearer " + t } : {};
+  }
+
+  function defaultAvatarDataUri(){
+    const svg = encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+        <defs>
+          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+            <stop stop-color="#D4AF37" stop-opacity="0.35"/>
+            <stop stop-color="#f0b43b" stop-opacity="0.18" offset="1"/>
+          </linearGradient>
+        </defs>
+        <rect width="240" height="240" rx="120" fill="url(#g)"/>
+        <circle cx="120" cy="92" r="44" fill="rgba(43,39,35,0.16)"/>
+        <path d="M48 212c14-46 50-68 72-68s58 22 72 68" fill="rgba(43,39,35,0.14)"/>
+      </svg>
+    `);
+    return `data:image/svg+xml;charset=utf-8,${svg}`;
+  }
+
+  function applyAvatar(user){
+    const img = document.getElementById("avatar");
+    if (!img) return;
+
+    const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
+
+    if (!raw) {
+      img.src = defaultAvatarDataUri();
+      return;
+    }
+
+    let url = String(raw);
+    if (!/^https?:\/\//i.test(url)) {
+      if (!url.startsWith("/")) url = "/" + url;
+      url = API_ROOT + url;
+    }
+
+    // cache-bust so the new photo appears immediately
+    url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
+    img.src = url;
+  }
+
+  async function loadProfile(){
+    requireTokenOrRedirect();
+
+    try {
+      const res = await fetch(API_ROOT + "/user/me", { headers: authHeaders() });
+
+      if (res.status === 401 || res.status === 403) {
+        requireTokenOrRedirect();
+        return;
+      }
+
+      if (!res.ok) {
+        console.warn("Falha ao carregar /user/me:", res.status);
+        return;
+      }
+
+      const user = await res.json();
+
+      const nameEl = document.getElementById("userName");
+      const emailEl = document.getElementById("userEmail");
+
+      if (nameEl) nameEl.textContent = user.name || "Your Name";
+      if (emailEl) emailEl.textContent = user.email || "email@example.com";
+
+      applyAvatar(user);
+    } catch (err) {
+      console.error("Erro carregando /user/me", err);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadProfile);
+})();
+</script>
+
 </body>
 </html>
