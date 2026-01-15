@@ -1,23 +1,62 @@
-const { verifyJwt } = require("../services/jwt");
+const jwt = require("jsonwebtoken");
 const { q } = require("../services/db");
 
-async function requireAuth(req, res, next){
-  try{
-    const hdr = req.headers.authorization || "";
-    const token = hdr.startsWith("Bearer ") ? hdr.slice(7) : null;
-    if(!token) return res.status(401).json({ error: "Missing token" });
+function extractToken(req) {
+  const h =
+    req.headers["authorization"] ||
+    req.headers["Authorization"] ||
+    "";
 
-    const decoded = verifyJwt(token);
-    const userId = decoded && decoded.sub;
-    if(!userId) return res.status(401).json({ error: "Invalid token" });
+  if (h && h.startsWith("Bearer ")) {
+    return h.slice(7).trim();
+  }
 
-    const rows = await q("SELECT id, name, email, phone, avatar_url, is_verified, created_at FROM users WHERE id=?", [userId]);
-    if(rows.length === 0) return res.status(401).json({ error: "User not found" });
+  if (req.cookies && req.cookies.token) {
+    return req.cookies.token;
+  }
 
-    req.user = rows[0];
+  if (req.query && req.query.token) {
+    return req.query.token;
+  }
+
+  return null;
+}
+
+async function loadUser(userId) {
+  const rows = await q("SELECT * FROM users WHERE id = ?", [userId]);
+  return rows[0] || null;
+}
+
+async function requireAuth(req, res, next) {
+  try {
+    const token = extractToken(req);
+    if (!token) {
+      return res.status(401).json({ error: "Missing token" });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      console.error("JWT verify error:", err.message);
+      return res.status(401).json({ error: "Invalid token" });
+    }
+
+    const userId = payload.userId || payload.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Invalid payload" });
+    }
+
+    const user = await loadUser(userId);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    req.user = user;
     next();
-  }catch(e){
-    return res.status(401).json({ error: "Unauthorized", message: e.message });
+  } catch (err) {
+    console.error("AUTH middleware error:", err);
+    return res.status(401).json({ error: "Unauthorized" });
   }
 }
 
