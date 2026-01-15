@@ -16,22 +16,31 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-// CORS global (API)
-app.use(cors({
-  origin: process.env.CORS_ORIGIN === "*" ? "*" : (process.env.CORS_ORIGIN || "*"),
-  credentials: true
-}));
+// CORS global (API – JSON)
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN === "*" ? "*" : (process.env.CORS_ORIGIN || "*"),
+    credentials: true
+  })
+);
 
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-// 🔥 CORS LIBERADO PARA ARQUIVOS ESTÁTICOS (AVATARES)
+/**
+ * ✅ CORS LIBERADO MANUALMENTE PARA ARQUIVOS ESTÁTICOS (IMAGENS)
+ * ISSO RESOLVE DEFINITIVAMENTE O ERRO NotSameOrigin
+ */
 const uploadDir = process.env.UPLOAD_DIR || "uploads";
 app.use(
   "/uploads",
-  cors(), // <<< ISSO RESOLVE O PROBLEMA
-  express.static(path.join(process.cwd(), uploadDir))
+  express.static(path.join(process.cwd(), uploadDir), {
+    setHeaders: (res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET");
+    }
+  })
 );
 
 app.get("/health", async (req, res) => {
