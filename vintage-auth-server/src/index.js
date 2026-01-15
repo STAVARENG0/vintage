@@ -2,13 +2,15 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const path = require("path");
-const userRoutes = require("./routes/user");
 const rateLimit = require("express-rate-limit");
 const passport = require("passport");
+
 require("./auth/google.strategy");
 const { cfg } = require("./config");
 const { ping } = require("./db");
+
 const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/user");
 
 const app = express();
 
@@ -17,7 +19,6 @@ app.set("trust proxy", 1);
 app.use(helmet());
 app.use(express.json({ limit: "200kb" }));
 app.use(passport.initialize());
-
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
@@ -31,7 +32,7 @@ const allowedOrigins = [
   "https://vintage-clothes.ie",
   "https://www.vintage-clothes.ie",
   "http://localhost:3000",
-  "http://127.0.0.1:5500"
+  "http://127.0.0.1:5500",
 ];
 
 app.use(
@@ -45,17 +46,22 @@ app.use(
   })
 );
 
+// ✅ servir uploads (avatar)
+const uploadsRoot = process.env.UPLOAD_DIR || "uploads";
+app.use("/uploads", express.static(path.join(process.cwd(), uploadsRoot)));
 
 app.get("/health", async (req, res) => {
-  try{
+  try {
     await ping();
     res.json({ ok: true });
-  }catch(e){
+  } catch (e) {
     res.status(500).json({ ok: false, message: "DB connection failed" });
   }
 });
 
+// ✅ rotas
 app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 
 // Basic 404
 app.use((req, res) => res.status(404).json({ message: "Not found" }));
