@@ -42,9 +42,14 @@ async function requireAuth(req, res, next) {
       return res.status(401).json({ error: "Invalid token" });
     }
 
-    const userId = payload.userId || payload.id;
+    // ✅ AQUI ESTÁ A CORREÇÃO
+    const userId =
+      payload.sub ||
+      payload.userId ||
+      payload.id;
+
     if (!userId) {
-      return res.status(401).json({ error: "Invalid payload" });
+      return res.status(401).json({ error: "Invalid token payload" });
     }
 
     const user = await loadUser(userId);
