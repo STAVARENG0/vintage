@@ -539,7 +539,7 @@
               <a class="btn small" href="conta.html">👤 Account</a>
               <a class="btn small primary" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
-              <a class="btn small" href="cashback.html">⭐ Cashback</a>
+              
             </div>
 
 
@@ -683,6 +683,24 @@
       appliedValueReward: null,  // {id, type:'points'|'discount', amountEUR, pointsUsed, percent}
       appliedShippingReward: null, // {id, type:'shipping'}
     };
+
+    const PROFILE_KEY = 'vw_profile';
+
+    function loadProfileFromStorage(){
+      try{
+        const raw = localStorage.getItem(PROFILE_KEY);
+        if (!raw) return;
+        const p = JSON.parse(raw);
+        if (!p || typeof p !== 'object') return;
+        state.me = {
+          ...(state.me || {}),
+          name: p.name || (state.me && state.me.name) || '',
+          email: p.email || (state.me && state.me.email) || '',
+          phone: p.phone || (state.me && state.me.phone) || '',
+          avatar: p.avatar || (state.me && state.me.avatar) || null,
+        };
+      }catch(_){}
+    }
 
     // ====== Access token (accepts multiple keys to match the Store) ======
     const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
@@ -1296,7 +1314,7 @@ function persistCheckoutPayload(t){
       if ($('pointsBalanceCart')) $('pointsBalanceCart').textContent = String(pts);
       if ($('pointsCashCart')) $('pointsCashCart').textContent = fmtEUR(pointsToCash(pts));
 
-      // Discount (spin + level on the same option)
+      // Discount (spin + level) – gated by Bronze 100% or spin bonus
       const hasSpinDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
       const discountWrap = $('discountOption');
       const lbl = $('discountLabel');
@@ -1307,32 +1325,64 @@ function persistCheckoutPayload(t){
       const lvlMin = Number(lvl.discountMin || 0);
       const spinPercent = hasSpinDiscount ? Number(state.activeDiscount.percent || 0) : 0;
 
+      // Completed Bronze when spentMonth >= 300
+      const levelUnlocked = Number(state.spentMonth || 0) >= 300;
+
       if (discountWrap) discountWrap.style.display = '';
 
       let labelText = '—';
       let helperText = '';
+      if (exp) { stopCountdown(exp); }
 
-      if (hasSpinDiscount && spinPercent >= lvlPercent){
+      if (hasSpinDiscount && spinPercent > lvlPercent){
+        // Spin discount is stronger -> show spin with countdown (24h)
         labelText = `${spinPercent}% OFF (Spin)`;
-        helperText = lvlPercent
-          ? `Level ${lvl.label}: ${lvlPercent}% OFF from ${fmtEUR(lvlMin)}.`
-          : '';
-      } else if (lvlPercent){
+        if (exp){
+          const expiresAt = state.activeDiscount && state.activeDiscount.expiresAt;
+          if (expiresAt){
+            exp.textContent = 'Spin discount valid for:';
+            startCountdown(exp, expiresAt);
+          } else {
+            exp.textContent = 'Spin discount active.';
+          }
+        }
+        if (lvlPercent){
+          helperText = `Level ${lvl.label}: ${lvlPercent}% OFF from ${fmtEUR(lvlMin)} (permanent once level is unlocked).`;
+        }
+      } else if (levelUnlocked && lvlPercent){
+        // Level discount (permanent while at this level)
         labelText = `${lvlPercent}% OFF (Level ${lvl.label})`;
-        helperText = `Valid for carts from ${fmtEUR(lvlMin)}.`;
+        helperText = `Valid for carts from ${fmtEUR(lvlMin)}. Unlocks permanently after completing Bronze.`;
+        if (exp && !exp.textContent){
+          exp.textContent = helperText;
+        }
+      } else if (hasSpinDiscount){
+        // Only spin discount available (user not yet Bronze 100%)
+        labelText = `${spinPercent}% OFF (Spin)`;
+        if (exp){
+          const expiresAt = state.activeDiscount && state.activeDiscount.expiresAt;
+          if (expiresAt){
+            exp.textContent = 'Spin discount valid for:';
+            startCountdown(exp, expiresAt);
+          } else {
+            exp.textContent = 'Spin discount active.';
+          }
+        }
+      } else {
+        helperText = 'Complete Bronze level or win a discount on the wheel to unlock this option.';
+        if (exp) exp.textContent = helperText;
       }
 
       if (lbl) lbl.textContent = labelText;
-      if (exp) exp.textContent = helperText || 'No % discount unlocked yet.';
 
-      // Enable discount checkbox only if there is some % available
+      // Enable discount checkbox only if there is some % available and allowed
       if (chkDis){
-        const anyDiscount = hasSpinDiscount || !!lvlPercent;
+        const anyDiscount = (levelUnlocked && !!lvlPercent) || hasSpinDiscount;
         chkDis.disabled = !anyDiscount;
         if (!anyDiscount) chkDis.checked = false;
       }
 
-      // Shipping
+      // Shipping (from spin only, 24h)
       const hasShipping = isValidReward(state.activeShipping);
       const shipWrap = $('shippingOption');
       const shipLbl = $('shippingLabel');
@@ -1340,7 +1390,18 @@ function persistCheckoutPayload(t){
 
       if (shipWrap) shipWrap.style.display = '';
       if (shipLbl) shipLbl.textContent = 'Free shipping';
-      if (shipExp) shipExp.textContent = hasShipping ? 'No time limit.' : 'No free shipping yet.';
+
+      if (shipExp){
+        stopCountdown(shipExp);
+        if (hasShipping && state.activeShipping && state.activeShipping.expiresAt){
+          shipExp.textContent = 'Free shipping valid for:';
+          startCountdown(shipExp, state.activeShipping.expiresAt);
+        } else if (hasShipping){
+          shipExp.textContent = 'Free shipping active.';
+        } else {
+          shipExp.textContent = 'No free shipping yet. Win it on the wheel.';
+        }
+      }
 
       if (chkShip){
         if (!hasShipping) chkShip.checked = false;
@@ -1757,6 +1818,9 @@ function statusToStepIndex(status){
         phone: '',
         avatar: defaultAvatarDataUri(),
       };
+
+      // Load profile persisted from Account page, if any
+      loadProfileFromStorage();
 
       state.spentTotal = state.spentTotal || 0;
       state.spentMonth = state.spentMonth || 0;
