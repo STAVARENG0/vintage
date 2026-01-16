@@ -1373,7 +1373,9 @@ function statusToStepIndex(status){
 
     function clearCart(){
       if (!confirm('Clear the cart?')) return;
-      state.cart = [];
+      // Load the same cart used on the store/menu pages (shared via localStorage).
+      // This keeps items "transiting" between the store and the dashboard.
+      loadLocalCart();
       saveLocalCart();
       renderCart();
     }
