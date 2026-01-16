@@ -989,88 +989,15 @@ function searchProducts(){
   render(filtered);
 }
 /* Cart */
+const TOKEN_KEY='vw_token';
 const USER_ID_KEY='vw_user_id';
 const CART_GUEST_KEY='vw_cart';
-const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
-const API_ROOT = "https://clientes-0r5d.onrender.com";
-
-function getToken(){
-  for(const k of TOKEN_KEYS){
-    try{ const t = localStorage.getItem(k); if(t) return t; }catch(_){ }
-  }
-  // cookie fallback
-  try{
-    const m = document.cookie.match(/(?:^|;\s*)vw_token=([^;]+)/);
-    if(m) return decodeURIComponent(m[1]);
-  }catch(_){ }
-  return null;
-}
-
-function b64urlToJson(b64url){
-  const b64 = (b64url || "").replace(/-/g, "+").replace(/_/g, "/");
-  const pad = b64.length % 4 ? "=".repeat(4 - (b64.length % 4)) : "";
-  const json = atob(b64 + pad);
-  return JSON.parse(json);
-}
-
-function ensureUserIdFromToken(){
-  try{
-    const existing = localStorage.getItem(USER_ID_KEY);
-    if(existing) return existing;
-  }catch(_){ }
-
-  const token = getToken();
-  if(!token) return null;
-
-  // Try JWT payload first (fast path)
-  try{
-    const parts = String(token).split('.');
-    if(parts.length >= 2){
-      const payload = b64urlToJson(parts[1]);
-      const uid = payload?.id ?? payload?.user_id ?? payload?.userId ?? payload?.uid ?? payload?.sub;
-      if(uid){
-        try{ localStorage.setItem(USER_ID_KEY, String(uid)); }catch(_){ }
-        return String(uid);
-      }
-    }
-  }catch(_){ }
-
-  return null;
-}
-
-async function ensureUserId(){
-  const fromToken = ensureUserIdFromToken();
-  if(fromToken) return fromToken;
-  const token = getToken();
-  if(!token) return null;
-
-  // Fallback: ask backend for /user/me (best effort)
-  try{
-    const res = await fetch(API_ROOT + '/user/me', {
-      headers: { Authorization: 'Bearer ' + token }
-    });
-    if(!res.ok) return null;
-    const user = await res.json();
-    const uid = user?.id ?? user?.user_id ?? user?.userId;
-    if(uid){
-      try{ localStorage.setItem(USER_ID_KEY, String(uid)); }catch(_){ }
-      return String(uid);
-    }
-  }catch(_){ }
-
-  return null;
-}
 
 function getActiveCartKey(){
   try{
-    const tok = getToken();
-    if(tok){
-      // Make sure other pages can find the token in the canonical key
-      try{ if(!localStorage.getItem('vw_token')) localStorage.setItem('vw_token', tok); }catch(_){ }
-
-      const uid = localStorage.getItem(USER_ID_KEY) || ensureUserIdFromToken();
-      if(uid) return `vw_cart_u_${uid}`;
-    }
+    const uid = localStorage.getItem(USER_ID_KEY);
+    const tok = localStorage.getItem(TOKEN_KEY);
+    if(uid && tok) return `vw_cart_u_${uid}`;
   }catch(_){ }
   return CART_GUEST_KEY;
 }
@@ -1085,7 +1012,7 @@ function migrateGuestCartIfNeeded(){
       localStorage.setItem(key, JSON.stringify(guest));
       localStorage.removeItem(CART_GUEST_KEY);
     }
-  }catch(_){}
+  }catch(_){ }
 }
 
 function loadCart(){
@@ -1095,7 +1022,7 @@ function loadCart(){
 }
 function saveCart(c){
   const key = getActiveCartKey();
-  try{ localStorage.setItem(key, JSON.stringify(c)); }catch(_){}
+  try{ localStorage.setItem(key, JSON.stringify(c)); }catch(_){ }
 }
 let cart = loadCart();
 
@@ -1106,6 +1033,7 @@ window.addEventListener('storage', (e) => {
     updateCartIcon();
   }
 });
+
 function addToCart(productId){
   cart = loadCart();
   const product = currentList.find(p => String(p.id) === String(productId));
@@ -1125,11 +1053,13 @@ function addToCart(productId){
   saveCart(cart);
   updateCartIcon();
 }
+
 function updateCartIcon(){
   const countEl = document.getElementById('cartCount');
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   countEl.textContent = totalItems ? String(totalItems) : '';
 }
+
 function openCart(){
   cart = loadCart();
   const cartModal = document.getElementById('cartModal');
@@ -1138,7 +1068,7 @@ function openCart(){
   list.innerHTML = '';
   if(cart.length === 0){
     list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
-    if(totalEl){ if(totalEl){ totalEl.textContent = '€ 0.00'; } }
+    if(totalEl){ totalEl.textContent = '€ 0.00'; }
   } else {
     let total = 0;
     cart.forEach(item => {
@@ -1161,14 +1091,16 @@ function openCart(){
       `;
       list.appendChild(row);
     });
-    if(totalEl){ if(totalEl){ totalEl.textContent = fmtEUR(total); } }
+    if(totalEl){ totalEl.textContent = fmtEUR(total); }
   }
   cartModal.style.display = 'flex';
 }
+
 function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
+
 function changeQty(id, delta){
   cart = loadCart();
-  const item = cart.find(p => p.id === id);
+  const item = cart.find(p => String(p.id) === String(id));
   if(!item) return;
   const max = Number(item.stock) || 0;
   if (delta > 0){
@@ -1179,12 +1111,13 @@ function changeQty(id, delta){
     }
   }
   item.qty += delta;
-  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  if(item.qty <= 0){ cart = cart.filter(p => String(p.id) !== String(id)); }
   else if (max > 0 && item.qty > max){ item.qty = max; }
   saveCart(cart);
   openCart();
   updateCartIcon();
 }
+
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-action="add-to-cart"]');
   if(!btn) return;
@@ -1192,28 +1125,32 @@ document.addEventListener('click', function(e){
   const id = btn.dataset.id;
   if(id){ addToCart(id); }
 });
+
 document.addEventListener('DOMContentLoaded', () => {
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.querySelector('.cart-checkout');
-  function calcBaseTotal(){ return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0); }
+  function calcBaseTotal(){
+    const c = loadCart();
+    return c.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
+  }
   function updateDisplayTotal(){ if(totalEl){ totalEl.textContent = fmtEUR(calcBaseTotal()); } }
   const _openCart = openCart;
   openCart = function(){ _openCart(); updateDisplayTotal(); };
-  if(checkoutBtn){ checkoutBtn.addEventListener('click', () => {
-    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
-    const cartJSON = JSON.stringify(cart);
-    window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
-  });}
+  if(checkoutBtn){
+    checkoutBtn.addEventListener('click', () => {
+      localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
+      cart = loadCart();
+      const cartJSON = JSON.stringify(cart);
+      window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
+    });
+  }
 });
+
 (async function init(){
   currentList = await readPublic();
   currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
   render(currentList);
   document.getElementById('year').textContent = new Date().getFullYear();
-
-  // If the user is logged in, make sure we know the user id so we save to vw_cart_u_<id>
-  await ensureUserId();
-  cart = loadCart();
   updateCartIcon();
 })();
 </script>

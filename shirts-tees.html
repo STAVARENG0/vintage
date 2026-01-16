@@ -990,12 +990,54 @@ function searchProducts(){
   render(filtered);
 }
 /* Cart */
-const CART_KEY='vw_cart';
-function loadCart(){ try{ return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); }catch(e){ return []; } }
-function saveCart(c){ localStorage.setItem(CART_KEY, JSON.stringify(c)); }
+const TOKEN_KEY='vw_token';
+const USER_ID_KEY='vw_user_id';
+const CART_GUEST_KEY='vw_cart';
+
+function getActiveCartKey(){
+  try{
+    const uid = localStorage.getItem(USER_ID_KEY);
+    const tok = localStorage.getItem(TOKEN_KEY);
+    if(uid && tok) return `vw_cart_u_${uid}`;
+  }catch(_){ }
+  return CART_GUEST_KEY;
+}
+
+function migrateGuestCartIfNeeded(){
+  const key = getActiveCartKey();
+  if(key === CART_GUEST_KEY) return;
+  try{
+    const guest = JSON.parse(localStorage.getItem(CART_GUEST_KEY) || '[]');
+    const userCart = JSON.parse(localStorage.getItem(key) || '[]');
+    if((!Array.isArray(userCart) || userCart.length === 0) && Array.isArray(guest) && guest.length){
+      localStorage.setItem(key, JSON.stringify(guest));
+      localStorage.removeItem(CART_GUEST_KEY);
+    }
+  }catch(_){ }
+}
+
+function loadCart(){
+  migrateGuestCartIfNeeded();
+  const key = getActiveCartKey();
+  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
+}
+function saveCart(c){
+  const key = getActiveCartKey();
+  try{ localStorage.setItem(key, JSON.stringify(c)); }catch(_){ }
+}
 let cart = loadCart();
+
+window.addEventListener('storage', (e) => {
+  const k = getActiveCartKey();
+  if (e.key === k || e.key === CART_GUEST_KEY){
+    cart = loadCart();
+    updateCartIcon();
+  }
+});
+
 function addToCart(productId){
-const product = currentList.find(p => String(p.id) === String(productId));
+  cart = loadCart();
+  const product = currentList.find(p => String(p.id) === String(productId));
   if(!product) return;
   const max = Number(product.stock) || 0;
   if (max <= 0){ return; }
@@ -1012,19 +1054,22 @@ const product = currentList.find(p => String(p.id) === String(productId));
   saveCart(cart);
   updateCartIcon();
 }
+
 function updateCartIcon(){
   const countEl = document.getElementById('cartCount');
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   countEl.textContent = totalItems ? String(totalItems) : '';
 }
+
 function openCart(){
+  cart = loadCart();
   const cartModal = document.getElementById('cartModal');
   const list = document.getElementById('cartItems');
   const totalEl = document.getElementById('cartTotal');
   list.innerHTML = '';
   if(cart.length === 0){
     list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
-    if(totalEl){ if(totalEl){ totalEl.textContent = '€ 0.00'; } }
+    if(totalEl){ totalEl.textContent = '€ 0.00'; }
   } else {
     let total = 0;
     cart.forEach(item => {
@@ -1047,13 +1092,16 @@ function openCart(){
       `;
       list.appendChild(row);
     });
-    if(totalEl){ if(totalEl){ totalEl.textContent = fmtEUR(total); } }
+    if(totalEl){ totalEl.textContent = fmtEUR(total); }
   }
   cartModal.style.display = 'flex';
 }
+
 function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
+
 function changeQty(id, delta){
-const item = cart.find(p => p.id === id);
+  cart = loadCart();
+  const item = cart.find(p => String(p.id) === String(id));
   if(!item) return;
   const max = Number(item.stock) || 0;
   if (delta > 0){
@@ -1064,12 +1112,13 @@ const item = cart.find(p => p.id === id);
     }
   }
   item.qty += delta;
-  if(item.qty <= 0){ cart = cart.filter(p => p.id !== id); }
+  if(item.qty <= 0){ cart = cart.filter(p => String(p.id) !== String(id)); }
   else if (max > 0 && item.qty > max){ item.qty = max; }
   saveCart(cart);
   openCart();
   updateCartIcon();
 }
+
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-action="add-to-cart"]');
   if(!btn) return;
@@ -1077,19 +1126,27 @@ document.addEventListener('click', function(e){
   const id = btn.dataset.id;
   if(id){ addToCart(id); }
 });
+
 document.addEventListener('DOMContentLoaded', () => {
   const totalEl = document.getElementById('cartTotal');
   const checkoutBtn = document.querySelector('.cart-checkout');
-  function calcBaseTotal(){ return cart.reduce((sum, item) => sum + Number(item.price) * item.qty, 0); }
+  function calcBaseTotal(){
+    const c = loadCart();
+    return c.reduce((sum, item) => sum + Number(item.price) * item.qty, 0);
+  }
   function updateDisplayTotal(){ if(totalEl){ totalEl.textContent = fmtEUR(calcBaseTotal()); } }
   const _openCart = openCart;
   openCart = function(){ _openCart(); updateDisplayTotal(); };
-  if(checkoutBtn){ checkoutBtn.addEventListener('click', () => {
-    localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
-    const cartJSON = JSON.stringify(cart);
-    window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
-  });}
+  if(checkoutBtn){
+    checkoutBtn.addEventListener('click', () => {
+      localStorage.setItem('vw_shipping', JSON.stringify({ amount: 0, label: 'No shipping selected', ts: Date.now() }));
+      cart = loadCart();
+      const cartJSON = JSON.stringify(cart);
+      window.location.href = './checkout.html?cart=' + encodeURIComponent(cartJSON);
+    });
+  }
 });
+
 (async function init(){
   currentList = await readPublic();
   currentList = currentList.filter(p => (p.category || '').toLowerCase() === 'shirts & tees');
