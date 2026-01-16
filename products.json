@@ -22,5 +22,17 @@
     "gallery": [],
     "createdAt": 1768546692592,
     "status": "published"
+  },
+  {
+    "id": "1768546734402",
+    "title": "LASANHA",
+    "price": 1,
+    "description": "LASANHA DE CAENE",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768546734402/1768546740807_0_Gemini_Generated_Image_wq8trzwq8trzwq8t.png",
+    "gallery": [],
+    "createdAt": 1768546743192,
+    "status": "published"
   }
 ]
