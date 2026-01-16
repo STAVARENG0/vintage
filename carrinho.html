@@ -683,157 +683,69 @@
       appliedValueReward: null,  // {id, type:'points'|'discount', amountEUR, pointsUsed, percent}
       appliedShippingReward: null, // {id, type:'shipping'}
     };
+    // ====== Simple access guard (prototype) ======
+    const TOKEN_KEY = "vw_token";
 
-    // ====== Access token (accepts multiple keys to match the Store) ======
-    const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
-
-    function getToken(){
-      for (const k of TOKEN_KEYS){
-        try{
-          const t = localStorage.getItem(k);
-          if (t) return t;
-        }catch(_){ }
-      }
-      return null;
-    }
-
-    // ====== Local cart (shared with store/menu pages) ======
+    // ====== Local cart (shared with store pages) ======
     const USER_ID_KEY = "vw_user_id";
     const CART_GUEST_KEY = "vw_cart";
 
-    function getUserId(){
+    function getActiveCartKey(){
       try{
-        return (
-          (state?.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)) ||
-          localStorage.getItem(USER_ID_KEY) ||
-          localStorage.getItem('user_id') ||
-          localStorage.getItem('uid') ||
-          localStorage.getItem('userId') ||
-          ''
-        );
-      }catch(_){
-        return '';
-      }
+        const uid = (state?.me && (state.me.id ?? state.me.user_id ?? state.me.userId)) || localStorage.getItem(USER_ID_KEY);
+        if (uid) return `vw_cart_u_${uid}`;
+      }catch(_){}
+      return CART_GUEST_KEY;
     }
 
-    function readCartByKey(key){
+    function migrateGuestCartIfNeeded(){
+      const key = getActiveCartKey();
+      if (key === CART_GUEST_KEY) return;
       try{
-        const raw = localStorage.getItem(key);
-        if (!raw) return [];
-        const v = JSON.parse(raw);
-        return Array.isArray(v) ? v : [];
-      }catch(_){
-        return [];
-      }
-    }
-
-    function listUserCartKeys(){
-      const out = [];
-      try{
-        for (let i=0;i<localStorage.length;i++){
-          const k = localStorage.key(i);
-          if (k && String(k).startsWith('vw_cart_u_')) out.push(String(k));
+        const guest = JSON.parse(localStorage.getItem(CART_GUEST_KEY) || '[]');
+        const userCart = JSON.parse(localStorage.getItem(key) || '[]');
+        if((!Array.isArray(userCart) || userCart.length === 0) && Array.isArray(guest) && guest.length){
+          localStorage.setItem(key, JSON.stringify(guest));
+          localStorage.removeItem(CART_GUEST_KEY);
         }
-      }catch(_){ }
-      return out;
-    }
-
-    function chooseActiveCartKey(){
-      const guest = readCartByKey(CART_GUEST_KEY);
-      const tok = getToken();
-      const uidRaw = getUserId();
-      const uid = uidRaw ? String(uidRaw) : '';
-      const candidate = (uid && tok) ? `vw_cart_u_${uid}` : null;
-      const candCart = candidate ? readCartByKey(candidate) : [];
-
-      // 1) If a user cart exists with items, use it.
-      if (candidate && candCart.length) return candidate;
-
-      // 2) If guest cart has items, keep using it (so Store + Dashboard stay aligned).
-      // Also mirror into the user cart (without deleting the guest cart) when possible.
-      if (guest.length){
-        if (candidate && !candCart.length){
-          try{ localStorage.setItem(candidate, JSON.stringify(guest)); }catch(_){ }
-        }
-        return CART_GUEST_KEY;
-      }
-
-      // 3) If logged in but uid differs, pick any existing vw_cart_u_* with items.
-      if (tok){
-        for (const k of listUserCartKeys()){
-          const c = readCartByKey(k);
-          if (c.length) return k;
-        }
-      }
-
-      // 4) Fall back.
-      return candidate || CART_GUEST_KEY;
+      }catch(_){}
     }
 
     function loadLocalCart(){
-      const key = chooseActiveCartKey();
-      const arr = readCartByKey(key);
-
-      // Normalize, but keep ALL original fields (stock, category, etc.) so the Store doesn't break.
-      state.cart = (Array.isArray(arr) ? arr : []).map((it) => {
-        const obj = (it && typeof it === 'object') ? { ...it } : {};
-        const title = obj.title || obj.name || obj.product || 'Product';
-        const image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
-        const qty = Number(obj.qty ?? obj.quantity ?? 1);
-        const price = Number(obj.price ?? 0);
-        return {
-          ...obj,
-          id: obj.id ?? obj.product_id ?? obj.productId ?? title,
-          title,
-          image,
-          qty: (Number.isFinite(qty) && qty > 0) ? qty : 1,
-          price: Number.isFinite(price) ? price : 0,
-        };
-      });
+      migrateGuestCartIfNeeded();
+      const key = getActiveCartKey();
+      let arr = [];
+      try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(_){ arr = []; }
+      if (!Array.isArray(arr)) arr = [];
+      // normalize
+      state.cart = arr.map(it => ({
+        id: it.id,
+        title: it.title || it.name || it.product || "Product",
+        price: Number(it.price || 0),
+        qty: Number(it.qty || it.quantity || 1),
+        image: it.image || it.img || it.photo || null
+      }));
     }
 
     function saveLocalCart(){
-      const key = chooseActiveCartKey();
-      const normalized = (Array.isArray(state.cart) ? state.cart : []).map((it) => {
-        const obj = (it && typeof it === 'object') ? { ...it } : {};
-        obj.title = obj.title || obj.name || obj.product || 'Product';
-        obj.image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
-        obj.qty = Number(obj.qty ?? obj.quantity ?? 1);
-        if (!Number.isFinite(obj.qty) || obj.qty <= 0) obj.qty = 1;
-        obj.price = Number(obj.price ?? 0);
-        if (!Number.isFinite(obj.price)) obj.price = 0;
-        return obj;
-      });
-
-      try{ localStorage.setItem(key, JSON.stringify(normalized)); }catch(_){ }
-
-      // Mirror to guest cart too so Store and Dashboard never diverge during this phase.
-      if (key !== CART_GUEST_KEY){
-        try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
-      }
+      const key = getActiveCartKey();
+      try{ localStorage.setItem(key, JSON.stringify(state.cart || [])); }catch(_){}
     }
 
     window.addEventListener('storage', (e) => {
-      // Keep the cart synced if it changes in another tab/page.
-      try{
-        if (!e || !e.key) return;
-        const changed = String(e.key);
-        if (changed === CART_GUEST_KEY || changed.startsWith('vw_cart')){
-          loadLocalCart();
-          renderCart();
-        }
-      }catch(_){
-        // ignore
+      const k = getActiveCartKey();
+      if (e.key === k || e.key === CART_GUEST_KEY){
+        loadLocalCart();
+        renderCart();
       }
     });
-
-    // If the token is missing (not logged in), send to login.
-    // (We accept multiple keys so this matches the Store login behavior.)
     try{
-      if(!getToken()){
-        window.location.href = 'cliente-login-2.html';
+      if(!localStorage.getItem(TOKEN_KEY)){
+        window.location.href = "cliente-login-2.html";
       }
-    }catch(_){ }
+    }catch(_){}
+
+
     const fmtEUR = (n) => {
       const v = Number(n);
       if (Number.isNaN(v)) return '€ ' + (n ?? '');
@@ -845,7 +757,7 @@
 
     function determineLevel(spentMonth){
       const v = Number(spentMonth) || 0;
-      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
+      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:'You're at the top of the leaderboard.' };
       if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
       return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
     }
@@ -862,17 +774,6 @@
 
     function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
     function setHTML(id, t){ const el=$(id); if(el) el.innerHTML = t; }
-
-
-    // Basic HTML escaping to avoid breaking the layout when product titles contain special chars
-    function escHtml(v){
-      return String(v ?? '').replace(/[&<>"']/g, (c) => ({
-        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-      }[c]));
-    }
-    function escAttr(v){
-      return escHtml(v).replace(/`/g, '&#96;');
-    }
 
     function defaultAvatarDataUri(){
       const svg = encodeURIComponent(`
@@ -1041,35 +942,22 @@
         return;
       }
 
-      wrap.innerHTML = cart.map(it => {
-        const title = it.title || 'Item';
-        const qty = Number(it.qty || 1);
-        const price = Number(it.price || 0);
-        const lineTotal = price * qty;
-        const letter = String(title).slice(0,1).toUpperCase() || '•';
-        const img = it.image ? String(it.image) : '';
-
-        const thumb = img
-          ? `<img src="${escAttr(img)}" alt="${escAttr(title)}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
-          : `<div style="font-weight:900;color:#3b2206;">${escHtml(letter)}</div>`;
-
-        return `
-          <div class="card" style="padding:12px; margin:0;">
-            <div class="row" style="flex-wrap:nowrap; align-items:center;">
-              <div style="display:flex; gap:12px; align-items:center; min-width:0; flex:1;">
-                <div style="width:54px;height:54px;border-radius:16px;overflow:hidden;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;flex:0 0 auto;">
-                  ${thumb}
-                </div>
-                <div style="min-width:0;">
-                  <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(title)}</div>
-                  <div class="muted">${fmtEUR(price)} • qty: <strong>${qty}</strong> • <strong>${fmtEUR(lineTotal)}</strong></div>
-                </div>
+      wrap.innerHTML = cart.map(it => `
+        <div class="card" style="padding:12px; margin:0;">
+          <div class="row" style="flex-wrap:nowrap;">
+            <div style="display:flex; gap:10px; align-items:center; min-width: 0;">
+              <div style="width:44px;height:44px;border-radius:14px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-weight:900;color:#3b2206;">
+                ${String(it.title||'').slice(0,1).toUpperCase() || '•'}
               </div>
-              <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
+              <div style="min-width:0;">
+                <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${it.title || 'Item'}</div>
+                <div class="muted">${fmtEUR(it.price)} • qty: <strong>${it.qty || 1}</strong></div>
+              </div>
             </div>
+            <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
           </div>
-        `;
-      }).join('');
+        </div>
+      `).join('');
     }
 
     function fmtDateTime(dt){
@@ -1451,10 +1339,8 @@ function statusToStepIndex(status){
 
     function clearCart(){
       if (!confirm('Clear the cart?')) return;
-      // Clear the SAME cart used by the Store (so they stay in sync).
       state.cart = [];
-      try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
-      try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
+      saveLocalCart();
       renderCart();
     }
 
@@ -1502,7 +1388,7 @@ function statusToStepIndex(status){
         return;
       }
       if (n1 !== n2){
-        setText('passMsg', "Confirmation doesn't match.");
+        setText('passMsg', 'Confirmation doesn't match.');
         return;
       }
       $('passCurrent').value = '';
@@ -1539,7 +1425,7 @@ function statusToStepIndex(status){
     async function spin(){
       if (spinning) return;
       if (state.spinsLeftToday <= 0){
-        setText('spinResultMsg', "You've already used today's spins.");
+        setText('spinResultMsg', 'You've already used today's spins.');
         return;
       }
 
@@ -1609,8 +1495,7 @@ function statusToStepIndex(status){
 
       state.spinsLeftToday = 1;
 
-      // Cart comes from the Store localStorage (it must transit between pages).
-      loadLocalCart();
+      state.cart = [];
       state.orders = [];
       state.cashbackHistory = [];
       state.addresses = [];
@@ -1759,16 +1644,10 @@ function statusToStepIndex(status){
 <script>
 (function(){
   const API_ROOT = "https://clientes-0r5d.onrender.com";
-  const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
+  const TOKEN_KEY = "vw_token";
 
   function getToken(){
-    for (const k of TOKEN_KEYS){
-      try {
-        const t = localStorage.getItem(k);
-        if (t) return t;
-      } catch (_) {}
-    }
-    return null;
+    try { return localStorage.getItem(TOKEN_KEY); } catch (_) { return null; }
   }
 
   function requireTokenOrRedirect(){
