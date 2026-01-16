@@ -938,34 +938,86 @@
     async function prepareAvatarFile(file){
       if (!file) return null;
 
-      // Some Android devices pick WEBP/HEIF or huge images; normalize to JPEG and resize.
+      // Some gallery providers can hand back a placeholder with 0 bytes until the file is downloaded.
+      if ((file.size || 0) === 0) {
+        throw new Error("Couldn't read this photo (0 bytes). Try picking another photo, or download it to the device first.");
+      }
+
+      // Android/MIUI/Google Photos sometimes returns images with empty type or formats like WEBP/HEIC.
+      // We'll try to decode and normalize to JPEG, resizing + compressing to stay under a safe size.
+      const MAX_SIDE = 1024;
+      const TARGET_MAX_BYTES = 1_500_000; // ~1.5MB
+
+      // Helper: decode image (prefer createImageBitmap, fallback to <img>)
+      async function decodeToDrawable(f){
+        if (window.createImageBitmap) {
+          try { return await createImageBitmap(f); } catch (_) {}
+        }
+        return await loadImageFromFile(f);
+      }
+
+      // Helper: canvas -> Blob (fallback for old WebViews)
+      function canvasToBlob(canvas, type, quality){
+        return new Promise((resolve) => {
+          if (canvas.toBlob) {
+            canvas.toBlob((b) => resolve(b), type, quality);
+          } else {
+            try {
+              const dataUrl = canvas.toDataURL(type, quality);
+              const parts = dataUrl.split(',');
+              const mime = (parts[0].match(/data:(.*?);base64/)||[])[1] || type;
+              const bin = atob(parts[1]);
+              const arr = new Uint8Array(bin.length);
+              for (let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+              resolve(new Blob([arr], { type: mime }));
+            } catch (_) {
+              resolve(null);
+            }
+          }
+        });
+      }
+
+      // Decide if we *need* conversion (unknown type, non-jpeg/png, or big file)
       const okTypes = ["image/jpeg","image/png"];
-      const tooBig = (file.size || 0) > 2_500_000; // ~2.5MB
+      const tooBig = (file.size || 0) > TARGET_MAX_BYTES;
       const needsConvert = !okTypes.includes(file.type) || tooBig;
 
       if (!needsConvert) return file;
 
-      try{
-        const img = await loadImageFromFile(file);
-        const maxSide = 1024;
-        const scale = Math.min(1, maxSide / Math.max(img.width || 1, img.height || 1));
-        const w = Math.max(1, Math.round((img.width || 1) * scale));
-        const h = Math.max(1, Math.round((img.height || 1) * scale));
+      let drawable;
+      try {
+        drawable = await decodeToDrawable(file);
+      } catch (err) {
+        // If we can't decode (often HEIC/HEIF on some Android browsers), give a clear message.
+        throw new Error("This photo format isn't supported on this device/browser. Please pick a JPG/PNG (or take a new photo). HEIC/HEIF may fail on some Androids.");
+      }
 
-        const canvas = document.createElement("canvas");
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, w, h);
+      // Get dimensions
+      const width = drawable.width || drawable.naturalWidth || 1;
+      const height = drawable.height || drawable.naturalHeight || 1;
+      const scale = Math.min(1, MAX_SIDE / Math.max(width, height));
+      const w = Math.max(1, Math.round(width * scale));
+      const h = Math.max(1, Math.round(height * scale));
 
-        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
-        if (!blob) return file;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(drawable, 0, 0, w, h);
 
-        const base = (file.name || "avatar").replace(/\.[^.]+$/, "");
-        return new File([blob], base + ".jpg", { type: "image/jpeg" });
-      }catch(err){
-        console.warn("prepareAvatarFile failed, using original:", err);
+      // Try a few qualities until we get under target size
+      let blob = null;
+      for (const q of [0.9, 0.85, 0.8, 0.75, 0.7, 0.65]) {
+        blob = await canvasToBlob(canvas, 'image/jpeg', q);
+        if (blob && blob.size <= TARGET_MAX_BYTES) break;
+      }
+
+      if (!blob) {
+        // last resort: send original
         return file;
       }
+
+      const base = (file.name || 'avatar').replace(/\.[^.]+$/, '');
+      return new File([blob], base + '.jpg', { type: 'image/jpeg' });
     }
 
 
@@ -991,7 +1043,9 @@
         }
 
         if (!res.ok) {
-          throw new Error("Erro ao fazer upload");
+          let errText = '';
+          try { errText = await res.text(); } catch (_) {}
+          throw new Error(errText || ("HTTP " + res.status));
         }
 
         let data = null;
@@ -1004,13 +1058,14 @@
           currentUser = currentUser || {};
           currentUser.avatar_url = data.avatar_url;
         } else if (avatarImg) {
+          // Fallback preview
           avatarImg.src = URL.createObjectURL(file);
         }
 
         if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
       } catch (err) {
         console.error(err);
-        if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
+        if (msgEl) msgEl.textContent = "❌ Error uploading photo. " + (err && err.message ? err.message : "");
       }
     }
 
@@ -1053,9 +1108,21 @@
 
         setAvatarFileName(file.name || "photo");
 
-        // Normalize for Android (WEBP/large images) before upload
-        const prepared = await prepareAvatarFile(file);
-        await uploadAvatar(prepared);
+        // Immediate preview (helps confirm selection on Android)
+        const avatarImg = document.getElementById("avatar");
+        try {
+          if (avatarImg) avatarImg.src = URL.createObjectURL(file);
+        } catch (_) {}
+
+        try {
+          // Normalize for Android (WEBP/HEIC/large images) before upload
+          const prepared = await prepareAvatarFile(file);
+          await uploadAvatar(prepared);
+        } catch (err) {
+          console.error(err);
+          const msgEl = document.getElementById("accountMsg");
+          if (msgEl) msgEl.textContent = "❌ " + (err && err.message ? err.message : "Could not process this photo.");
+        }
 
         // Allow re-picking the same file
         try { input.value = ""; } catch (_) {}
