@@ -507,6 +507,16 @@
       padding-bottom: 6px;
     }
 
+    /* File input hidden (avoid display:none for Android file picker quirks) */
+    .file-input-hidden{
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
     .hidden{ display:none !important; }
   </style>
 </head>
@@ -539,7 +549,6 @@
               <a class="btn small primary" href="conta.html">👤 Account</a>
               <a class="btn small" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
-              <a class="btn small" href="cashback.html">⭐ Cashback</a>
             </div>
 
 
@@ -679,7 +688,7 @@
     </div>
   </div>
 
-  <input id="avatarFileInput" type="file" accept="image/*" style="position:fixed; left:-9999px; top:-9999px; opacity:0;" />
+  <input id="avatarFileInput" type="file" accept="image/*" capture="environment" class="file-input-hidden" />
   <script src="auth-guard.js"></script>
   <script>
     const API_ROOT = "https://clientes-0r5d.onrender.com";
@@ -727,37 +736,10 @@
       return data;
     }
 
-    function syncPointsUI(points){
-      const p = document.getElementById('pointsNow');
-      if (p) p.textContent = String(points ?? 0);
-      const cash = document.getElementById('cashValue');
-      if (cash){
-        const eur = (Number(points||0) * 0.5);
-        cash.textContent = '= € ' + eur.toFixed(2);
-      }
-    }
-
-    async function loadRewardsStatus(){
-      try{
-        const data = await apiJson('/rewards/status', { method:'GET' });
-        const points = Number(data?.points ?? data?.user?.points ?? 0);
-        syncPointsUI(points);
-        return data;
-      } catch(err){
-        console.warn('Rewards status not loaded:', err?.message || err);
-        return null;
-      }
-    }
-
+    // API helpers exposed (minimal)
     window.VW_API = window.VW_API || {};
     window.VW_API.root = API_ROOT;
     window.VW_API.apiJson = apiJson;
-    window.VW_API.loadRewardsStatus = loadRewardsStatus;
-    window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
-    window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
-    window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
-    window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
-    window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
 
 
     function defaultAvatarDataUri() {
@@ -936,52 +918,71 @@
       }
     }
 
+
+    // --- Avatar helpers (Android-friendly) ---
+    function setAvatarFileName(name){
+      const el = document.getElementById("avatarFileName");
+      if (el) el.innerHTML = `<strong>${name || "—"}</strong>`;
+    }
+
+    function loadImageFromFile(file){
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
+      });
+    }
+
+    async function prepareAvatarFile(file){
+      if (!file) return null;
+
+      // Some Android devices pick WEBP/HEIF or huge images; normalize to JPEG and resize.
+      const okTypes = ["image/jpeg","image/png"];
+      const tooBig = (file.size || 0) > 2_500_000; // ~2.5MB
+      const needsConvert = !okTypes.includes(file.type) || tooBig;
+
+      if (!needsConvert) return file;
+
+      try{
+        const img = await loadImageFromFile(file);
+        const maxSide = 1024;
+        const scale = Math.min(1, maxSide / Math.max(img.width || 1, img.height || 1));
+        const w = Math.max(1, Math.round((img.width || 1) * scale));
+        const h = Math.max(1, Math.round((img.height || 1) * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+        if (!blob) return file;
+
+        const base = (file.name || "avatar").replace(/\.[^.]+$/, "");
+        return new File([blob], base + ".jpg", { type: "image/jpeg" });
+      }catch(err){
+        console.warn("prepareAvatarFile failed, using original:", err);
+        return file;
+      }
+    }
+
+
     async function uploadAvatar(file) {
       const msgEl = document.getElementById("accountMsg");
       const avatarImg = document.getElementById("avatar");
       if (!file) return;
-
-      // Android/Google Photos às vezes entrega um arquivo "vazio" (size 0) se a foto não está baixada no aparelho.
-      if (msgEl) msgEl.textContent = "Preparing photo…";
-
-      // Validações básicas
-      const type = String(file.type || "");
-      if (type && !type.startsWith("image/")) {
-        if (msgEl) msgEl.textContent = "❌ Please choose an image file.";
-        return;
-      }
-
-      // Força o navegador a realmente ler o arquivo (melhora compatibilidade no Android/Google Photos)
-      let blob = null;
-      let filename = file.name || "avatar.jpg";
-      try {
-        const buf = await file.arrayBuffer();
-        if (!buf || buf.byteLength === 0) {
-          if (msgEl) msgEl.textContent = "❌ This photo looks unavailable on Android (0 bytes). In Google Photos, download it to the device first, or use the camera.";
-          return;
-        }
-        blob = new Blob([buf], { type: type || "image/jpeg" });
-      } catch (err) {
-        console.error('Failed reading file on device:', err);
-        if (msgEl) msgEl.textContent = "❌ Could not read this photo on Android. Try downloading it to the device or taking a new photo.";
-        return;
-      }
-
       if (msgEl) msgEl.textContent = "Uploading photo…";
 
       const fd = new FormData();
-      fd.append("avatar", blob, filename);
-
-      // Timeout para não ficar preso no "risquinho" eterno
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 45000);
+      fd.append("avatar", file);
 
       try {
         const res = await fetch(API_ROOT + "/user/me/avatar", {
           method: "POST",
           headers: authHeaders(),
-          body: fd,
-          signal: controller.signal
+          body: fd
         });
 
         if (res.status === 401 || res.status === 403) {
@@ -989,37 +990,27 @@
           return;
         }
 
-        const rawText = await res.text();
-        let data = null
-        try { data = rawText ? JSON.parse(rawText) : null; } catch (_) { data = { message: rawText }; }
-
         if (!res.ok) {
-          const msg = (data && (data.error || data.message)) || ("HTTP " + res.status);
-          throw new Error(msg);
+          throw new Error("Erro ao fazer upload");
         }
 
-        // Só atualiza a UI quando o backend devolver a URL.
+        let data = null;
+        try { data = await res.json(); } catch (_) {}
+
         if (data && data.avatar_url) {
-          const raw = String(data.avatar_url);
-          const full = raw.startsWith("http") ? raw : (API_ROOT + raw);
-          // Cache-bust para Android/Chrome não manter a imagem antiga.
-          const bust = (full.includes('?') ? '&' : '?') + 't=' + Date.now();
-          if (avatarImg) avatarImg.src = full + bust;
-
+          if (avatarImg) {
+            avatarImg.src = data.avatar_url.startsWith("http") ? data.avatar_url : (API_ROOT + data.avatar_url);
+          }
           currentUser = currentUser || {};
-          currentUser.avatar_url = raw;
-
-          if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
-        } else {
-          throw new Error("Upload ok but missing avatar_url");
+          currentUser.avatar_url = data.avatar_url;
+        } else if (avatarImg) {
+          avatarImg.src = URL.createObjectURL(file);
         }
+
+        if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
       } catch (err) {
         console.error(err);
-        // NÃO altera a foto atual em caso de erro.
-        const m = (err && err.name === 'AbortError') ? '❌ Upload timed out on Android. Try a smaller photo or use camera.' : ('❌ ' + (err?.message || 'Error uploading photo.'));
-        if (msgEl) msgEl.textContent = m;
-      } finally {
-        clearTimeout(t);
+        if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
       }
     }
 
@@ -1052,15 +1043,28 @@
       const pick = document.getElementById("btnPickAvatar");
       if (pick) pick.addEventListener("click", () => {
         const input = document.getElementById("avatarFileInput");
-        if (!input) return;
-        input.value = ""; // Android: garante disparo do change mesmo escolhendo a mesma foto
-        if (input.showPicker) { input.showPicker(); } else { input.click(); }
+        if (input) input.click();
       });
 
       const input = document.getElementById("avatarFileInput");
-      if (input) input.addEventListener("change", (e) => {
+      if (input) input.addEventListener("change", async (e) => {
         const file = e.target.files && e.target.files[0];
-        if (file) uploadAvatar(file);
+        if (!file) return;
+
+        setAvatarFileName(file.name || "photo");
+
+        // Normalize for Android (WEBP/large images) before upload
+        const prepared = await prepareAvatarFile(file);
+        await uploadAvatar(prepared);
+
+        // Allow re-picking the same file
+        try { input.value = ""; } catch (_) {}
+      });
+
+      const avatarWrap = document.querySelector(".avatar-wrap");
+      if (avatarWrap) avatarWrap.addEventListener("click", () => {
+        const input = document.getElementById("avatarFileInput");
+        if (input) input.click();
       });
 
       const btnAcc = document.getElementById("btnSaveAccount");
@@ -1094,7 +1098,6 @@
       attachEvents();
       await loadProfile();
       await loadSettings();
-      await loadRewardsStatus();
     }
 
     document.addEventListener("DOMContentLoaded", initPage);
