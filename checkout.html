@@ -124,7 +124,6 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
   <div class="summary">
     <div class="row"><span class="label">Products Subtotal</span><span class="value" id="subtotalValue">€ 0.00</span></div>
     <div class="row"><span class="label" id="shippingLabel">Shipping</span><span class="value" id="shippingValue">€ 0.00</span></div>
-    <div class="row hidden" id="rewardsRow"><span class="label" id="rewardsLabel">Rewards</span><span class="value" id="rewardsValue">- € 0.00</span></div>
     <div class="row total">Total: € <span id="totalAmount">0.00</span></div>
   </div>
 
@@ -140,15 +139,6 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 <script src="https://www.paypal.com/sdk/js?client-id=AfTde7kvXeDpijvvMVxUcfb7b-XIQgWMnQ8W2rcUd8PX5wyHAddc-Xf0_VG_wLUVl0dNw_9HXAzpo6dt&currency=EUR&intent=capture&commit=true&locale=en_IE&components=buttons,funding-eligibility&enable-funding=card"></script>
 <script>
 // ===== Keys used by the site =====
-const PARAMS = new URLSearchParams(window.location.search);
-const PANEL_USER_ID = PARAMS.get('user_id') || '';
-const FREE_SHIPPING_REWARD = (PARAMS.get('free_shipping') === '1' || PARAMS.get('free_shipping') === 'true');
-let PAY_SUBTOTAL_OVERRIDE = null;
-{
-  const v = Number(PARAMS.get('pay_subtotal'));
-  if (!Number.isNaN(v) && Number.isFinite(v) && v >= 0) PAY_SUBTOTAL_OVERRIDE = v;
-}
-
 const CART_KEYS_ORDER = ['vw_cart','hs_cart','cart','v_cart','cartItems','cart_items','cartData'];
 const FULFILMENT_KEY = 'fulfilment_mode'; // 'delivery' | 'pickup'
 
@@ -162,7 +152,7 @@ function readJSON(key){ try{ return JSON.parse(localStorage.getItem(key)); }catc
 function readCart(){
   // 1) URL param (?cart=...) has priority (index.html uses this)
   try{
-    const params = PARAMS;
+    const params = new URLSearchParams(window.location.search);
     const cartParam = params.get('cart');
     if(cartParam){
       const decoded = decodeURIComponent(cartParam);
@@ -195,10 +185,6 @@ function computeShipping(fulfilment){
   if(fulfilment === 'pickup'){
     return { amount: 0, label: 'Pickup (Free)' };
   }
-  // Coming from the dashboard with a Free Shipping reward
-  if(FREE_SHIPPING_REWARD){
-    return { amount: 0, label: 'Shipping (Free reward)' };
-  }
   return { amount: 9, label: 'Shipping (€9)' };
 }
 
@@ -216,23 +202,10 @@ function normalizeCart(arr){
 let cart = normalizeCart(readCart());
 let fulfilment = readFulfilment();
 
-// If free shipping reward is active, force Delivery and lock the option
-if(FREE_SHIPPING_REWARD){
-  fulfilment = 'delivery';
-  try{ localStorage.setItem(FULFILMENT_KEY, 'delivery'); }catch(_){ }
-}
-
-
 // Initialize UI radios and info panel
 function initFulfilmentUI(){
   const radioDelivery = document.getElementById('opt-delivery');
   const radioPickup = document.getElementById('opt-pickup');
-
-  // Lock fulfilment choice when Free Shipping reward is active
-  if(FREE_SHIPPING_REWARD){
-    if(radioDelivery) radioDelivery.disabled = true;
-    if(radioPickup) radioPickup.disabled = true;
-  }
   const info = document.getElementById('fulfilmentInfo');
 
   if(fulfilment === 'pickup'){ radioPickup.checked = true; }
@@ -275,25 +248,7 @@ function renderSummary(){
     }).join('');
   }
   const ship = computeShipping(fulfilment);
-
-  // Base subtotal can be overridden by the dashboard (already discounted / with points)
-  const baseSubtotal = (PAY_SUBTOTAL_OVERRIDE != null) ? PAY_SUBTOTAL_OVERRIDE : subtotal;
-
-  // UI: show original subtotal, then show rewards as a negative line
   document.getElementById('subtotalValue').textContent = fmtEUR(subtotal);
-
-  const rewardsDiff = Math.max(0, subtotal - baseSubtotal);
-  const rewardsRow = document.getElementById('rewardsRow');
-  const rewardsValue = document.getElementById('rewardsValue');
-  if(rewardsRow && rewardsValue){
-    if(rewardsDiff > 0.005){
-      rewardsRow.classList.remove('hidden');
-      rewardsValue.textContent = '- ' + fmtEUR(rewardsDiff);
-    }else{
-      rewardsRow.classList.add('hidden');
-    }
-  }
-
   document.getElementById('shippingLabel').textContent = ship.label || 'Shipping';
   document.getElementById('shippingValue').textContent = fmtEUR(ship.amount || 0);
 
@@ -302,7 +257,7 @@ function renderSummary(){
   const payBtn = document.getElementById('paypal-button-paypal');
   const cardBtn = document.getElementById('paypal-button-card');
   if(subtotal > 0){
-    effectiveTotal = Number(baseSubtotal || 0) + Number(ship.amount||0);
+    effectiveTotal = subtotal + Number(ship.amount||0);
     helper.classList.add('hidden');
     payBtn.classList.remove('hidden');
     cardBtn.classList.remove('hidden');
@@ -313,9 +268,8 @@ function renderSummary(){
     cardBtn.classList.add('hidden');
   }
   document.getElementById('totalAmount').textContent = effectiveTotal.toFixed(2);
-  return { subtotal, baseSubtotal: Number(baseSubtotal||0), shipping: Number(ship.amount||0), total: effectiveTotal };
+  return { subtotal, shipping: Number(ship.amount||0), total: effectiveTotal };
 }
-
 
 const state = renderSummary();
 initFulfilmentUI();
@@ -348,17 +302,14 @@ function commonConfig(){
           user_action: 'PAY_NOW',
           locale: 'en-IE'
         },
-        const pu = {
+        purchase_units: [{
           reference_id: String(cart[0].id),
           description: cart[0].title,
           amount: {
             currency_code: 'EUR',
             value: total.toFixed(2)
           }
-        };
-        if (PANEL_USER_ID) pu.custom_id = String(PANEL_USER_ID);
-
-        purchase_units: [pu]
+        }]
       });
     },
     onApprove: function(data, actions){
