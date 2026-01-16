@@ -941,17 +941,47 @@
       const avatarImg = document.getElementById("avatar");
       if (!file) return;
 
-      // Importante (Android): NÃO troca a foto na tela até o servidor confirmar.
+      // Android/Google Photos às vezes entrega um arquivo "vazio" (size 0) se a foto não está baixada no aparelho.
+      if (msgEl) msgEl.textContent = "Preparing photo…";
+
+      // Validações básicas
+      const type = String(file.type || "");
+      if (type && !type.startsWith("image/")) {
+        if (msgEl) msgEl.textContent = "❌ Please choose an image file.";
+        return;
+      }
+
+      // Força o navegador a realmente ler o arquivo (melhora compatibilidade no Android/Google Photos)
+      let blob = null;
+      let filename = file.name || "avatar.jpg";
+      try {
+        const buf = await file.arrayBuffer();
+        if (!buf || buf.byteLength === 0) {
+          if (msgEl) msgEl.textContent = "❌ This photo looks unavailable on Android (0 bytes). In Google Photos, download it to the device first, or use the camera.";
+          return;
+        }
+        blob = new Blob([buf], { type: type || "image/jpeg" });
+      } catch (err) {
+        console.error('Failed reading file on device:', err);
+        if (msgEl) msgEl.textContent = "❌ Could not read this photo on Android. Try downloading it to the device or taking a new photo.";
+        return;
+      }
+
       if (msgEl) msgEl.textContent = "Uploading photo…";
 
       const fd = new FormData();
-      fd.append("avatar", file);
+      fd.append("avatar", blob, filename);
+
+      // Timeout para não ficar preso no "risquinho" eterno
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 45000);
 
       try {
         const res = await fetch(API_ROOT + "/user/me/avatar", {
           method: "POST",
           headers: authHeaders(),
-          body: fd
+          body: fd,
+          signal: controller.signal
         });
 
         if (res.status === 401 || res.status === 403) {
@@ -959,12 +989,14 @@
           return;
         }
 
-        if (!res.ok) {
-          throw new Error("Erro ao fazer upload");
-        }
+        const rawText = await res.text();
+        let data = null
+        try { data = rawText ? JSON.parse(rawText) : null; } catch (_) { data = { message: rawText }; }
 
-        let data = null;
-        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) {
+          const msg = (data && (data.error || data.message)) || ("HTTP " + res.status);
+          throw new Error(msg);
+        }
 
         // Só atualiza a UI quando o backend devolver a URL.
         if (data && data.avatar_url) {
@@ -979,12 +1011,15 @@
 
           if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
         } else {
-          throw new Error("Upload sem avatar_url");
+          throw new Error("Upload ok but missing avatar_url");
         }
       } catch (err) {
         console.error(err);
         // NÃO altera a foto atual em caso de erro.
-        if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
+        const m = (err && err.name === 'AbortError') ? '❌ Upload timed out on Android. Try a smaller photo or use camera.' : ('❌ ' + (err?.message || 'Error uploading photo.'));
+        if (msgEl) msgEl.textContent = m;
+      } finally {
+        clearTimeout(t);
       }
     }
 
@@ -1019,7 +1054,7 @@
         const input = document.getElementById("avatarFileInput");
         if (!input) return;
         input.value = ""; // Android: garante disparo do change mesmo escolhendo a mesma foto
-        input.click();
+        if (input.showPicker) { input.showPicker(); } else { input.click(); }
       });
 
       const input = document.getElementById("avatarFileInput");
