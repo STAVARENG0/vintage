@@ -34,5 +34,17 @@
     "gallery": [],
     "createdAt": 1768546743192,
     "status": "published"
+  },
+  {
+    "id": "1768546775998",
+    "title": "ARROZ COM FEIJAO",
+    "price": 1,
+    "description": "COMIDA TIPICA",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768546775998/1768546778288_0_Gemini_Generated_Image_qhq7nyqhq7nyqhq7.png",
+    "gallery": [],
+    "createdAt": 1768546780944,
+    "status": "published"
   }
 ]
