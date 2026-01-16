@@ -644,6 +644,20 @@ $("registerModal").addEventListener("click", (e) => {
   if(e.target === $("registerModal")) closeModal();
 });
 
+
+
+// Auto-open "Create account" when coming from Sign up link (?open=register or #register)
+(function(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const open = (params.get("open") || "").toLowerCase();
+    if(open === "register" || window.location.hash === "#register"){
+      // small delay to ensure DOM is ready
+      setTimeout(() => { try{ openModal(); }catch(_){} }, 50);
+    }
+  }catch(_){}
+})();
+
 // ---------- Create account + verify ----------
 let lastRegister = null; // { mode: 'email'|'phone', name, contact, password }
 

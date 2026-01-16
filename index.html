@@ -120,6 +120,33 @@ footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
   transition: filter 0.2s; display:inline-block;
 }
 .admin-btn-modal a:hover { filter: brightness(1.1); }
+
+
+/* Customer account button (mirrors Admin button, left side) */
+.account-btn-modal{
+  position:absolute; top:12px; left:12px; z-index:100;
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.account-btn-modal a,
+.account-btn-modal button{
+  background: var(--accent); color:#fff; text-decoration:none; padding:4px 8px;
+  border-radius:6px; font-weight:600; font-size:11px; box-shadow:0 1px 4px rgba(0,0,0,0.1);
+  transition: filter 0.2s; display:inline-block; border:none; cursor:pointer;
+}
+.account-btn-modal a:hover,
+.account-btn-modal button:hover{ filter: brightness(1.1); }
+.account-btn-modal .secondary{
+  background: rgba(255,255,255,0.92);
+  color: #2b2723;
+  border: 1px solid rgba(0,0,0,0.10);
+}
+.account-btn-modal .hello{
+  background: rgba(255,255,255,0.92);
+  color: #2b2723;
+  border: 1px solid rgba(0,0,0,0.10);
+  cursor: default;
+}
+
 .oos-ribbon{
   position:absolute; top:10px; left:-40px; transform: rotate(-20deg);
   background: rgba(179,59,46,0.9); color:#fff; padding:10px 60px; font-weight:900;
@@ -809,6 +836,20 @@ background: transparent !important;
 <div class="wrap">
 <div class="card">
 <div class="admin-btn-modal"><a href="login.html">Admin</a></div>
+
+<div class="account-btn-modal" id="accountMenu">
+  <div id="guestMenu">
+    <a class="secondary" href="cliente-login-2.html?back=index.html">Log in</a>
+    <a href="cliente-login-2.html?open=register&back=index.html">Sign up</a>
+  </div>
+
+  <div id="authMenu" style="display:none;">
+    <span class="hello" id="helloUser">Hello, Ana 👋</span>
+    <a class="secondary" href="painel.html" id="accessPanelBtn">Access panel</a>
+    <button type="button" id="logoutBtn">Logout</button>
+  </div>
+</div>
+
 <header>
 <div class="brand"><svg aria-label="WELCOME" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">WELCOME</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1>
 <div aria-label="Redes sociais" class="social-buttons">
@@ -1475,6 +1516,94 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(step);
   }
   step();
+})();
+</script>
+
+
+<script>
+(function(){
+  // Matches the login page keys (cliente-login-2.html)
+  const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
+
+  function getToken(){
+    for (const k of TOKEN_KEYS){
+      try{
+        const t = localStorage.getItem(k);
+        if (t) return t;
+      }catch(_){}
+    }
+    return null;
+  }
+
+  function b64urlToJson(b64url){
+    // base64url -> base64
+    const b64 = (b64url || "").replace(/-/g, "+").replace(/_/g, "/");
+    const pad = b64.length % 4 ? "=".repeat(4 - (b64.length % 4)) : "";
+    const json = atob(b64 + pad);
+    return JSON.parse(json);
+  }
+
+  function guessNameFromToken(token){
+    // Default example name requested by you
+    let name = "Ana";
+    try{
+      const parts = String(token).split(".");
+      if (parts.length >= 2){
+        const payload = b64urlToJson(parts[1]);
+        name = payload.name || payload.fullName || payload.username || payload.user || payload.email || name;
+        if (String(name).includes("@")) name = String(name).split("@")[0];
+        // Keep only first name if it's long
+        if (String(name).trim().includes(" ")) name = String(name).trim().split(" ")[0];
+      }
+    }catch(_){}
+    return String(name || "Ana");
+  }
+
+  function setMenuAuthed(isAuthed, name){
+    const guest = document.getElementById("guestMenu");
+    const auth = document.getElementById("authMenu");
+    const hello = document.getElementById("helloUser");
+    if (!guest || !auth) return;
+
+    if (isAuthed){
+      guest.style.display = "none";
+      auth.style.display = "flex";
+      auth.style.gap = "8px";
+      auth.style.alignItems = "center";
+      auth.style.flexWrap = "wrap";
+      if (hello) hello.textContent = "Hello, " + (name || "Ana") + " 👋";
+    }else{
+      guest.style.display = "flex";
+      guest.style.gap = "8px";
+      guest.style.alignItems = "center";
+      guest.style.flexWrap = "wrap";
+      auth.style.display = "none";
+      if (hello) hello.textContent = "Hello, Ana 👋";
+    }
+  }
+
+  function wireLogout(){
+    const btn = document.getElementById("logoutBtn");
+    if (!btn) return;
+    btn.addEventListener("click", function(){
+      try{ TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); }catch(_){}
+      // Also clear the cookie used as fallback
+      try{ document.cookie = "vw_token=; Path=/; Max-Age=0; SameSite=Lax"; }catch(_){}
+      location.reload();
+    });
+  }
+
+  function init(){
+    const token = getToken();
+    if (token){
+      setMenuAuthed(true, guessNameFromToken(token));
+    }else{
+      setMenuAuthed(false, null);
+    }
+    wireLogout();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
 })();
 </script>
 
