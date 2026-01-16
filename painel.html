@@ -535,7 +535,7 @@
             <h1 class="hero-title">Customer Dashboard</h1>
 
 <!-- Nav buttons -->
-            <div class="nav" aria-label="Atalhos">
+            <div class="nav" aria-label="Shortcuts">
               <a class="btn small" href="conta.html">👤 Account</a>
               <a class="btn small" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
@@ -637,6 +637,8 @@
       cashbackHistory: [],
       addresses: [],
       avatarFile: null,
+      activeDiscount: null,
+      activeShipping: null,
     };
 
     const fmtEUR = (n) => {
@@ -700,6 +702,53 @@
     // ====== Irlanda (reset diário) + persistência (demo) ======
     const IRELAND_TZ = 'Europe/Dublin';
     const STORAGE_KEY = 'vwi_painel_v3_en';
+    const SHARED_REWARDS_KEY = 'vwi_rewards_state_v1';
+    const REWARD_TTL_MS = 24*60*60*1000; // 24 hours
+
+    function makeRewardExpiry(){
+      return new Date(Date.now() + REWARD_TTL_MS).toISOString();
+    }
+
+    function isRewardActive(r){
+      if (!r || !r.expiresAt) return false;
+      const t = new Date(r.expiresAt).getTime();
+      return !Number.isNaN(t) && t > Date.now();
+    }
+
+    function cleanExpiredRewards(){
+      if (state.activeDiscount && !isRewardActive(state.activeDiscount)) state.activeDiscount = null;
+      if (state.activeShipping && !isRewardActive(state.activeShipping)) state.activeShipping = null;
+    }
+
+    function loadSharedRewards(){
+      try{
+        const raw = localStorage.getItem(SHARED_REWARDS_KEY);
+        if (!raw) { cleanExpiredRewards(); return; }
+        const d = JSON.parse(raw) || {};
+        if (typeof d.points === 'number') state.points = d.points;
+        if (Array.isArray(d.cashbackHistory)) state.cashbackHistory = d.cashbackHistory;
+        if (d.activeDiscount) state.activeDiscount = d.activeDiscount;
+        if (d.activeShipping) state.activeShipping = d.activeShipping;
+        if (typeof d.spinsLeftToday === 'number') state.spinsLeftToday = d.spinsLeftToday;
+        if (typeof d.lastIrelandDate === 'string') state.lastIrelandDate = d.lastIrelandDate;
+      }catch(_){ }
+      cleanExpiredRewards();
+    }
+
+    function saveSharedRewards(){
+      try{
+        const existing = JSON.parse(localStorage.getItem(SHARED_REWARDS_KEY) || '{}') || {};
+        localStorage.setItem(SHARED_REWARDS_KEY, JSON.stringify({
+          ...existing,
+          points: state.points,
+          cashbackHistory: state.cashbackHistory,
+          activeDiscount: state.activeDiscount,
+          activeShipping: state.activeShipping,
+          spinsLeftToday: state.spinsLeftToday,
+          lastIrelandDate: state.lastIrelandDate,
+        }));
+      }catch(_){ }
+    }
 
     let resetTickInterval = null;
     let resetTimeout = null;
@@ -740,26 +789,40 @@
     }
 
     function loadPersisted(){
+      // Legacy page key (keeps daily spin reset for this page)
       try{
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
-        const data = JSON.parse(raw);
-        if (typeof data.points === 'number') state.points = data.points;
-        if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
-        if (typeof data.spinsLeftToday === 'number') state.spinsLeftToday = data.spinsLeftToday;
-        if (typeof data.lastIrelandDate === 'string') state.lastIrelandDate = data.lastIrelandDate;
+        if (raw){
+          const data = JSON.parse(raw) || {};
+          if (typeof data.points === 'number') state.points = data.points;
+          if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
+          if (typeof data.spinsLeftToday === 'number') state.spinsLeftToday = data.spinsLeftToday;
+          if (typeof data.lastIrelandDate === 'string') state.lastIrelandDate = data.lastIrelandDate;
+          if (data.activeDiscount) state.activeDiscount = data.activeDiscount;
+          if (data.activeShipping) state.activeShipping = data.activeShipping;
+        }
       } catch(_){ /* ignore */ }
+
+      // Shared key (Wheel -> Cart)
+      loadSharedRewards();
+      cleanExpiredRewards();
     }
 
     function savePersisted(){
+      cleanExpiredRewards();
       try{
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           points: state.points,
           cashbackHistory: state.cashbackHistory,
           spinsLeftToday: state.spinsLeftToday,
           lastIrelandDate: state.lastIrelandDate,
+          activeDiscount: state.activeDiscount,
+          activeShipping: state.activeShipping,
         }));
       } catch(_){ /* ignore */ }
+
+      // Also persist to shared key for the Cart/Checkout to read
+      saveSharedRewards();
     }
 
     function ensureDailyReset(){
@@ -1359,9 +1422,11 @@ async function spin(){
       state.points = Number(state.points||0) + pts;
       state.cashbackHistory.unshift({ date: dateKey, title:'Credit', delta:+pts, detail:'Wheel (+€20)' });
     } else if (winner.type === 'discount'){
-      state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:`${winner.value}% OFF (next purchase)` });
+      state.activeDiscount = { id: 'wheel_' + Date.now(), percent: Number(winner.value||0), expiresAt: makeRewardExpiry() };
+      state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:`${winner.value}% OFF (valid for 24h)` });
     } else if (winner.type === 'shipping'){
-      state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:'Free shipping (next purchase)' });
+      state.activeShipping = { id: 'wheel_' + Date.now(), expiresAt: makeRewardExpiry() };
+      state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:'Free shipping (valid for 24h)' });
     } else if (winner.type === 'extra_spin'){
       state.spinsLeftToday = Number(state.spinsLeftToday||0) + 1;
       state.cashbackHistory.unshift({ date: dateKey, title:'Bonus', delta:0, detail:'Wheel (Extra spin)' });
@@ -1385,7 +1450,7 @@ async function spin(){
             state.activeDiscount = {
               id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
               percent: Number(ad.percent ?? winner.value ?? 0),
-              expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+              expiresAt: ad.expiresAt || ad.expires_at || ad.expires || makeRewardExpiry(),
             };
           }
         }
@@ -1679,10 +1744,18 @@ async function spin(){
         state.activeDiscount = ad ? {
           id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
           percent: Number(ad.percent ?? ad.value ?? 0),
-          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || makeRewardExpiry(),
         } : null;
       }
 
+
+      const sh = data?.activeShipping || data?.active_shipping || null;
+      if (typeof state !== 'undefined'){
+        state.activeShipping = sh ? {
+          id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
+          expiresAt: sh.expiresAt || sh.expires_at || sh.expires || makeRewardExpiry(),
+        } : null;
+      }
       const ar = data?.appliedReward || data?.applied_redemption || data?.redemption || null;
       if (typeof state !== 'undefined' && ar){
         state.appliedReward = {
@@ -1697,6 +1770,8 @@ async function spin(){
       syncPointsUI(points);
       if (typeof renderAll === 'function') renderAll();
       if (typeof renderCart === 'function') renderCart();
+
+      try{ if (typeof savePersisted === 'function') savePersisted(); }catch(_){ }
 
       return data;
     } catch(err){

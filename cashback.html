@@ -575,7 +575,7 @@
 
         <!-- CASHBACK -->
         <section id="cashback">
-          <h2 class="section-title">History de Cashback</h2>
+          <h2 class="section-title">Cashback History</h2>
 
           <div class="grid">
             <div class="card">
@@ -585,7 +585,7 @@
               </div>
 
               <div class="muted" style="margin-top:10px; line-height:1.8;">
-                <strong>Como funciona:</strong><br/>
+                <strong>How it works:</strong><br/>
                 • For every <strong>€55</strong> spent you earn <strong>10 points</strong>.<br/>
                 • <strong>10 points = €5</strong>.<br/>
                 • You can use your points as a discount on your next purchase.
@@ -626,6 +626,8 @@
       cashbackHistory: [],
       addresses: [],
       avatarFile: null,
+      activeDiscount: null,
+      activeShipping: null,
     };
     // ====== Simple access guard (prototype) ======
     const TOKEN_KEY = "vw_token";
@@ -644,6 +646,47 @@
 
     const pointsToCash = (points) => Number(points || 0) * 0.5; // 10 pts = €5
     const calcPointsEarned = (totalSpent) => Math.floor((Number(totalSpent) || 0) / 55) * 10;
+
+    // ====== Shared rewards state (Wheel -> Cart -> Checkout) ======
+    const SHARED_REWARDS_KEY = 'vwi_rewards_state_v1';
+
+    function isValidReward(r){
+      if (!r || !r.expiresAt) return false;
+      const tt = new Date(r.expiresAt).getTime();
+      return !Number.isNaN(tt) && tt > Date.now();
+    }
+
+    function cleanExpiredRewards(){
+      if (state.activeDiscount && !isValidReward(state.activeDiscount)) state.activeDiscount = null;
+      if (state.activeShipping && !isValidReward(state.activeShipping)) state.activeShipping = null;
+    }
+
+    function loadSharedRewards(){
+      try{
+        const raw = localStorage.getItem(SHARED_REWARDS_KEY);
+        if (!raw) { cleanExpiredRewards(); return; }
+        const d = JSON.parse(raw) || {};
+        if (typeof d.points === 'number') state.points = d.points;
+        if (Array.isArray(d.cashbackHistory)) state.cashbackHistory = d.cashbackHistory;
+        if (d.activeDiscount) state.activeDiscount = d.activeDiscount;
+        if (d.activeShipping) state.activeShipping = d.activeShipping;
+      }catch(_){ }
+      cleanExpiredRewards();
+    }
+
+    function saveSharedRewards(){
+      try{
+        const existing = JSON.parse(localStorage.getItem(SHARED_REWARDS_KEY) || '{}') || {};
+        localStorage.setItem(SHARED_REWARDS_KEY, JSON.stringify({
+          ...existing,
+          points: state.points,
+          cashbackHistory: state.cashbackHistory,
+          activeDiscount: state.activeDiscount,
+          activeShipping: state.activeShipping,
+        }));
+      }catch(_){ }
+    }
+
 
     function determineLevel(spentMonth){
       const v = Number(spentMonth) || 0;
@@ -1042,6 +1085,8 @@
           state.spinsLeftToday += 1;
         }
 
+        saveSharedRewards();
+
         renderAll();
         setText('spinResultMsg', `🎁 ${prize.label}`);
       } finally {
@@ -1075,7 +1120,7 @@
 
     // ====== Dados demo ======
     function loadDemo(){
-      // Clean defaults (demo)
+      // Prototype defaults (keeps persisted rewards/history)
       state.me = {
         name: '',
         email: '',
@@ -1083,16 +1128,17 @@
         avatar: defaultAvatarDataUri(),
       };
 
-      state.spentTotal = 0;
-      state.spentMonth = 0;
-      state.points = 0;
+      state.spentTotal = state.spentTotal || 0;
+      state.spentMonth = state.spentMonth || 0;
+      state.spinsLeftToday = state.spinsLeftToday || 1;
 
-      state.spinsLeftToday = 1;
+      // Load shared rewards (points + wheel coupons + history)
+      loadSharedRewards();
 
-      state.cart = [];
-      state.orders = [];
-      state.cashbackHistory = [];
-      state.addresses = [];
+      state.cart = state.cart || [];
+      state.orders = state.orders || [];
+      state.addresses = state.addresses || [];
+      state.cashbackHistory = state.cashbackHistory || [];
 
       setText('accountMsg', '—');
       setText('addrMsg', '—');
@@ -1238,6 +1284,8 @@
   const API_ROOT = "https://clientes-0r5d.onrender.com";
   const TOKEN_KEY = "vw_token";
 
+  const makeRewardExpiry = () => new Date(Date.now() + 24*60*60*1000).toISOString();
+
   function getToken(){
     try { return localStorage.getItem(TOKEN_KEY); } catch (_) { return null; }
   }
@@ -1307,10 +1355,18 @@
         state.activeDiscount = ad ? {
           id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
           percent: Number(ad.percent ?? ad.value ?? 0),
-          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || makeRewardExpiry(),
         } : null;
       }
 
+
+      const sh = data?.activeShipping || data?.active_shipping || null;
+      if (typeof state !== 'undefined'){
+        state.activeShipping = sh ? {
+          id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
+          expiresAt: sh.expiresAt || sh.expires_at || sh.expires || makeRewardExpiry(),
+        } : null;
+      }
       const ar = data?.appliedReward || data?.applied_redemption || data?.redemption || null;
       if (typeof state !== 'undefined' && ar){
         state.appliedReward = {
@@ -1325,6 +1381,8 @@
       syncPointsUI(points);
       if (typeof renderAll === 'function') renderAll();
       if (typeof renderCart === 'function') renderCart();
+
+      try{ if (typeof saveSharedRewards === 'function') saveSharedRewards(); }catch(_){ }
 
       return data;
     } catch(err){
