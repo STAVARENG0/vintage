@@ -539,7 +539,7 @@
               <a class="btn small primary" href="conta.html">👤 Account</a>
               <a class="btn small" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
-              
+              <a class="btn small" href="cashback.html">⭐ Cashback</a>
             </div>
 
 
@@ -684,29 +684,6 @@
   <script>
     const API_ROOT = "https://clientes-0r5d.onrender.com";
     const TOKEN_KEY = "vw_token";
-
-    const PROFILE_KEY = "vw_profile";
-
-    function loadProfileFromStorage(){
-      try{
-        const raw = localStorage.getItem(PROFILE_KEY);
-        if (!raw) return null;
-        const p = JSON.parse(raw);
-        if (!p || typeof p !== 'object') return null;
-        return p;
-      }catch(_){
-        return null;
-      }
-    }
-
-    function saveProfileToStorage(profile){
-      if (!profile || typeof profile !== 'object') return;
-      try{
-        localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-      }catch(_){}
-    }
-
-
 
     function getToken() {
       try { return localStorage.getItem(TOKEN_KEY); } catch (_) { return null; }
@@ -857,26 +834,14 @@
         });
         if (!res.ok) {
           console.warn("Falha ao carregar /user/me:", res.status);
-        } else {
-          const data = await res.json();
-          currentUser = data || {};
+          return;
         }
+        const data = await res.json();
+        currentUser = data || {};
+        fillProfileUI();
       } catch (err) {
         console.error("Erro carregando /user/me", err);
       }
-
-      // Merge with locally saved profile (so edits persist visually even before hitting API)
-      const localProfile = loadProfileFromStorage();
-      if (localProfile) {
-        currentUser = Object.assign({}, currentUser || {}, {
-          name: localProfile.name ?? (currentUser && currentUser.name),
-          email: localProfile.email ?? (currentUser && currentUser.email),
-          phone: localProfile.phone ?? (currentUser && currentUser.phone),
-          avatar_url: localProfile.avatar ?? (currentUser && currentUser.avatar_url)
-        });
-      }
-
-      fillProfileUI();
     }
 
     async function loadSettings() {
@@ -903,7 +868,6 @@
       }
     }
 
-    async 
     async function saveAccount() {
       const name = document.getElementById("accName")?.value.trim() || "";
       const email = document.getElementById("accEmail")?.value.trim() || "";
@@ -928,17 +892,6 @@
         }
 
         currentUser = Object.assign({}, currentUser || {}, { name, email, phone });
-
-        // Persist a lightweight profile locally so other pages (painel, carrinho) can show name/email/avatar
-        const existing = loadProfileFromStorage() || {};
-        const profileToSave = Object.assign({}, existing, {
-          name,
-          email,
-          phone,
-          avatar: existing.avatar || (currentUser && currentUser.avatar_url) || null
-        });
-        saveProfileToStorage(profileToSave);
-
         fillProfileUI();
         if (msgEl) msgEl.textContent = "✅ Changes saved.";
       } catch (err) {
@@ -948,6 +901,14 @@
     }
 
     async function saveAddress() {
+      const msgEl = document.getElementById("addrMsg");
+      if (msgEl) msgEl.textContent = "Saving address…";
+
+      const data = {
+        eircode: document.getElementById("addrEircode")?.value.trim() || "",
+        county: document.getElementById("addrCounty")?.value.trim() || "",
+        city: document.getElementById("addrCity")?.value.trim() || "",
+        street: document.getElementById("addrStreet")?.value.trim() || "",
         country: "Ireland"
       };
 
@@ -975,7 +936,6 @@
       }
     }
 
-    
     async function uploadAvatar(file) {
       const msgEl = document.getElementById("accountMsg");
       const avatarImg = document.getElementById("avatar");
@@ -1004,26 +964,13 @@
         let data = null;
         try { data = await res.json(); } catch (_) {}
 
-        let avatarUrl = null;
         if (data && data.avatar_url) {
-          avatarUrl = data.avatar_url;
-          if (avatarImg) avatarImg.src = avatarUrl;
+          if (avatarImg) avatarImg.src = data.avatar_url;
           currentUser = currentUser || {};
-          currentUser.avatar_url = avatarUrl;
+          currentUser.avatar_url = data.avatar_url;
         } else if (avatarImg) {
-          avatarUrl = URL.createObjectURL(file);
-          avatarImg.src = avatarUrl;
+          avatarImg.src = URL.createObjectURL(file);
         }
-
-        // Persist avatar into local profile too
-        const existing = loadProfileFromStorage() || {};
-        const profileToSave = Object.assign({}, existing, {
-          name: existing.name || (currentUser && currentUser.name) || '',
-          email: existing.email || (currentUser && currentUser.email) || '',
-          phone: existing.phone || (currentUser && currentUser.phone) || '',
-          avatar: avatarUrl || existing.avatar || null
-        });
-        saveProfileToStorage(profileToSave);
 
         if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
       } catch (err) {
@@ -1033,7 +980,15 @@
     }
 
     function changePassword() {
-== p2) {
+      const p1 = document.getElementById("passNew")?.value || "";
+      const p2 = document.getElementById("passConfirm")?.value || "";
+      const msgEl = document.getElementById("passMsg");
+
+      if (!p1 || p1.length < 6) {
+        if (msgEl) msgEl.textContent = "Use at least 6 characters.";
+        return;
+      }
+      if (p1 !== p2) {
         if (msgEl) msgEl.textContent = "Confirmation doesn't match.";
         return;
       }

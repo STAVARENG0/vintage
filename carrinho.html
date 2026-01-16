@@ -539,7 +539,7 @@
               <a class="btn small" href="conta.html">👤 Account</a>
               <a class="btn small primary" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
-              
+              <a class="btn small" href="cashback.html">⭐ Cashback</a>
             </div>
 
 
@@ -614,11 +614,11 @@
                     </span>
                   </label>
 
-                  <div id="discountOption">
+                  <div id="discountOption" style="display:none;">
                     <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
                       <input type="checkbox" id="benefitDiscount" />
                       <span>
-                        <div style="font-weight:900;">Use % discount</div>
+                        <div style="font-weight:900;">Use % discount (valid for 24h)</div>
                         <div class="muted" style="margin-top:2px; font-weight:700;">
                           <span class="pill" id="discountPill"><strong id="discountLabel">—</strong></span>
                         </div>
@@ -627,7 +627,7 @@
                     </label>
                   </div>
 
-                  <div id="shippingOption">
+                  <div id="shippingOption" style="display:none;">
                     <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
                       <input type="checkbox" id="benefitShipping" />
                       <span>
@@ -683,24 +683,6 @@
       appliedValueReward: null,  // {id, type:'points'|'discount', amountEUR, pointsUsed, percent}
       appliedShippingReward: null, // {id, type:'shipping'}
     };
-
-    const PROFILE_KEY = 'vw_profile';
-
-    function loadProfileFromStorage(){
-      try{
-        const raw = localStorage.getItem(PROFILE_KEY);
-        if (!raw) return;
-        const p = JSON.parse(raw);
-        if (!p || typeof p !== 'object') return;
-        state.me = {
-          ...(state.me || {}),
-          name: p.name || (state.me && state.me.name) || '',
-          email: p.email || (state.me && state.me.email) || '',
-          phone: p.phone || (state.me && state.me.phone) || '',
-          avatar: p.avatar || (state.me && state.me.avatar) || null,
-        };
-      }catch(_){}
-    }
 
     // ====== Access token (accepts multiple keys to match the Store) ======
     const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
@@ -836,7 +818,7 @@
       try{
         if (!e || !e.key) return;
         const changed = String(e.key);
-        if (changed === CART_GUEST_KEY || changed.startsWith('vw_cart') || changed === SHARED_REWARDS_KEY || changed === CART_REWARDS_SELECTION_KEY){
+        if (changed === CART_GUEST_KEY || changed.startsWith('vw_cart')){
           loadLocalCart();
           renderCart();
         }
@@ -861,171 +843,22 @@
     const pointsToCash = (points) => Number(points || 0) * 0.5; // 10 pts = €5
     const calcPointsEarned = (totalSpent) => Math.floor((Number(totalSpent) || 0) / 55) * 10;
 
-
-    // ====== Shared rewards state (Wheel -> Cart -> Checkout) ======
-    const SHARED_REWARDS_KEY = 'vwi_rewards_state_v1';
-    const CART_REWARDS_SELECTION_KEY = 'vwi_cart_rewards_selection_v1';
-    const CHECKOUT_PAYLOAD_KEY = 'vw_checkout_payload';
-
-    function isValidReward(r){
-      if (!r) return false;
-      if (!r.expiresAt) return true;
-      const t = new Date(r.expiresAt).getTime();
-      return !Number.isNaN(t) && t > Date.now();
-    }
-
-    function cleanExpiredRewards(){
-      if (state.activeDiscount && !isValidReward(state.activeDiscount)) state.activeDiscount = null;
-      if (state.activeShipping && !isValidReward(state.activeShipping)) state.activeShipping = null;
-    }
-
-    function loadSharedRewards(){
-      try{
-        const raw = localStorage.getItem(SHARED_REWARDS_KEY);
-        if (!raw) { cleanExpiredRewards(); return; }
-        const data = JSON.parse(raw);
-        if (typeof data.points === 'number') state.points = data.points;
-        if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
-        if (data.activeDiscount) state.activeDiscount = data.activeDiscount;
-        if (data.activeShipping) state.activeShipping = data.activeShipping;
-      }catch(_){ }
-      cleanExpiredRewards();
-    }
-
-    function saveSharedRewards(){
-      try{
-        localStorage.setItem(SHARED_REWARDS_KEY, JSON.stringify({
-          points: state.points,
-          cashbackHistory: state.cashbackHistory,
-          activeDiscount: state.activeDiscount,
-          activeShipping: state.activeShipping,
-        }));
-      }catch(_){ }
-    }
-
-    function loadCartRewardSelection(){
-      try{
-        const raw = localStorage.getItem(CART_REWARDS_SELECTION_KEY);
-        if (!raw) return { usePoints:false, useDiscount:false, useShipping:false };
-        const s = JSON.parse(raw) || {};
-        return {
-          usePoints: !!s.usePoints,
-          useDiscount: !!s.useDiscount,
-          useShipping: !!s.useShipping,
-        };
-      }catch(_){
-        return { usePoints:false, useDiscount:false, useShipping:false };
-      }
-    }
-
-    function saveCartRewardSelection(sel){
-      try{
-        localStorage.setItem(CART_REWARDS_SELECTION_KEY, JSON.stringify({
-          usePoints: !!sel.usePoints,
-          useDiscount: !!sel.useDiscount,
-          useShipping: !!sel.useShipping,
-          updatedAt: new Date().toISOString(),
-        }));
-      }catch(_){ }
-    }
-
-    // Countdown helpers (HH:MM:SS only)
-    const __countdownTimers = {};
-
-    function formatHMS(ms){
-      const total = Math.max(0, Math.floor(ms/1000));
-      const h = Math.floor(total/3600);
-      const m = Math.floor((total%3600)/60);
-      const s = total%60;
-      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
-
-    function startCountdown(el, expiresAt){
-      if (!el) return;
-      const key = el.id || ('cd_' + Math.random().toString(16).slice(2));
-      if (__countdownTimers[key]) clearInterval(__countdownTimers[key]);
-
-      const tick = () => {
-        const ms = new Date(expiresAt).getTime() - Date.now();
-        el.textContent = formatHMS(ms);
-        if (ms <= 0){
-          clearInterval(__countdownTimers[key]);
-          delete __countdownTimers[key];
-        }
-      };
-
-      tick();
-      __countdownTimers[key] = setInterval(tick, 1000);
-    }
-
-    function stopCountdown(el){
-      if (!el || !el.id) return;
-      const key = el.id;
-      if (__countdownTimers[key]){
-        clearInterval(__countdownTimers[key]);
-        delete __countdownTimers[key];
-      }
-    }
-
-    
     function determineLevel(spentMonth){
       const v = Number(spentMonth) || 0;
-
-      // Bronze: 0–299 / Silver: 300–699 / Gold: 700+
-      if (v >= 700){
-        return {
-          key: 'GOLD',
-          label: 'Gold',
-          dot: 'var(--gold2)',
-          fill: ['rgba(212,175,55,.95)','rgba(240,180,59,.95)'],
-          spinsPerDay: 5,
-          discountPercent: 30,
-          discountMin: 200,
-          hint: 'Gold: 5 spins/day • 30% OFF from €200.'
-        };
-      }
-
-      if (v >= 300){
-        return {
-          key: 'SILVER',
-          label: 'Silver',
-          dot: 'var(--silver)',
-          fill: ['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
-          spinsPerDay: 3,
-          discountPercent: 20,
-          discountMin: 150,
-          hint: 'Silver: 3 spins/day • 20% OFF from €150.'
-        };
-      }
-
-      return {
-        key: 'BRONZE',
-        label: 'Bronze',
-        dot: 'var(--bronze)',
-        fill: ['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
-        spinsPerDay: 1,
-        discountPercent: 10,
-        discountMin: 120,
-        hint: 'Bronze: 1 spin/day • 10% OFF from €120.'
-      };
+      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
+      if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
+      return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
     }
 
     function levelProgress(spentMonth){
       const v = Number(spentMonth) || 0;
-      // Bronze: 0–300, Silver: 300–700, Gold: 700–1000
-      if (v < 300){
-        return { pct: (v / 300) * 100, text: `€${v.toFixed(0)} this month` };
-      }
-      if (v < 700){
-        return { pct: ((v - 300) / (700 - 300)) * 100, text: `€${v.toFixed(0)} this month` };
-      }
-      if (v < 1000){
-        return { pct: ((v - 700) / (1000 - 700)) * 100, text: `€${v.toFixed(0)} this month` };
-      }
+      // Bronze: 0-300, Silver: 300-800, Gold: >=800
+      if (v < 300) return { pct: (v/300)*100, text: `€${v.toFixed(0)} this month` };
+      if (v < 800) return { pct: ((v-300)/(800-300))*100, text: `€${v.toFixed(0)} this month` };
       return { pct: 100, text: `€${v.toFixed(0)} this month` };
     }
 
-function $(id){ return document.getElementById(id); }
+    function $(id){ return document.getElementById(id); }
 
     function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
     function setHTML(id, t){ const el=$(id); if(el) el.innerHTML = t; }
@@ -1155,114 +988,48 @@ function $(id){ return document.getElementById(id); }
       `).join('');
     }
 
-    
-    function computeCartTotals(){
-      const cart = Array.isArray(state.cart) ? state.cart : [];
-      const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
-
-      cleanExpiredRewards();
-
-      const chkPts = $('benefitPoints');
-      const chkDis = $('benefitDiscount');
-      const chkShip = $('benefitShipping');
-
-      const selPts = !!(chkPts && chkPts.checked);
-      const selDis = !!(chkDis && chkDis.checked);
-      const selShip = !!(chkShip && chkShip.checked);
-
-      const hasSpinDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
-      const hasShipping = isValidReward(state.activeShipping);
-
-      const lvl = determineLevel(state.spentMonth);
-      const lvlPercent = Number(lvl.discountPercent || 0);
-      const lvlMin = Number(lvl.discountMin || 0);
-
-      const levelEligible = subtotal >= lvlMin && lvlPercent > 0;
-      const spinPercent = hasSpinDiscount ? Number(state.activeDiscount.percent || 0) : 0;
-
-      // Points always converted fully if selected
-      const pointsAmount = (selPts && Number(state.points||0) > 0) ? pointsToCash(state.points) : 0;
-
-      // Decide which % applies when using "% discount":
-      // - if cart >= level minimum, level discount is available
-      // - spin discount (if any) can override if it is higher
-      let discountPercent = 0;
-      if (selDis){
-        const levelP = levelEligible ? lvlPercent : 0;
-        discountPercent = Math.max(levelP, spinPercent);
-      }
-
-      const discountAmount = subtotal * (discountPercent / 100);
-      const freeShipping = (selShip && hasShipping);
-
-      const total = Math.max(0, subtotal - pointsAmount - discountAmount);
-
-      return {
-        cart,
-        subtotal,
-        pointsAmount,
-        discountAmount,
-        total,
-        freeShipping,
-        pointsUsed: (selPts && Number(state.points||0) > 0) ? Number(state.points||0) : 0,
-        discountPercent,
-      };
-    }
-
-function persistCheckoutPayload(t){
-      try{
-        const uid = (
-          state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)
-        ) || localStorage.getItem('vw_user_id') || '';
-
-        const compact = (Array.isArray(t.cart) ? t.cart : []).map(it => ({
-          id: String(it.id),
-          title: it.title || 'Product',
-          price: Number(it.price || 0),
-          qty: Number(it.qty || 1),
-        }));
-
-        localStorage.setItem(CHECKOUT_PAYLOAD_KEY, JSON.stringify({
-          user_id: uid ? String(uid) : null,
-          cart: compact,
-          pay_subtotal: Number(t.total || 0),
-          free_shipping: !!t.freeShipping,
-          points_used: Number(t.pointsUsed || 0),
-          discount_percent: Number(t.discountPercent || 0),
-          updatedAt: new Date().toISOString(),
-        }));
-      }catch(_){ }
-    }
-
     function renderCart(){
       const cart = Array.isArray(state.cart) ? state.cart : [];
       const totalItems = cart.reduce((s, it) => s + Number(it.qty || 1), 0);
+      const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
 
-      const totals = computeCartTotals();
+      // apply value benefit (points OR % discount)
+      const ar = state.appliedValueReward;
+      let discountAmount = 0;
+      let pointsAmount = 0;
+      if (ar && ar.type === 'discount'){
+        const pct = Number(ar.percent || 0);
+        discountAmount = subtotal * (pct/100);
+      } else if (ar && ar.type === 'points'){
+        pointsAmount = Number(ar.amountEUR || 0);
+      }
+
+      const total = Math.max(0, subtotal - discountAmount - pointsAmount);
 
       setHTML('cartCountTag', `<strong>${totalItems}</strong> items`);
-      setHTML('cartTotalTag', `<strong>${fmtEUR(totals.total)}</strong>`);
+      setHTML('cartTotalTag', `<strong>${fmtEUR(total)}</strong>`);
 
       // breakdown
       const bd = $('totalsBreakdown');
       if (bd){
-        let html = `<div>Subtotal: <strong>${fmtEUR(totals.subtotal)}</strong></div>`;
-        if (totals.discountAmount > 0){
-          html += `<div>Discount: <strong>- ${fmtEUR(totals.discountAmount)}</strong> (${totals.discountPercent}%)</div>`;
+        let html = `<div>Subtotal: <strong>${fmtEUR(subtotal)}</strong></div>`;
+        if (discountAmount > 0){
+          html += `<div>Discount: <strong>- ${fmtEUR(discountAmount)}</strong> (${Number(ar?.percent||0)}%)</div>`;
         }
-        if (totals.pointsAmount > 0){
-          html += `<div>Points: <strong>- ${fmtEUR(totals.pointsAmount)}</strong> (${totals.pointsUsed} pts)</div>`;
+        if (pointsAmount > 0){
+          html += `<div>Points: <strong>- ${fmtEUR(pointsAmount)}</strong> (${Number(ar?.pointsUsed||0)} pts)</div>`;
         }
 
-        html += totals.freeShipping
-          ? `<div>Shipping: <strong>FREE ✅</strong></div>`
-          : `<div>Shipping: <strong>calculated at checkout</strong></div>`;
+        const ship = state.appliedShippingReward;
+        if (ship && ship.id){
+          html += `<div>Shipping: <strong>FREE ✅</strong></div>`;
+        } else {
+          html += `<div>Shipping: <strong>calculated at checkout</strong></div>`;
+        }
 
-        html += `<div style="margin-top:6px;">Total: <strong>${fmtEUR(totals.total)}</strong></div>`;
+        html += `<div style="margin-top:6px;">Total: <strong>${fmtEUR(total)}</strong></div>`;
         bd.innerHTML = html;
       }
-
-      persistCheckoutPayload(totals);
 
       renderRewardsBox && renderRewardsBox();
 
@@ -1295,255 +1062,272 @@ function persistCheckoutPayload(t){
                 </div>
                 <div style="min-width:0;">
                   <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(title)}</div>
-                  <div class="muted">${fmtEUR(price)}
+                  <div class="muted">${fmtEUR(price)} • qty: <strong>${qty}</strong> • <strong>${fmtEUR(lineTotal)}</strong></div>
+                </div>
+              </div>
+              <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function fmtDateTime(dt){
+      if (!dt) return '';
+      try{
+        const d = new Date(dt);
+        if (Number.isNaN(d.getTime())) return String(dt);
+        return d.toLocaleString('en-IE', { dateStyle:'short', timeStyle:'short' });
+      } catch(_){
+        return String(dt);
+      }
+    }
+
     function renderRewardsBox(){
-      loadSharedRewards();
-
-      // Restore saved selection
-      const savedSel = loadCartRewardSelection();
-      const chkPts = $('benefitPoints');
-      const chkDis = $('benefitDiscount');
-      const chkShip = $('benefitShipping');
-
-      if (chkPts) chkPts.checked = !!savedSel.usePoints;
-      if (chkDis) chkDis.checked = !!savedSel.useDiscount;
-      if (chkShip) chkShip.checked = !!savedSel.useShipping;
-
-      // Points
+      // Points (always available)
       const pts = Number(state.points || 0);
-      if ($('pointsBalanceCart')) $('pointsBalanceCart').textContent = String(pts);
-      if ($('pointsCashCart')) $('pointsCashCart').textContent = fmtEUR(pointsToCash(pts));
+      const elPts = $('pointsBalanceCart');
+      if (elPts) elPts.textContent = String(pts);
+      const elPtsCash = $('pointsCashCart');
+      if (elPtsCash) elPtsCash.textContent = fmtEUR(pointsToCash(pts));
 
-      // Discount (spin + level) – gated by Bronze 100% or spin bonus
-      const hasSpinDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
+      // Active % discount (only visible if available)
+      const d = state.activeDiscount;
       const discountWrap = $('discountOption');
       const lbl = $('discountLabel');
       const exp = $('discountExpires');
+      const chkDis = $('benefitDiscount');
 
-      const lvl = determineLevel(state.spentMonth);
-      const lvlPercent = Number(lvl.discountPercent || 0);
-      const lvlMin = Number(lvl.discountMin || 0);
-      const spinPercent = hasSpinDiscount ? Number(state.activeDiscount.percent || 0) : 0;
-
-      // Completed Bronze when spentMonth >= 300
-      const levelUnlocked = Number(state.spentMonth || 0) >= 300;
-
-      if (discountWrap) discountWrap.style.display = '';
-
-      let labelText = '—';
-      let helperText = '';
-      if (exp) { stopCountdown(exp); }
-
-      if (hasSpinDiscount && spinPercent > lvlPercent){
-        // Spin discount is stronger -> show spin with countdown (24h)
-        labelText = `${spinPercent}% OFF (Spin)`;
-        if (exp){
-          const expiresAt = state.activeDiscount && state.activeDiscount.expiresAt;
-          if (expiresAt){
-            exp.textContent = 'Spin discount valid for:';
-            startCountdown(exp, expiresAt);
-          } else {
-            exp.textContent = 'Spin discount active.';
-          }
-        }
-        if (lvlPercent){
-          helperText = `Level ${lvl.label}: ${lvlPercent}% OFF from ${fmtEUR(lvlMin)} (permanent once level is unlocked).`;
-        }
-      } else if (levelUnlocked && lvlPercent){
-        // Level discount (permanent while at this level)
-        labelText = `${lvlPercent}% OFF (Level ${lvl.label})`;
-        helperText = `Valid for carts from ${fmtEUR(lvlMin)}. Unlocks permanently after completing Bronze.`;
-        if (exp && !exp.textContent){
-          exp.textContent = helperText;
-        }
-      } else if (hasSpinDiscount){
-        // Only spin discount available (user not yet Bronze 100%)
-        labelText = `${spinPercent}% OFF (Spin)`;
-        if (exp){
-          const expiresAt = state.activeDiscount && state.activeDiscount.expiresAt;
-          if (expiresAt){
-            exp.textContent = 'Spin discount valid for:';
-            startCountdown(exp, expiresAt);
-          } else {
-            exp.textContent = 'Spin discount active.';
-          }
-        }
-      } else {
-        helperText = 'Complete Bronze level or win a discount on the wheel to unlock this option.';
-        if (exp) exp.textContent = helperText;
+      let hasDiscount = false;
+      let discountPct = 0;
+      if (d && Number(d.percent || 0) > 0 && d.expiresAt){
+        const expMs = new Date(d.expiresAt).getTime();
+        hasDiscount = !Number.isNaN(expMs) && expMs > Date.now();
+        discountPct = Number(d.percent || 0);
       }
 
-      if (lbl) lbl.textContent = labelText;
-
-      // Enable discount checkbox only if there is some % available and allowed
-      if (chkDis){
-        const anyDiscount = (levelUnlocked && !!lvlPercent) || hasSpinDiscount;
-        chkDis.disabled = !anyDiscount;
-        if (!anyDiscount) chkDis.checked = false;
+      if (discountWrap){
+        discountWrap.style.display = hasDiscount ? '' : 'none';
+      }
+      if (lbl) lbl.textContent = hasDiscount ? `${discountPct}% OFF` : '—';
+      if (exp) exp.textContent = hasDiscount ? `Valid until: ${fmtDateTime(d.expiresAt)}` : '';
+      if (chkDis && !hasDiscount){
+        chkDis.checked = false;
       }
 
-      // Shipping (from spin only, 24h)
-      const hasShipping = isValidReward(state.activeShipping);
+      // Active free shipping (only visible if available)
+      const s = state.activeShipping;
       const shipWrap = $('shippingOption');
       const shipLbl = $('shippingLabel');
       const shipExp = $('shippingExpires');
+      const chkShip = $('benefitShipping');
 
-      if (shipWrap) shipWrap.style.display = '';
-      if (shipLbl) shipLbl.textContent = 'Free shipping';
-
-      if (shipExp){
-        stopCountdown(shipExp);
-        if (hasShipping && state.activeShipping && state.activeShipping.expiresAt){
-          shipExp.textContent = 'Free shipping valid for:';
-          startCountdown(shipExp, state.activeShipping.expiresAt);
-        } else if (hasShipping){
-          shipExp.textContent = 'Free shipping active.';
+      let hasShipping = false;
+      if (s){
+        if (s.expiresAt){
+          const expMs = new Date(s.expiresAt).getTime();
+          hasShipping = !Number.isNaN(expMs) && expMs > Date.now();
         } else {
-          shipExp.textContent = 'No free shipping yet. Win it on the wheel.';
+          hasShipping = true;
         }
       }
 
-      if (chkShip){
-        if (!hasShipping) chkShip.checked = false;
-        chkShip.disabled = !hasShipping;
+      if (shipWrap){
+        shipWrap.style.display = hasShipping ? '' : 'none';
+      }
+      if (shipLbl) shipLbl.textContent = hasShipping ? 'Free shipping' : 'Free shipping';
+      if (shipExp) shipExp.textContent = hasShipping && s?.expiresAt ? `Valid until: ${fmtDateTime(s.expiresAt)}` : '';
+      if (chkShip && !hasShipping){
+        chkShip.checked = false;
       }
 
-      // Points checkbox
-      if (chkPts){
-        if (pts <= 0) chkPts.checked = false;
-        chkPts.disabled = pts <= 0;
+      // Applied state
+      const main = state.appliedValueReward;   // points OR discount
+      const ship = state.appliedShippingReward; // free shipping
+      const mainLocked = !!(main && main.id);
+      const shipLocked = !!(ship && ship.id);
+
+      const chkPts = $('benefitPoints');
+
+      // Disable rules
+      if (chkPts) chkPts.disabled = mainLocked || pts <= 0;
+      if (chkDis) chkDis.disabled = mainLocked || !hasDiscount;
+      if (chkShip) chkShip.disabled = shipLocked || !hasShipping;
+
+      // Sync checks with applied
+      if (mainLocked){
+        if (chkPts) chkPts.checked = main.type === 'points';
+        if (chkDis) chkDis.checked = main.type === 'discount';
+      }
+      if (shipLocked && chkShip){
+        chkShip.checked = true;
       }
 
-      // Mutual exclusion: points vs discount
-      if (chkPts){
+      // Mutual exclusion: points vs discount (but shipping is independent)
+      if (chkPts && !mainLocked){
         chkPts.onchange = () => {
           if (chkPts.checked && chkDis) chkDis.checked = false;
-          saveCartRewardSelection({
-            usePoints: chkPts.checked,
-            useDiscount: !!(chkDis && chkDis.checked),
-            useShipping: !!(chkShip && chkShip.checked),
-          });
-          renderCart();
+          renderRewardsBox();
         };
       }
-      if (chkDis){
+      if (chkDis && !mainLocked){
         chkDis.onchange = () => {
           if (chkDis.checked && chkPts) chkPts.checked = false;
-          saveCartRewardSelection({
-            usePoints: !!(chkPts && chkPts.checked),
-            useDiscount: chkDis.checked,
-            useShipping: !!(chkShip && chkShip.checked),
-          });
-          renderCart();
-        };
-      }
-      if (chkShip){
-        chkShip.onchange = () => {
-          saveCartRewardSelection({
-            usePoints: !!(chkPts && chkPts.checked),
-            useDiscount: !!(chkDis && chkDis.checked),
-            useShipping: chkShip.checked,
-          });
-          renderCart();
+          renderRewardsBox();
         };
       }
 
-      // Message (selection summary)
+      // Message
       const msg = $('rewardAppliedMsg');
       if (msg){
         const parts = [];
-        if (chkPts && chkPts.checked) parts.push('Points');
-        if (chkDis && chkDis.checked) parts.push('Discount');
-        if (chkShip && chkShip.checked) parts.push('Free shipping');
-        msg.textContent = parts.length ? `Selected: ${parts.join(' + ')}.` : '—';
+        if (mainLocked){
+          if (main.type === 'points'){
+            parts.push(`✅ Points applied (${Number(main.pointsUsed||0)} pts = ${fmtEUR(Number(main.amountEUR||0))}).`);
+          } else if (main.type === 'discount'){
+            parts.push(`✅ Discount applied (${Number(main.percent||0)}%).`);
+          }
+        }
+        if (shipLocked){
+          parts.push('✅ Free shipping applied.');
+        }
+        msg.textContent = parts.length ? parts.join(' ') : '—';
       }
 
-      // Checkout URL (always reflects current selection)
+      // Checkout URL carries cart + totals + applied IDs
       const ck = $('btnResumeCheckout');
       if (ck){
-        const t = computeCartTotals();
         const qs = [];
 
+        // 1) Send cart items to the old checkout (it already supports ?cart=...)
         const cartArr = Array.isArray(state.cart) ? state.cart : [];
         if (cartArr.length){
           const compact = cartArr.map(it => ({
             id: String(it.id),
             title: it.title || 'Product',
             price: Number(it.price || 0),
-            qty: Number(it.qty || 1),
+            qty: Number(it.qty || 1)
           }));
           qs.push(`cart=${encodeURIComponent(JSON.stringify(compact))}`);
         }
 
-        const uid = (state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId))
-          || localStorage.getItem('vw_user_id') || '';
+        // 2) Send who is buying (so WebRock can map payment -> user)
+        const uid = (
+          state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)
+        ) || localStorage.getItem('vw_user_id') || '';
         if (uid) qs.push(`user_id=${encodeURIComponent(String(uid))}`);
 
-        qs.push(`pay_subtotal=${encodeURIComponent(Number(t.total||0).toFixed(2))}`);
-        if (t.freeShipping) qs.push('free_shipping=1');
-        if (t.pointsUsed) qs.push(`points_used=${encodeURIComponent(String(t.pointsUsed))}`);
-        if (t.discountPercent) qs.push(`discount_percent=${encodeURIComponent(String(t.discountPercent))}`);
+        // 3) Send subtotal AFTER rewards (discount/points). Shipping is handled in checkout.
+        const subtotalRaw = cartArr.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+        let discountAmount = 0;
+        let pointsAmount = 0;
+        if (mainLocked && main && main.type === 'discount'){
+          discountAmount = subtotalRaw * (Number(main.percent || 0) / 100);
+        } else if (mainLocked && main && main.type === 'points'){
+          pointsAmount = Number(main.amountEUR || 0);
+        }
+        const paySubtotal = Math.max(0, subtotalRaw - discountAmount - pointsAmount);
+        qs.push(`pay_subtotal=${encodeURIComponent(paySubtotal.toFixed(2))}`);
+
+        // 4) Free shipping reward (if applied)
+        if (shipLocked) qs.push('free_shipping=1');
+
+        // Keep IDs (optional; useful later)
+        if (mainLocked) qs.push(`reward=${encodeURIComponent(String(main.id))}`);
+        if (shipLocked) qs.push(`ship=${encodeURIComponent(String(ship.id))}`);
 
         ck.href = qs.length ? `checkout.html?${qs.join('&')}` : 'checkout.html';
       }
 
-      // Apply button
-      const btn = $('btnApplyBenefits');
-      if (btn){
-        const any = !!((chkPts && chkPts.checked) || (chkDis && chkDis.checked) || (chkShip && chkShip.checked));
-        btn.disabled = !any;
-      }
-    }
-
-|0).toFixed(2))}`);
-        if (t.freeShipping) qs.push('free_shipping=1');
-        if (t.pointsUsed) qs.push(`points_used=${encodeURIComponent(String(t.pointsUsed))}`);
-        if (t.discountPercent) qs.push(`discount_percent=${encodeURIComponent(String(t.discountPercent))}`);
-
-        ck.href = qs.length ? `checkout.html?${qs.join('&')}` : 'checkout.html';
-      }
 
       // Apply button
       const btn = $('btnApplyBenefits');
       if (btn){
-        const any = !!((chkPts && chkPts.checked) || (chkDis && chkDis.checked) || (chkShip && chkShip.checked));
-        btn.disabled = !any;
+        const wantMain = !mainLocked && ((chkPts && chkPts.checked) || (chkDis && chkDis.checked));
+        const wantShip = !shipLocked && (chkShip && chkShip.checked);
+        btn.disabled = !(wantMain || wantShip);
       }
     }
-
-
 
 async function applySelectedBenefits(){
-      // This simply saves the current selection + totals so checkout can read them.
-      const t = computeCartTotals();
-      saveCartRewardSelection({
-        usePoints: t.pointsUsed > 0,
-        useDiscount: t.discountPercent > 0,
-        useShipping: !!t.freeShipping,
-      });
-      persistCheckoutPayload(t);
-
+      const api = window.VW_API;
       const msg = $('rewardAppliedMsg');
-      if (msg){
-        const parts = [];
-        if (t.pointsUsed) parts.push(`Points (${t.pointsUsed} pts)`);
-        if (t.discountPercent) parts.push(`Discount (${t.discountPercent}%)`);
-        if (t.freeShipping) parts.push('Free shipping');
-        msg.textContent = parts.length ? `Saved for checkout: ${parts.join(' + ')}.` : 'Saved for checkout.';
+      if (!api || !api.apiJson){
+        if (msg) msg.textContent = '⚠️ API is not available.';
+        return;
       }
 
-      // Optional: sync to API if available (won't block the UI)
+      const chkPts = $('benefitPoints');
+      const chkDis = $('benefitDiscount');
+      const chkShip = $('benefitShipping');
+
+      const usePoints = !!(chkPts && chkPts.checked);
+      const useDiscount = !!(chkDis && chkDis.checked);
+      const useShipping = !!(chkShip && chkShip.checked);
+
+      if (usePoints && useDiscount){
+        if (msg) msg.textContent = '⚠️ Choose either Points or % Discount (not both).';
+        return;
+      }
+
+      // Apply main (points OR discount)
       try{
-        const api = window.VW_API;
-        if (api && api.apiJson){
-          // no-op here (checkout will validate server-side when you wire it)
+        if (!(state.appliedValueReward && state.appliedValueReward.id)){
+          if (usePoints){
+            const beforePts = Number(state.points || 0);
+            if (beforePts <= 0){
+              if (msg) msg.textContent = '⚠️ You have no points to use.';
+            } else {
+              const res = await api.apiJson('/rewards/apply-points', { method:'POST', body: { points: beforePts } });
+              if (res && typeof res.points === 'number') state.points = res.points;
+
+              const red = res.redemption || res.appliedReward || res.applied_reward || res;
+              state.appliedValueReward = {
+                id: red.id || red.redemption_id || red.redemptionId,
+                type: 'points',
+                amountEUR: Number(red.amountEUR || red.amount_eur || red.amount || 0),
+                pointsUsed: Number(red.pointsUsed || red.points_used || beforePts || 0),
+                percent: 0,
+              };
+            }
+          } else if (useDiscount){
+            const res = await api.apiJson('/rewards/apply-discount', { method:'POST', body: {} });
+            const red = res.redemption || res.appliedReward || res.applied_reward || res;
+            const pct = Number(red.percent || red.value || (state.activeDiscount && state.activeDiscount.percent) || 0);
+            state.appliedValueReward = {
+              id: red.id || red.redemption_id || red.redemptionId,
+              type: 'discount',
+              amountEUR: 0,
+              pointsUsed: 0,
+              percent: pct,
+            };
+            // discount consumed
+            state.activeDiscount = null;
+          }
         }
-      }catch(_){ }
+      } catch(err){
+        if (msg) msg.textContent = `⚠️ Could not apply selection: ${err.message || err}`;
+      }
+
+      // Apply free shipping (can be combined)
+      try{
+        if (useShipping && !(state.appliedShippingReward && state.appliedShippingReward.id)){
+          const res = await api.apiJson('/rewards/apply-shipping', { method:'POST', body: {} });
+          const red = res.redemption || res.appliedShipping || res.applied_shipping || res;
+          state.appliedShippingReward = {
+            id: red.id || red.redemption_id || red.redemptionId || red.shipping_id || red.shippingId,
+            type: 'shipping',
+          };
+          // shipping consumed
+          state.activeShipping = null;
+        }
+      } catch(err){
+        if (msg) msg.textContent = `⚠️ Could not apply free shipping: ${err.message || err}`;
+      }
 
       renderCart();
       if (typeof renderHero === 'function') renderHero();
     }
-
 
 function statusToStepIndex(status){
       const s = String(status || '').toLowerCase();
@@ -1811,7 +1595,7 @@ function statusToStepIndex(status){
 
     // ====== Dados demo ======
     function loadDemo(){
-      // Clean defaults (prototype)
+      // Clean defaults (demo)
       state.me = {
         name: '',
         email: '',
@@ -1819,21 +1603,17 @@ function statusToStepIndex(status){
         avatar: defaultAvatarDataUri(),
       };
 
-      // Load profile persisted from Account page, if any
-      loadProfileFromStorage();
+      state.spentTotal = 0;
+      state.spentMonth = 0;
+      state.points = 0;
 
-      state.spentTotal = state.spentTotal || 0;
-      state.spentMonth = state.spentMonth || 0;
-
-      // Load shared rewards (points + wheel rewards)
-      loadSharedRewards();
+      state.spinsLeftToday = 1;
 
       // Cart comes from the Store localStorage (it must transit between pages).
       loadLocalCart();
-
-      state.orders = state.orders || [];
-      state.addresses = state.addresses || [];
-      state.cashbackHistory = state.cashbackHistory || [];
+      state.orders = [];
+      state.cashbackHistory = [];
+      state.addresses = [];
 
       setText('accountMsg', '—');
       setText('addrMsg', '—');
