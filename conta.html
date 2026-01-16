@@ -508,17 +508,6 @@
     }
 
     .hidden{ display:none !important; }
-
-    /* Android fix: keep file input in DOM (avoid display:none) */
-    .file-input-hidden{
-      position: fixed;
-      left: -9999px;
-      top: -9999px;
-      opacity: 0;
-      pointer-events: none;
-      width: 1px;
-      height: 1px;
-    }
   </style>
 </head>
 
@@ -550,6 +539,7 @@
               <a class="btn small primary" href="conta.html">👤 Account</a>
               <a class="btn small" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
+              <a class="btn small" href="cashback.html">⭐ Cashback</a>
             </div>
 
 
@@ -689,7 +679,7 @@
     </div>
   </div>
 
-  <input id="avatarFileInput" type="file" accept="image/*" class="file-input-hidden" />
+  <input id="avatarFileInput" type="file" accept="image/*" style="position:fixed; left:-9999px; top:-9999px; opacity:0;" />
   <script src="auth-guard.js"></script>
   <script>
     const API_ROOT = "https://clientes-0r5d.onrender.com";
@@ -950,6 +940,8 @@
       const msgEl = document.getElementById("accountMsg");
       const avatarImg = document.getElementById("avatar");
       if (!file) return;
+
+      // Importante (Android): NÃO troca a foto na tela até o servidor confirmar.
       if (msgEl) msgEl.textContent = "Uploading photo…";
 
       const fd = new FormData();
@@ -974,17 +966,24 @@
         let data = null;
         try { data = await res.json(); } catch (_) {}
 
+        // Só atualiza a UI quando o backend devolver a URL.
         if (data && data.avatar_url) {
-          if (avatarImg) avatarImg.src = data.avatar_url;
-          currentUser = currentUser || {};
-          currentUser.avatar_url = data.avatar_url;
-        } else if (avatarImg) {
-          avatarImg.src = URL.createObjectURL(file);
-        }
+          const raw = String(data.avatar_url);
+          const full = raw.startsWith("http") ? raw : (API_ROOT + raw);
+          // Cache-bust para Android/Chrome não manter a imagem antiga.
+          const bust = (full.includes('?') ? '&' : '?') + 't=' + Date.now();
+          if (avatarImg) avatarImg.src = full + bust;
 
-        if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
+          currentUser = currentUser || {};
+          currentUser.avatar_url = raw;
+
+          if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
+        } else {
+          throw new Error("Upload sem avatar_url");
+        }
       } catch (err) {
         console.error(err);
+        // NÃO altera a foto atual em caso de erro.
         if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
       }
     }
@@ -1019,7 +1018,7 @@
       if (pick) pick.addEventListener("click", () => {
         const input = document.getElementById("avatarFileInput");
         if (!input) return;
-        input.value = ""; // Android: allow picking the same file twice + ensure change fires
+        input.value = ""; // Android: garante disparo do change mesmo escolhendo a mesma foto
         input.click();
       });
 
