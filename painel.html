@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Customer Dashboard</title>
+  <title>Customer Dashboard - My Cart</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -183,7 +183,7 @@
       color: var(--muted);
     }
 
-    /* Barra de nível (3 níveis) */
+    /* Level bar (3 tiers) */
     .level-wrap{
       width: min(520px, 94%);
       margin-top: 2px;
@@ -260,7 +260,7 @@
     .level-splits .on.silver i{ background: var(--silver); }
     .level-splits .on.gold i{ background: var(--gold2); }
 
-    /* Navegação (topo abaixo do hero) */
+    /* Navigation */
     .nav{
       margin: 14px auto 0;
       width: min(900px, 100%);
@@ -330,79 +330,7 @@
     }
     .pill strong{ color: var(--text); }
 
-    /* Roleta (sempre visível) */
-.wheel-area{
-  width: min(980px, 100%);
-  margin: 12px auto 0;
-}
-
-.wheel-stack{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap: 12px;
-  margin-top: 10px;
-  text-align:center;
-}
-
-.wheel-box{
-  position:relative;
-  width: min(340px, 82vw);
-  aspect-ratio: 1 / 1;
-  margin: 0 auto;
-}
-
-.wheel-rotate{
-  width:100%;
-  height:100%;
-  border-radius: 999px;
-  overflow:hidden;
-  box-shadow: 0 22px 60px rgba(0,0,0,.16), 0 0 20px rgba(212,175,55,.12);
-  border: 2px solid rgba(212,175,55,.85);
-  background: rgba(255,255,255,.35);
-  transform: rotate(0deg);
-}
-
-.wheel-box::after{
-  content:"";
-  position:absolute;
-  inset: 20%;
-  border-radius: 999px;
-  background: rgba(255,255,255,.70);
-  border: 1px solid rgba(0,0,0,.06);
-  box-shadow: inset 0 4px 18px rgba(0,0,0,.10);
-  pointer-events:none;
-  z-index: 2;
-}
-
-#wheelCanvas{
-  width:100%;
-  height:100%;
-  display:block;
-  position:relative;
-  z-index: 1;
-}
-
-.pointer{
-  position:absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 14px solid transparent;
-  border-right: 14px solid transparent;
-  border-bottom: 22px solid rgba(255,122,26,.92);
-  filter: drop-shadow(0 8px 14px rgba(0,0,0,.18));
-  z-index: 3;
-  pointer-events:none;
-}
-
-.wheel-instructions{
-  max-width: 680px;
-  line-height: 1.7;
-}
-
-    /* Seções */
+    /* Sections */
     section{
       width: min(980px, 100%);
       margin: 14px auto 0;
@@ -439,7 +367,7 @@
     }
     .field textarea{ border-radius: 18px; min-height: 88px; }
 
-    /* Pedidos - barra de processo */
+    /* Orders - barra de processo */
     .stepper{
       display:grid;
       grid-template-columns: repeat(4, 1fr);
@@ -519,10 +447,10 @@
       <header>
         <div class="top-left">
           <small>Vintage Wear Ireland</small>
-</div>
+        </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-          <a class="btn small" href="painel.html" title="Back to dashboard home">🏠 Dashboard home</a>
-          <a class="btn small" href="index.html" title="Back to shop">🛍️ Shop</a>
+          <a class="btn small" href="painel.html" title="Back to dashboard home">🏠 Dashboard Home</a>
+          <a class="btn small" href="index.html" title="Back to store">🛍️ Store</a>
         </div>
       </header>
 
@@ -534,13 +462,13 @@
           <div class="hero-center">
             <h1 class="hero-title">Customer Dashboard</h1>
 
-<!-- Nav buttons -->
+            <!-- Nav buttons -->
             <div class="nav" aria-label="Shortcuts">
               <a class="btn small" href="conta.html">👤 Account</a>
-              <a class="btn small" href="carrinho.html">🛒 My cart</a>
+              <a class="btn small primary" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
+              <a class="btn small" href="cashback.html">⭐ Cashback</a>
             </div>
-
 
             <div class="avatar-wrap" aria-label="Profile photo (circular)">
               <img id="avatar" alt="User photo" />
@@ -552,65 +480,116 @@
             <!-- Barra de nível -->
             <div class="level-wrap" aria-label="Customer level">
               <div class="level-head">
-                <div class="badge"><span class="badge-dot" id="levelDot"></span> <span id="levelLabel">Bronze</span></div>
-                <span class="pill"><strong id="levelProgressText">€0</strong> this month</span>
+                <div class="badge">
+                  <span class="badge-dot" id="levelDot"></span>
+                  <span id="levelLabel">Bronze</span>
+                </div>
+                <span class="pill">
+                  <strong id="levelProgressText">€0</strong> spent
+                </span>
               </div>
 
               <div class="level-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
                 <div class="level-fill" id="levelFill"></div>
               </div>
 
-              <div class="level-splits" aria-label="Bronze, Silver e Gold">
+              <div class="level-splits" aria-label="Bronze, Silver and Gold">
                 <span id="lvlBronze" class="on"><i></i> Bronze</span>
                 <span id="lvlSilver"><i></i> Silver</span>
                 <span id="lvlGold"><i></i> Gold</span>
               </div>
-              <div class="muted" style="margin-top:8px; font-weight:700;" id="levelHint">Fill the bar to level up.</div>
-
-              <!-- Cashback + giros (clean) -->
-              <div class="row" style="margin-top:10px; justify-content:center;">
-                <span class="pill">⭐ Cashback: <strong><span id="pointsNow">0</span> pts</strong> <span class="muted" id="cashValue">= € 0.00</span></span>
-                <span class="pill">🎡 Spins: <strong id="spinsNow">0</strong></span>
+              <div class="muted" style="margin-top:8px; font-weight:700;" id="levelHint">
+                Fill the bar to level up.
               </div>
-              <div class="muted" style="margin-top:6px; font-weight:800;" id="resetHint">Resets at 00:00 (Ireland).</div>
-            </div>
-
-
-          </div>
-        </div>
-
-        <!-- ROleta sempre visível -->
-        <div class="wheel-area">
-          <div class="card">
-            <div class="row">
-              <strong>🎡 Lucky wheel</strong>
-              <span class="pill"><strong id="spinStatus">—</strong></span>
-            </div>
-
-            
-<div class="wheel-stack">
-  <div class="wheel-box" aria-label="Prize wheel">
-    <div class="pointer" aria-hidden="true"></div>
-    <div class="wheel-rotate" id="wheelRotate">
-      <canvas id="wheelCanvas" width="640" height="640" aria-label="Wheel"></canvas>
-    </div>
-  </div>
-
-  <button class="btn primary" id="btnSpin" type="button">Spin now</button>
-
-  <div class="muted wheel-instructions" id="wheelInstructions">
-    <strong>Instructions:</strong> click <strong>“Spin now”</strong>. Prize positions reshuffle automatically on every spin.
-    You have <strong>1 spin per day</strong> — it resets at <strong>midnight (official Ireland time)</strong>.
-    If you win <strong>EXTRA SPIN</strong>, it is added instantly.
-  </div>
-
-  <div class="muted" style="margin-top:6px; font-weight:800;" id="spinResultMsg">—</div>
-</div>
-
-
             </div>
           </div>
         </div>
+
+        <!-- CARRINHO -->
+        <section id="carrinho">
+          <h2 class="section-title">My cart</h2>
+
+          <div class="grid">
+            <div class="card">
+              <div class="row">
+                <strong>Items</strong>
+                <span class="pill" id="cartCountTag"><strong>0</strong> items</span>
+              </div>
+              <div class="list" id="cartList"></div>
+            </div>
+
+            <div class="card">
+              <div class="row">
+                <strong>Total</strong>
+                <span class="pill" id="cartTotalTag"><strong>€0</strong></span>
+              </div>
+
+              <div class="muted" style="margin-top:10px; line-height:1.7;">
+                Your cart is saved to your account and will appear here when you sign in.
+              </div>
+
+              <!-- REWARDS -->
+              <div style="margin-top:14px; padding-top:12px; border-top:1px dashed rgba(212,175,55,.45);" id="rewardsBox">
+                <div style="font-weight:900; letter-spacing:.04em;">Rewards</div>
+                <div class="muted" style="margin-top:6px; line-height:1.6;">
+                  Choose your reward(s). You can combine <strong>Free Shipping</strong> with
+                  <strong>Points</strong> or a <strong>% Discount</strong>.
+                  You can’t combine <strong>Points</strong> and <strong>% Discount</strong>.
+                </div>
+
+                <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
+                  <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+                    <input type="checkbox" id="benefitPoints" />
+                    <span>
+                      <div style="font-weight:900;">Use points (use full balance)</div>
+                      <div class="muted" style="margin-top:2px; font-weight:700;">
+                        Balance: <strong><span id="pointsBalanceCart">0</span> pts</strong>
+                        (<span id="pointsCashCart">€ 0.00</span>)
+                      </div>
+                    </span>
+                  </label>
+
+                  <div id="discountOption">
+                    <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+                      <input type="checkbox" id="benefitDiscount" />
+                      <span>
+                        <div style="font-weight:900;">Use % discount</div>
+                        <div class="muted" style="margin-top:2px; font-weight:700;">
+                          <span class="pill" id="discountPill">
+                            <strong id="discountLabel">—</strong>
+                          </span>
+                        </div>
+                        <div class="muted" style="margin-top:6px; font-weight:700;" id="discountExpires"></div>
+                      </span>
+                    </label>
+                  </div>
+
+                  <div id="shippingOption">
+                    <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
+                      <input type="checkbox" id="benefitShipping" />
+                      <span>
+                        <div style="font-weight:900;" id="shippingLabel">Free shipping</div>
+                        <div class="muted" style="margin-top:6px; font-weight:700;" id="shippingExpires"></div>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="row" style="margin-top:10px; gap:8px;">
+                  <button class="btn small" id="btnApplyBenefits" type="button">Apply</button>
+                </div>
+
+                <div class="muted" style="margin-top:10px; font-weight:900;" id="rewardAppliedMsg">—</div>
+                <div class="muted" style="margin-top:10px; line-height:1.8;" id="totalsBreakdown"></div>
+              </div>
+
+              <div class="row" style="margin-top:12px;">
+                <a class="btn primary" id="btnResumeCheckout" href="checkout.html">➡️ Resume checkout</a>
+                <button class="btn danger" id="btnClearCart">Clear cart</button>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <footer>© <span id="year"></span> Vintage Wear Ireland</footer>
       </div>
@@ -619,7 +598,6 @@
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
   <script src="auth-guard.js"></script>
-
 
   <script>
     // ====== Estado (demo) ======
@@ -630,15 +608,152 @@
       points: 0,
       spinsPerDay: 1,
       spinsLeftToday: 1,
-      lastIrelandDate: null,
       cart: [],
       orders: [],
       cashbackHistory: [],
       addresses: [],
       avatarFile: null,
-      activeDiscount: null,
-      activeShipping: null,
+      activeDiscount: null, // {id, percent}
+      activeShipping: null, // {id}
+      appliedValueReward: null,
+      appliedShippingReward: null,
     };
+
+    const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
+
+    function getToken(){
+      for (const k of TOKEN_KEYS){
+        try{
+          const t = localStorage.getItem(k);
+          if (t) return t;
+        }catch(_){ }
+      }
+      return null;
+    }
+
+    const USER_ID_KEY = "vw_user_id";
+    const CART_GUEST_KEY = "vw_cart";
+
+    function getUserId(){
+      try{
+        return (
+          (state?.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)) ||
+          localStorage.getItem(USER_ID_KEY) ||
+          localStorage.getItem('user_id') ||
+          localStorage.getItem('uid') ||
+          localStorage.getItem('userId') ||
+          ''
+        );
+      }catch(_){
+        return '';
+      }
+    }
+
+    function readCartByKey(key){
+      try{
+        const raw = localStorage.getItem(key);
+        if (!raw) return [];
+        const v = JSON.parse(raw);
+        return Array.isArray(v) ? v : [];
+      }catch(_){
+        return [];
+      }
+    }
+
+    function listUserCartKeys(){
+      const out = [];
+      try{
+        for (let i=0;i<localStorage.length;i++){
+          const k = localStorage.key(i);
+          if (k && String(k).startsWith('vw_cart_u_')) out.push(String(k));
+        }
+      }catch(_){ }
+      return out;
+    }
+
+    function chooseActiveCartKey(){
+      const guest = readCartByKey(CART_GUEST_KEY);
+      const tok = getToken();
+      const uidRaw = getUserId();
+      const uid = uidRaw ? String(uidRaw) : '';
+      const candidate = (uid && tok) ? `vw_cart_u_${uid}` : null;
+      const candCart = candidate ? readCartByKey(candidate) : [];
+
+      if (candidate && candCart.length) return candidate;
+
+      if (guest.length){
+        if (candidate && !candCart.length){
+          try{ localStorage.setItem(candidate, JSON.stringify(guest)); }catch(_){ }
+        }
+        return CART_GUEST_KEY;
+      }
+
+      if (tok){
+        for (const k of listUserCartKeys()){
+          const c = readCartByKey(k);
+          if (c.length) return k;
+        }
+      }
+
+      return candidate || CART_GUEST_KEY;
+    }
+
+    function loadLocalCart(){
+      const key = chooseActiveCartKey();
+      const arr = readCartByKey(key);
+
+      state.cart = (Array.isArray(arr) ? arr : []).map((it) => {
+        const obj = (it && typeof it === 'object') ? { ...it } : {};
+        const title = obj.title || obj.name || obj.product || 'Product';
+        const image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
+        const qty = Number(obj.qty ?? obj.quantity ?? 1);
+        const price = Number(obj.price ?? 0);
+        return {
+          ...obj,
+          id: obj.id ?? obj.product_id ?? obj.productId ?? title,
+          title,
+          image,
+          qty: (Number.isFinite(qty) && qty > 0) ? qty : 1,
+          price: Number.isFinite(price) ? price : 0,
+        };
+      });
+    }
+
+    function saveLocalCart(){
+      const key = chooseActiveCartKey();
+      const normalized = (Array.isArray(state.cart) ? state.cart : []).map((it) => {
+        const obj = (it && typeof it === 'object') ? { ...it } : {};
+        obj.title = obj.title || obj.name || obj.product || 'Product';
+        obj.image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
+        obj.qty = Number(obj.qty ?? obj.quantity ?? 1);
+        if (!Number.isFinite(obj.qty) || obj.qty <= 0) obj.qty = 1;
+        obj.price = Number(obj.price ?? 0);
+        if (!Number.isFinite(obj.price)) obj.price = 0;
+        return obj;
+      });
+
+      try{ localStorage.setItem(key, JSON.stringify(normalized)); }catch(_){ }
+      if (key !== CART_GUEST_KEY){
+        try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
+      }
+    }
+
+    window.addEventListener('storage', (e) => {
+      try{
+        if (!e || !e.key) return;
+        const changed = String(e.key);
+        if (changed === CART_GUEST_KEY || changed.startsWith('vw_cart')){
+          loadLocalCart();
+          renderCart();
+        }
+      }catch(_){}
+    });
+
+    try{
+      if(!getToken()){
+        window.location.href = 'cliente-login-2.html';
+      }
+    }catch(_){ }
 
     const fmtEUR = (n) => {
       const v = Number(n);
@@ -646,25 +761,99 @@
       return '€ ' + v.toFixed(2);
     };
 
-    const pointsToCash = (points) => Number(points || 0) * 0.5; // 10 pts = €5
+    const pointsToCash = (points) => Number(points || 0) * 0.5;
     const calcPointsEarned = (totalSpent) => Math.floor((Number(totalSpent) || 0) / 55) * 10;
 
-    function getLevelMeta(spentMonth){
-      const v = Number(spentMonth) || 0;
-      const progressText = `€${v.toFixed(0)} this month`;
+    const SHARED_REWARDS_KEY = 'vwi_rewards_state_v1';
+    const CART_REWARDS_SELECTION_KEY = 'vwi_cart_rewards_selection_v1';
+    const CHECKOUT_PAYLOAD_KEY = 'vw_checkout_payload';
 
-      // Bronze: 0-300, Silver: 300-800, Gold: >=800
-      if (v >= 800){
+    function isValidReward(r){
+      return !!r;
+    }
+
+    function cleanExpiredRewards(){
+      if (state.activeDiscount && !isValidReward(state.activeDiscount)) state.activeDiscount = null;
+      if (state.activeShipping && !isValidReward(state.activeShipping)) state.activeShipping = null;
+    }
+
+    function loadSharedRewards(){
+      try{
+        const raw = localStorage.getItem(SHARED_REWARDS_KEY);
+        if (!raw) { cleanExpiredRewards(); return; }
+        const data = JSON.parse(raw);
+        if (typeof data.points === 'number') state.points = data.points;
+        if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
+        if (data.activeDiscount) state.activeDiscount = data.activeDiscount;
+        if (data.activeShipping) state.activeShipping = data.activeShipping;
+      }catch(_){ }
+      cleanExpiredRewards();
+    }
+
+    function saveSharedRewards(){
+      try{
+        localStorage.setItem(SHARED_REWARDS_KEY, JSON.stringify({
+          points: state.points,
+          cashbackHistory: state.cashbackHistory,
+          activeDiscount: state.activeDiscount,
+          activeShipping: state.activeShipping,
+        }));
+      }catch(_){ }
+    }
+
+    function loadCartRewardSelection(){
+      try{
+        const raw = localStorage.getItem(CART_REWARDS_SELECTION_KEY);
+        if (!raw) return { usePoints:false, useDiscount:false, useShipping:false };
+        const s = JSON.parse(raw) || {};
+        return {
+          usePoints: !!s.usePoints,
+          useDiscount: !!s.useDiscount,
+          useShipping: !!s.useShipping,
+        };
+      }catch(_){
+        return { usePoints:false, useDiscount:false, useShipping:false };
+      }
+    }
+
+    function saveCartRewardSelection(sel){
+      try{
+        localStorage.setItem(CART_REWARDS_SELECTION_KEY, JSON.stringify({
+          usePoints: !!sel.usePoints,
+          useDiscount: !!sel.useDiscount,
+          useShipping: !!sel.useShipping,
+          updatedAt: new Date().toISOString(),
+        }));
+      }catch(_){ }
+    }
+
+    const __countdownTimers = {};
+
+    function formatHMS(ms){
+      const total = Math.max(0, Math.floor(ms/1000));
+      const h = Math.floor(total/3600);
+      const m = Math.floor((total%3600)/60);
+      const s = total%60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function startCountdown(el, expiresAt){}
+    function stopCountdown(el){}
+
+    function determineLevel(spentMonth){
+      const v = Number(spentMonth) || 0;
+
+      // Bronze: 0–299 / Silver: 300–699 / Gold: 700+
+      if (v >= 700){
         return {
           key:'GOLD',
           label:'Gold',
           dot:'var(--gold2)',
           fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'],
-          pct: 100,
-          progressText,
-          nextLabel: null,
-          remaining: 0,
-          target: 800,
+          spinsPerDay: 5,
+          discountPercent: 30,
+          discountMin: 200,
+          hint:'Gold: 5 spins/day • 30% OFF from €200.'
         };
       }
       if (v >= 300){
@@ -673,11 +862,10 @@
           label:'Silver',
           dot:'var(--silver)',
           fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
-          pct: ((v-300)/(800-300))*100,
-          progressText,
-          nextLabel:'Gold',
-          remaining: 800 - v,
-          target: 800,
+          spinsPerDay: 3,
+          discountPercent: 20,
+          discountMin: 150,
+          hint:'Silver: 3 spins/day • 20% OFF from €150.'
         };
       }
       return {
@@ -685,169 +873,46 @@
         label:'Bronze',
         dot:'var(--bronze)',
         fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
-        pct: (v/300)*100,
-        progressText,
-        nextLabel:'Silver',
-        remaining: 300 - v,
-        target: 300,
+        spinsPerDay: 1,
+        discountPercent: 10,
+        discountMin: 120,
+        hint:'Bronze: 1 spin/day • 10% OFF from €120.'
       };
+    }
+
+    function levelProgress(spentMonth){
+      const v = Number(spentMonth) || 0;
+      // Bronze: 0–300, Silver: 300–700, Gold: 700–1000
+      if (v < 300){
+        return { pct: (v/300)*100, text: `€${v.toFixed(0)} spent` };
+      }
+      if (v < 700){
+        return { pct: ((v-300)/(700-300))*100, text: `€${v.toFixed(0)} spent` };
+      }
+      if (v < 1000){
+        return { pct: ((v-700)/(1000-700))*100, text: `€${v.toFixed(0)} spent` };
+      }
+      return { pct: 100, text: `€${v.toFixed(0)} spent` };
     }
 
     function $(id){ return document.getElementById(id); }
 
-    function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
-    function setHTML(id, t){ const el=$(id); if(el) el.innerHTML = t; }
-
-    // ====== Irlanda (reset diário) + persistência (demo) ======
-    const IRELAND_TZ = 'Europe/Dublin';
-    const STORAGE_KEY = 'vwi_painel_v3_en';
-    const SHARED_REWARDS_KEY = 'vwi_rewards_state_v1';
-    const REWARD_TTL_MS = 24*60*60*1000; // 24 hours
-
-    function makeRewardExpiry(){
-      return new Date(Date.now() + REWARD_TTL_MS).toISOString();
+    function setText(id, t){
+      const el = $(id);
+      if (el) el.textContent = t;
+    }
+    function setHTML(id, t){
+      const el = $(id);
+      if (el) el.innerHTML = t;
     }
 
-    function isRewardActive(r){
-      if (!r || !r.expiresAt) return false;
-      const t = new Date(r.expiresAt).getTime();
-      return !Number.isNaN(t) && t > Date.now();
+    function escHtml(v){
+      return String(v ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[c]));
     }
-
-    function cleanExpiredRewards(){
-      if (state.activeDiscount && !isRewardActive(state.activeDiscount)) state.activeDiscount = null;
-      if (state.activeShipping && !isRewardActive(state.activeShipping)) state.activeShipping = null;
-    }
-
-    function loadSharedRewards(){
-      try{
-        const raw = localStorage.getItem(SHARED_REWARDS_KEY);
-        if (!raw) { cleanExpiredRewards(); return; }
-        const d = JSON.parse(raw) || {};
-        if (typeof d.points === 'number') state.points = d.points;
-        if (Array.isArray(d.cashbackHistory)) state.cashbackHistory = d.cashbackHistory;
-        if (d.activeDiscount) state.activeDiscount = d.activeDiscount;
-        if (d.activeShipping) state.activeShipping = d.activeShipping;
-        if (typeof d.spinsLeftToday === 'number') state.spinsLeftToday = d.spinsLeftToday;
-        if (typeof d.lastIrelandDate === 'string') state.lastIrelandDate = d.lastIrelandDate;
-      }catch(_){ }
-      cleanExpiredRewards();
-    }
-
-    function saveSharedRewards(){
-      try{
-        const existing = JSON.parse(localStorage.getItem(SHARED_REWARDS_KEY) || '{}') || {};
-        localStorage.setItem(SHARED_REWARDS_KEY, JSON.stringify({
-          ...existing,
-          points: state.points,
-          cashbackHistory: state.cashbackHistory,
-          activeDiscount: state.activeDiscount,
-          activeShipping: state.activeShipping,
-          spinsLeftToday: state.spinsLeftToday,
-          lastIrelandDate: state.lastIrelandDate,
-        }));
-      }catch(_){ }
-    }
-
-    let resetTickInterval = null;
-    let resetTimeout = null;
-
-    function getIrelandDateKey(date = new Date()){
-      const parts = new Intl.DateTimeFormat('en-CA', {
-        timeZone: IRELAND_TZ,
-        year:'numeric', month:'2-digit', day:'2-digit'
-      }).formatToParts(date);
-      const p = {};
-      for (const it of parts) if (it.type !== 'literal') p[it.type] = it.value;
-      return `${p.year}-${p.month}-${p.day}`;
-    }
-
-    function getIrelandHMS(date = new Date()){
-      const parts = new Intl.DateTimeFormat('en-GB', {
-        timeZone: IRELAND_TZ,
-        hour12:false,
-        hour:'2-digit', minute:'2-digit', second:'2-digit'
-      }).formatToParts(date);
-      const p = {};
-      for (const it of parts) if (it.type !== 'literal') p[it.type] = it.value;
-      return { h: Number(p.hour||0), m: Number(p.minute||0), s: Number(p.second||0) };
-    }
-
-    function msUntilIrelandMidnight(){
-      const {h,m,s} = getIrelandHMS();
-      const since = h*3600 + m*60 + s;
-      const remaining = 24*3600 - since;
-      return Math.max(0, remaining*1000);
-    }
-
-    function formatCountdown(ms){
-      const total = Math.max(0, Math.floor(ms/1000));
-      const h = Math.floor(total/3600);
-      const m = Math.floor((total%3600)/60);
-      return `${h}h ${String(m).padStart(2,'0')}m`;
-    }
-
-    function loadPersisted(){
-      // Legacy page key (keeps daily spin reset for this page)
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw){
-          const data = JSON.parse(raw) || {};
-          if (typeof data.points === 'number') state.points = data.points;
-          if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
-          if (typeof data.spinsLeftToday === 'number') state.spinsLeftToday = data.spinsLeftToday;
-          if (typeof data.lastIrelandDate === 'string') state.lastIrelandDate = data.lastIrelandDate;
-          if (data.activeDiscount) state.activeDiscount = data.activeDiscount;
-          if (data.activeShipping) state.activeShipping = data.activeShipping;
-        }
-      } catch(_){ /* ignore */ }
-
-      // Shared key (Wheel -> Cart)
-      loadSharedRewards();
-      cleanExpiredRewards();
-    }
-
-    function savePersisted(){
-      cleanExpiredRewards();
-      try{
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          points: state.points,
-          cashbackHistory: state.cashbackHistory,
-          spinsLeftToday: state.spinsLeftToday,
-          lastIrelandDate: state.lastIrelandDate,
-          activeDiscount: state.activeDiscount,
-          activeShipping: state.activeShipping,
-        }));
-      } catch(_){ /* ignore */ }
-
-      // Also persist to shared key for the Cart/Checkout to read
-      saveSharedRewards();
-    }
-
-    function ensureDailyReset(){
-      const todayKey = getIrelandDateKey();
-      if (state.lastIrelandDate !== todayKey){
-        state.lastIrelandDate = todayKey;
-        state.spinsLeftToday = 1; // 1 spin per day
-        savePersisted();
-      }
-    }
-
-    function updateResetHint(){
-      setText('resetHint', `Resets at midnight (Ireland) — in ${formatCountdown(msUntilIrelandMidnight())}.`);
-    }
-
-    function scheduleResetTimers(){
-      if (resetTickInterval) clearInterval(resetTickInterval);
-      if (resetTimeout) clearTimeout(resetTimeout);
-
-      updateResetHint();
-      resetTickInterval = setInterval(updateResetHint, 30*1000);
-      resetTimeout = setTimeout(() => {
-        ensureDailyReset();
-        renderHero();
-        scheduleResetTimers();
-      }, msUntilIrelandMidnight() + 1100);
+    function escAttr(v){
+      return escHtml(v).replace(/`/g, '&#96;');
     }
 
     function defaultAvatarDataUri(){
@@ -867,78 +932,66 @@
       return `data:image/svg+xml;charset=utf-8,${svg}`;
     }
 
-    // ====== Render ======
     function renderHero(){
       const me = state.me || {};
       setText('userName', me.name || 'Your Name');
       setText('userEmail', me.email || 'email@example.com');
 
-      // avatar
       const img = $('avatar');
       if (img){
         img.src = me.avatar || defaultAvatarDataUri();
       }
 
-      // points + cash
-      setText('pointsNow', String(state.points || 0));
-      setText('cashValue', `= ${fmtEUR(pointsToCash(state.points || 0))}`);
+      const lvl = determineLevel(state.spentMonth);
+      const prog = levelProgress(state.spentMonth);
 
-      // level (progresso por gasto)
-      const meta = getLevelMeta(state.spentMonth);
-
-      setText('levelLabel', meta.label);
+      setText('levelLabel', lvl.label);
       const dot = $('levelDot');
       if (dot){
-        dot.style.background = meta.dot;
+        dot.style.background = lvl.dot;
         dot.style.boxShadow = `0 0 0 4px rgba(0,0,0,.08)`;
       }
 
       const fill = $('levelFill');
       if (fill){
-        fill.style.width = Math.max(0, Math.min(100, meta.pct)) + '%';
-        fill.style.background = `linear-gradient(90deg, ${meta.fill[0]}, ${meta.fill[1]})`;
+        fill.style.width = Math.max(0, Math.min(100, prog.pct)) + '%';
+        fill.style.background = `linear-gradient(90deg, ${lvl.fill[0]}, ${lvl.fill[1]})`;
       }
 
-      setText('levelProgressText', meta.progressText);
-      if (meta.nextLabel){
-        setText('levelHint', `€${Math.max(0, meta.remaining).toFixed(0)} to reach ${meta.nextLabel}. Target: €${Number(meta.target||0).toFixed(0)}.`);
-      } else {
-        setText('levelHint', 'Top level reached. Keep earning cashback.');
-      }
+      setText('levelProgressText', prog.text);
+      setText('levelHint', lvl.hint);
 
-      // highlight splits
       $('lvlBronze')?.classList.add('on');
       $('lvlSilver')?.classList.remove('on','silver');
       $('lvlGold')?.classList.remove('on','gold');
 
-      if (meta.key === 'SILVER'){
+      if (lvl.key === 'SILVER'){
         $('lvlSilver')?.classList.add('on','silver');
         $('lvlBronze')?.classList.add('on');
-      } else if (meta.key === 'GOLD'){
+      } else if (lvl.key === 'GOLD'){
         $('lvlSilver')?.classList.add('on','silver');
         $('lvlGold')?.classList.add('on','gold');
       } else {
-        // bronze only
         $('lvlBronze')?.classList.add('on');
       }
 
-      // spins (1 per day, reset at official Ireland time)
-      setText('spinsNow', String(state.spinsLeftToday || 0));
-      setText('spinStatus', `${state.spinsLeftToday || 0} spin(s)`);
-      updateResetHint();
+      state.spinsPerDay = lvl.spinsPerDay;
+      setText('spinsPerDay', String(state.spinsPerDay));
+      setText('spinsLeft', `left today: ${state.spinsLeftToday}`);
+      setText('spinStatus', `${state.spinsLeftToday}/${state.spinsPerDay}`);
     }
 
-    function renderConta(){
-  const nameEl = $('accName');
-  const emailEl = $('accEmail');
-  const phoneEl = $('accPhone');
-  if (!nameEl || !emailEl || !phoneEl) return;
+    function renderAccount(){
+      const nameEl = $('accName');
+      const emailEl = $('accEmail');
+      const phoneEl = $('accPhone');
+      if (!nameEl || !emailEl || !phoneEl) return;
 
-  const me = state.me || {};
-  nameEl.value = me.name || '';
-  emailEl.value = me.email || '';
-  phoneEl.value = me.phone || '';
-}
+      const me = state.me || {};
+      nameEl.value = me.name || '';
+      emailEl.value = me.email || '';
+      phoneEl.value = me.phone || '';
+    }
 
     function renderAddresses(){
       const list = state.addresses || [];
@@ -955,7 +1008,9 @@
           <div class="row">
             <div>
               <div style="font-weight:900">${a.name || 'Address'}</div>
-              <div class="muted" style="margin-top:6px; line-height:1.6">${a.line1 || ''}<br/>${a.line2 || ''}<br/>${a.country || ''}</div>
+              <div class="muted" style="margin-top:6px; line-height:1.6">
+                ${a.line1 || ''}<br/>${a.line2 || ''}<br/>${a.country || ''}
+              </div>
             </div>
             <div class="row" style="gap:8px;">
               <button class="btn small" onclick="editAddress('${a.id}')">Edit</button>
@@ -966,13 +1021,109 @@
       `).join('');
     }
 
+    function computeCartTotals(){
+      const cart = Array.isArray(state.cart) ? state.cart : [];
+      const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+
+      cleanExpiredRewards();
+
+      const chkPts = $('benefitPoints');
+      const chkDis = $('benefitDiscount');
+      const chkShip = $('benefitShipping');
+
+      const selPts = !!(chkPts && chkPts.checked);
+      const selDis = !!(chkDis && chkDis.checked);
+      const selShip = !!(chkShip && chkShip.checked);
+
+      const hasSpinDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
+      const hasShipping = isValidReward(state.activeShipping);
+
+      const lvl = determineLevel(state.spentMonth);
+      const lvlPercent = Number(lvl.discountPercent || 0);
+      const lvlMin = Number(lvl.discountMin || 0);
+      const levelEligible = subtotal >= lvlMin && lvlPercent > 0;
+      const spinPercent = hasSpinDiscount ? Number(state.activeDiscount.percent || 0) : 0;
+
+      const pointsAmount = (selPts && Number(state.points||0) > 0) ? pointsToCash(state.points) : 0;
+
+      let discountPercent = 0;
+      if (selDis){
+        const levelP = levelEligible ? lvlPercent : 0;
+        discountPercent = Math.max(levelP, spinPercent);
+      }
+
+      const discountAmount = subtotal * (discountPercent / 100);
+      const freeShipping = (selShip && hasShipping);
+
+      const total = Math.max(0, subtotal - pointsAmount - discountAmount);
+
+      return {
+        cart,
+        subtotal,
+        pointsAmount,
+        discountAmount,
+        total,
+        freeShipping,
+        pointsUsed: (selPts && Number(state.points||0) > 0) ? Number(state.points||0) : 0,
+        discountPercent,
+      };
+    }
+
+    function persistCheckoutPayload(t){
+      try{
+        const uid = (
+          state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)
+        ) || localStorage.getItem('vw_user_id') || '';
+
+        const compact = (Array.isArray(t.cart) ? t.cart : []).map(it => ({
+          id: String(it.id),
+          title: it.title || 'Product',
+          price: Number(it.price || 0),
+          qty: Number(it.qty || 1),
+        }));
+
+        localStorage.setItem(CHECKOUT_PAYLOAD_KEY, JSON.stringify({
+          user_id: uid ? String(uid) : null,
+          cart: compact,
+          pay_subtotal: Number(t.total || 0),
+          free_shipping: !!t.freeShipping,
+          points_used: Number(t.pointsUsed || 0),
+          discount_percent: Number(t.discountPercent || 0),
+          updatedAt: new Date().toISOString(),
+        }));
+      }catch(_){ }
+    }
+
     function renderCart(){
       const cart = Array.isArray(state.cart) ? state.cart : [];
       const totalItems = cart.reduce((s, it) => s + Number(it.qty || 1), 0);
-      const total = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+
+      const totals = computeCartTotals();
 
       setHTML('cartCountTag', `<strong>${totalItems}</strong> items`);
-      setHTML('cartTotalTag', `<strong>${fmtEUR(total)}</strong>`);
+      setHTML('cartTotalTag', `<strong>${fmtEUR(totals.total)}</strong>`);
+
+      const bd = $('totalsBreakdown');
+      if (bd){
+        let html = `<div>Subtotal: <strong>${fmtEUR(totals.subtotal)}</strong></div>`;
+        if (totals.discountAmount > 0){
+          html += `<div>Discount: <strong>- ${fmtEUR(totals.discountAmount)}</strong> (${totals.discountPercent}%)</div>`;
+        }
+        if (totals.pointsAmount > 0){
+          html += `<div>Points: <strong>- ${fmtEUR(totals.pointsAmount)}</strong> (${totals.pointsUsed} pts)</div>`;
+        }
+
+        html += totals.freeShipping
+          ? `<div>Shipping: <strong>FREE ✅</strong></div>`
+          : `<div>Shipping: <strong>calculated at checkout</strong></div>`;
+
+        html += `<div style="margin-top:6px;">Total: <strong>${fmtEUR(totals.total)}</strong></div>`;
+        bd.innerHTML = html;
+      }
+
+      persistCheckoutPayload(totals);
+
+      renderRewardsBox && renderRewardsBox();
 
       const wrap = $('cartList');
       if (!wrap) return;
@@ -982,38 +1133,226 @@
         return;
       }
 
-      wrap.innerHTML = cart.map(it => `
-        <div class="card" style="padding:12px; margin:0;">
-          <div class="row" style="flex-wrap:nowrap;">
-            <div style="display:flex; gap:10px; align-items:center; min-width: 0;">
-              <div style="width:44px;height:44px;border-radius:14px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-weight:900;color:#3b2206;">
-                ${String(it.title||'').slice(0,1).toUpperCase() || '•'}
+      wrap.innerHTML = cart.map(it => {
+        const title = it.title || 'Item';
+        const qty = Number(it.qty || 1);
+        const price = Number(it.price || 0);
+        const lineTotal = price * qty;
+        const letter = String(title).slice(0,1).toUpperCase() || '•';
+        const img = it.image ? String(it.image) : '';
+
+        const thumb = img
+          ? `<img src="${escAttr(img)}" alt="${escAttr(title)}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+          : `<div style="font-weight:900;color:#3b2206;">${escHtml(letter)}</div>`;
+
+        return `
+          <div class="card" style="padding:12px; margin:0;">
+            <div class="row" style="flex-wrap:nowrap; align-items:center;">
+              <div style="display:flex; gap:12px; align-items:center; min-width:0; flex:1;">
+                <div style="width:54px;height:54px;border-radius:16px;overflow:hidden;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;flex:0 0 auto;">
+                  ${thumb}
+                </div>
+                <div style="min-width:0;">
+                  <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    ${escHtml(title)}
+                  </div>
+                  <div class="muted">
+                    ${fmtEUR(price)} • qty: <strong>${qty}</strong> • <strong>${fmtEUR(lineTotal)}</strong>
+                  </div>
+                </div>
               </div>
-              <div style="min-width:0;">
-                <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${it.title || 'Item'}</div>
-                <div class="muted">${fmtEUR(it.price)} • qty: <strong>${it.qty || 1}</strong></div>
-              </div>
+              <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
             </div>
-            <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+    }
+
+    function fmtDateTime(dt){
+      if (!dt) return '';
+      try{
+        const d = new Date(dt);
+        if (Number.isNaN(d.getTime())) return String(dt);
+        return d.toLocaleString('en-IE', { dateStyle:'short', timeStyle:'short' });
+      } catch(_){
+        return String(dt);
+      }
+    }
+
+    function renderRewardsBox(){
+      loadSharedRewards();
+
+      const savedSel = loadCartRewardSelection();
+      const chkPts = $('benefitPoints');
+      const chkDis = $('benefitDiscount');
+      const chkShip = $('benefitShipping');
+
+      if (chkPts) chkPts.checked = !!savedSel.usePoints;
+      if (chkDis) chkDis.checked = !!savedSel.useDiscount;
+      if (chkShip) chkShip.checked = !!savedSel.useShipping;
+
+      const pts = Number(state.points || 0);
+      if ($('pointsBalanceCart')) $('pointsBalanceCart').textContent = String(pts);
+      if ($('pointsCashCart')) $('pointsCashCart').textContent = fmtEUR(pointsToCash(pts));
+
+      const lvl = determineLevel(state.spentMonth);
+      const lvlPercent = Number(lvl.discountPercent || 0);
+      const lvlMin = Number(lvl.discountMin || 0);
+      const hasSpinDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
+      const spinPercent = hasSpinDiscount ? Number(state.activeDiscount.percent || 0) : 0;
+
+      const discountWrap = $('discountOption');
+      const lbl = $('discountLabel');
+      const exp = $('discountExpires');
+
+      if (discountWrap) discountWrap.style.display = '';
+
+      let labelText = '—';
+      let helperText = '';
+
+      if (hasSpinDiscount && spinPercent >= lvlPercent){
+        labelText = `${spinPercent}% OFF (Spin)`;
+        helperText = lvlPercent
+          ? `Level ${lvl.label}: ${lvlPercent}% OFF from ${fmtEUR(lvlMin)}.`
+          : '';
+      } else if (lvlPercent){
+        labelText = `${lvlPercent}% OFF (Level ${lvl.label})`;
+        helperText = `Valid for carts from ${fmtEUR(lvlMin)}.`;
+      }
+
+      if (lbl) lbl.textContent = labelText;
+      if (exp) exp.textContent = helperText || 'No % discount unlocked yet.';
+
+      const hasShipping = isValidReward(state.activeShipping);
+      const shipWrap = $('shippingOption');
+      const shipLbl = $('shippingLabel');
+      const shipExp = $('shippingExpires');
+
+      if (shipWrap) shipWrap.style.display = '';
+      if (shipLbl) shipLbl.textContent = 'Free shipping';
+      if (shipExp) shipExp.textContent = hasShipping ? 'No time limit.' : 'No free shipping yet.';
+
+      if (chkShip){
+        if (!hasShipping) chkShip.checked = false;
+        chkShip.disabled = !hasShipping;
+      }
+
+      if (chkPts){
+        if (pts <= 0) chkPts.checked = false;
+        chkPts.disabled = pts <= 0;
+      }
+
+      if (chkDis){
+        const anyDiscount = hasSpinDiscount || !!lvlPercent;
+        chkDis.disabled = !anyDiscount;
+        if (!anyDiscount) chkDis.checked = false;
+      }
+
+      if (chkPts){
+        chkPts.onchange = () => {
+          if (chkPts.checked && chkDis) chkDis.checked = false;
+          saveCartRewardSelection({
+            usePoints: chkPts.checked,
+            useDiscount: !!(chkDis && chkDis.checked),
+            useShipping: !!(chkShip && chkShip.checked)
+          });
+          renderCart();
+        };
+      }
+      if (chkDis){
+        chkDis.onchange = () => {
+          if (chkDis.checked && chkPts) chkPts.checked = false;
+          saveCartRewardSelection({
+            usePoints: !!(chkPts && chkPts.checked),
+            useDiscount: chkDis.checked,
+            useShipping: !!(chkShip && chkShip.checked)
+          });
+          renderCart();
+        };
+      }
+      if (chkShip){
+        chkShip.onchange = () => {
+          saveCartRewardSelection({
+            usePoints: !!(chkPts && chkPts.checked),
+            useDiscount: !!(chkDis && chkDis.checked),
+            useShipping: chkShip.checked
+          });
+          renderCart();
+        };
+      }
+
+      const msg = $('rewardAppliedMsg');
+      if (msg){
+        const parts = [];
+        if (chkPts && chkPts.checked) parts.push('Points');
+        if (chkDis && chkDis.checked) parts.push('Discount');
+        if (chkShip && chkShip.checked) parts.push('Free shipping');
+        msg.textContent = parts.length ? `Selected: ${parts.join(' + ')}.` : '—';
+      }
+
+      const ck = $('btnResumeCheckout');
+      if (ck){
+        const t = computeCartTotals();
+        const qs = [];
+
+        const cartArr = Array.isArray(state.cart) ? state.cart : [];
+        if (cartArr.length){
+          const compact = cartArr.map(it => ({
+            id:String(it.id),
+            title: it.title || 'Product',
+            price:Number(it.price||0),
+            qty:Number(it.qty||1)
+          }));
+          qs.push(`cart=${encodeURIComponent(JSON.stringify(compact))}`);
+        }
+
+        const uid = (state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId))
+          || localStorage.getItem('vw_user_id') || '';
+        if (uid) qs.push(`user_id=${encodeURIComponent(String(uid))}`);
+
+        qs.push(`pay_subtotal=${encodeURIComponent(Number(t.total||0).toFixed(2))}`);
+        if (t.freeShipping) qs.push('free_shipping=1');
+        if (t.pointsUsed) qs.push(`points_used=${encodeURIComponent(String(t.pointsUsed))}`);
+        if (t.discountPercent) qs.push(`discount_percent=${encodeURIComponent(String(t.discountPercent))}`);
+
+        ck.href = qs.length ? `checkout.html?${qs.join('&')}` : 'checkout.html';
+      }
+
+      const btn = $('btnApplyBenefits');
+      if (btn){
+        const any = !!((chkPts && chkPts.checked) || (chkDis && chkDis.checked) || (chkShip && chkShip.checked));
+        btn.disabled = !any;
+      }
+    }
+
+    async function applySelectedBenefits(){
+      const t = computeCartTotals();
+      saveCartRewardSelection({
+        usePoints: t.pointsUsed > 0,
+        useDiscount: t.discountPercent > 0,
+        useShipping: !!t.freeShipping,
+      });
+      persistCheckoutPayload(t);
+
+      const msg = $('rewardAppliedMsg');
+      if (msg){
+        const parts = [];
+        if (t.pointsUsed) parts.push(`Points (${t.pointsUsed} pts)`);
+        if (t.discountPercent) parts.push(`Discount (${t.discountPercent}%)`);
+        if (t.freeShipping) parts.push('Free shipping');
+        msg.textContent = parts.length ? `Saved for checkout: ${parts.join(' + ')}.` : 'Saved for checkout.';
+      }
+
+      renderCart();
+      if (typeof renderHero === 'function') renderHero();
     }
 
     function statusToStepIndex(status){
       const s = String(status || '').toLowerCase();
-
-      // English (and keep PT-BR fallbacks)
-      if (s.includes('deliver')) return 4;
-      if (s.includes('on the way') || s.includes('shipping') || s.includes('in transit')) return 3;
-      if (s.includes('prepar') || s.includes('processing')) return 2;
-      if (s.includes('confirm')) return 1;
-
-      // PT-BR fallbacks
-      if (s.includes('entreg')) return 4;
-      if (s.includes('caminh') || s.includes('a caminho')) return 3;
-      if (s.includes('prepar') || s.includes('em preparo')) return 2;
-      return 1; // confirmed
+      if (s.includes('deliv')) return 4;
+      if (s.includes('on the way') || s.includes('shipping') || s.includes('shipped')) return 3;
+      if (s.includes('prepar') || s.includes('process')) return 2;
+      return 1;
     }
 
     function renderOrders(){
@@ -1035,7 +1374,9 @@
             <div class="row">
               <div>
                 <div style="font-weight:900">${o.id || '#—'}</div>
-                <div class="muted" style="margin-top:4px">${o.date || ''} • ${fmtEUR(o.total || 0)}</div>
+                <div class="muted" style="margin-top:4px">
+                  ${o.date || ''} • ${fmtEUR(o.total || 0)}
+                </div>
               </div>
               <span class="pill"><strong>${o.status || 'Confirmed'}</strong></span>
             </div>
@@ -1044,7 +1385,7 @@
 
             <div class="stepper" aria-label="Order progress">
               <div class="step ${step>=1?'done':''}">Confirmed</div>
-              <div class="step ${step>=2?'done':''}">Preparing</div>
+              <div class="step ${step>=2?'done':''}">Processing</div>
               <div class="step ${step>=3?'done':''}">On the way</div>
               <div class="step ${step>=4?'done':''}">Delivered</div>
             </div>
@@ -1079,7 +1420,9 @@
             <div class="row">
               <div>
                 <div style="font-weight:900">${h.title || 'Activity'}</div>
-                <div class="muted" style="margin-top:4px">${h.date || ''} • ${h.detail || ''}</div>
+                <div class="muted" style="margin-top:4px">
+                  ${h.date || ''} • ${h.detail || ''}
+                </div>
               </div>
               <span class="pill" style="border-color:rgba(0,0,0,.06)">
                 <strong style="color:${color}">${sign}${delta} pts</strong>
@@ -1092,7 +1435,7 @@
 
     function renderAll(){
       renderHero();
-      renderConta();
+      renderAccount();
       renderAddresses();
       renderCart();
       renderOrders();
@@ -1100,7 +1443,6 @@
       setText('year', new Date().getFullYear());
     }
 
-    // ====== Ações ======
     window.editAddress = function(id){
       const a = (state.addresses||[]).find(x => x.id === id);
       if (!a) return;
@@ -1124,22 +1466,26 @@
 
     window.removeCartItem = function(id){
       state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
+      saveLocalCart();
       renderCart();
     };
 
     function clearCart(){
       if (!confirm('Clear the cart?')) return;
       state.cart = [];
+      try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
+      try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
       renderCart();
     }
 
-    // Avatar picker (somente na Conta)
     function setAvatarFileName(name){
-      $('avatarFileName').innerHTML = `<strong>${name || '—'}</strong>`;
+      const el = $('avatarFileName');
+      if (el) el.innerHTML = `<strong>${name || '—'}</strong>`;
     }
 
     function openAvatarPicker(){
       const input = $('avatarFileInput');
+      if (!input) return;
       input.value = '';
       input.click();
     }
@@ -1148,18 +1494,21 @@
       if (!file) return;
       state.avatarFile = file;
       setAvatarFileName(file.name);
-      // preview imediato
       const url = URL.createObjectURL(file);
       state.me.avatar = url;
       renderHero();
       setText('accountMsg', '✅ Photo updated.');
     }
 
-    // Salvar conta (demo)
     function saveAccount(){
-      const name = $('accName').value.trim();
-      const email = $('accEmail').value.trim();
-      const phone = $('accPhone').value.trim();
+      const nameInput = $('accName');
+      const emailInput = $('accEmail');
+      const phoneInput = $('accPhone');
+      if (!nameInput || !emailInput || !phoneInput) return;
+
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const phone = phoneInput.value.trim();
       state.me.name = name || state.me.name;
       state.me.email = email || state.me.email;
       state.me.phone = phone || state.me.phone;
@@ -1167,10 +1516,14 @@
       renderHero();
     }
 
-    // Senha (demo)
     function changePassword(){
-      const n1 = $('passNew').value.trim();
-      const n2 = $('passConfirm').value.trim();
+      const curr = $('passCurrent');
+      const n1El = $('passNew');
+      const n2El = $('passConfirm');
+      if (!n1El || !n2El) return;
+
+      const n1 = n1El.value.trim();
+      const n2 = n2El.value.trim();
 
       if (!n1 || n1.length < 6){
         setText('passMsg', 'Use at least 6 characters.');
@@ -1180,295 +1533,76 @@
         setText('passMsg', "Confirmation doesn't match.");
         return;
       }
-      $('passCurrent').value = '';
-      $('passNew').value = '';
-      $('passConfirm').value = '';
+      if (curr) curr.value = '';
+      n1El.value = '';
+      n2El.value = '';
       setText('passMsg', '✅ Password updated.');
     }
 
-    // Roleta (dinâmica com pesos + posições aleatórias)
-let spinning = false;
+    let spinning = false;
+    const PRIZES = [
+      { label:'€20',         type:'cash',       value:20 },
+      { label:'5% OFF',      type:'discount',   value:5  },
+      { label:'10% OFF',     type:'discount',   value:10 },
+      { label:'10 POINTS',   type:'points',     value:10 },
+      { label:'FREE SHIPPING', type:'shipping', value:1  },
+      { label:'EXTRA SPIN',  type:'extra_spin', value:1  },
+    ];
 
-const BASE_PRIZES = [
-  { id:'cash20', label:'€20',        type:'cash',       value:20, weight: 3  },
-  { id:'off5',   label:'5% OFF',     type:'discount',   value: 5, weight: 18 },
-  { id:'off10',  label:'10% OFF',    type:'discount',   value:10, weight: 12 },
-  { id:'pts10',  label:'10 POINTS',  type:'points',     value:10, weight: 24 },
-  { id:'ship',   label:'FREE SHIPPING',type:'shipping',  value: 1, weight: 14 },
-  { id:'extra',  label:'EXTRA SPIN', type:'extra_spin', value: 1, weight: 10 },
-];
-
-const wheel = {
-  rotateEl: null,
-  canvas: null,
-  ctx: null,
-  dpr: 1,
-  size: 0,
-  currentDeg: 0,
-  prizes: [],
-};
-
-function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
-
-function shuffle(arr){
-  const a = arr.slice();
-  for (let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]] = [a[j],a[i]];
-  }
-  return a;
-}
-
-function jitterWeights(prizes){
-  // Dá uma leve variada para não ficar "padrão", mas mantém o maior prêmio com menor chance.
-  return prizes.map(p => {
-    let mult = 0.85 + Math.random()*0.30; // 0.85..1.15
-    // Segura o €20 numa faixa menor (prêmio maior)
-    if (p.id === 'cash20'){
-      mult = 0.70 + Math.random()*0.20;   // 0.70..0.90
-    }
-    // GIRO EXTRA: médio (nem tão raro)
-    if (p.id === 'extra'){
-      mult = 0.85 + Math.random()*0.25;   // 0.85..1.10
-    }
-    return { ...p, w: Math.max(1, p.weight * mult) };
-  });
-}
-
-function pickWeighted(prizesWithW){
-  const total = prizesWithW.reduce((s,p)=>s + p.w, 0);
-  let r = Math.random() * total;
-  for (const p of prizesWithW){
-    r -= p.w;
-    if (r <= 0) return p;
-  }
-  return prizesWithW[prizesWithW.length-1];
-}
-
-function setupWheel(){
-  wheel.rotateEl = document.getElementById('wheelRotate');
-  wheel.canvas = document.getElementById('wheelCanvas');
-  if (!wheel.rotateEl || !wheel.canvas) return;
-
-  wheel.ctx = wheel.canvas.getContext('2d');
-  wheel.dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-
-  const resize = () => {
-    const box = wheel.rotateEl.getBoundingClientRect();
-    const cssSize = Math.floor(Math.min(box.width, box.height));
-    wheel.size = Math.max(240, cssSize);
-    const px = Math.floor(wheel.size * wheel.dpr);
-    wheel.canvas.width = px;
-    wheel.canvas.height = px;
-    wheel.ctx.setTransform(wheel.dpr,0,0,wheel.dpr,0,0);
-    drawWheel(wheel.prizes.length ? wheel.prizes : shuffle(BASE_PRIZES));
-  };
-
-  window.addEventListener('resize', resize);
-  resize();
-}
-
-function drawWheel(prizesOrder){
-  if (!wheel.ctx) return;
-  wheel.prizes = prizesOrder.slice();
-
-  const ctx = wheel.ctx;
-  const S = wheel.size;
-  const cx = S/2, cy = S/2;
-  const r = S/2;
-
-  ctx.clearRect(0,0,S,S);
-
-  const n = wheel.prizes.length;
-  const seg = (Math.PI*2)/n;
-  const start = -Math.PI/2; // topo
-
-  const palette = [
-    'rgba(212,175,55,.28)',
-    'rgba(240,180,59,.26)',
-    'rgba(255,142,127,.18)',
-    'rgba(107,123,42,.16)',
-  ];
-
-  // segmentos
-  for (let i=0;i<n;i++){
-    const a0 = start + i*seg;
-    const a1 = a0 + seg;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r-2,a0,a1);
-    ctx.closePath();
-    ctx.fillStyle = palette[i % palette.length];
-    ctx.fill();
-
-    // borda suave
-    ctx.strokeStyle = 'rgba(212,175,55,.55)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // texto
-    const label = wheel.prizes[i].label || '';
-    ctx.save();
-    ctx.translate(cx,cy);
-    const mid = a0 + seg/2;
-    ctx.rotate(mid);
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(43,39,35,.92)';
-    ctx.font = `800 ${clamp(Math.floor(S*0.045), 12, 16)}px Poppins, system-ui, sans-serif`;
-    ctx.fillText(label, r*0.86, 0);
-    ctx.restore();
-  }
-
-  // anéis (acabamento)
-  ctx.beginPath();
-  ctx.arc(cx,cy,r-1,0,Math.PI*2);
-  ctx.strokeStyle = 'rgba(212,175,55,.75)';
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(cx,cy,r*0.22,0,Math.PI*2);
-  ctx.fillStyle = 'rgba(255,255,255,.75)';
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(cx,cy,r*0.22,0,Math.PI*2);
-  ctx.strokeStyle = 'rgba(0,0,0,.06)';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // texto central
-  ctx.fillStyle = '#3b2206';
-  ctx.font = `900 ${clamp(Math.floor(S*0.060), 14, 20)}px Orbitron, Poppins, system-ui, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('SPIN', cx, cy);
-}
-
-function animateToPrize(prizeId){
-  return new Promise((resolve) => {
-    const n = wheel.prizes.length;
-    const seg = 360 / n;
-
-    const idx = wheel.prizes.findIndex(p => p.id === prizeId);
-    const safeIdx = idx >= 0 ? idx : 0;
-
-    // alvo: ponteiro no topo (0deg relativo), com um pequeno offset aleatório dentro do segmento
-    const offset = (Math.random()*0.7 - 0.35) * seg; // -35%..+35%
-    const targetDeg = -(safeIdx*seg + seg/2 + offset);
-
-    const current = wheel.currentDeg;
-    const currentMod = ((current % 360) + 360) % 360;
-    const targetMod = ((targetDeg % 360) + 360) % 360;
-
-    const extraTurns = 6 + Math.floor(Math.random()*4); // 6..9 voltas
-    let delta = targetMod - currentMod;
-    if (delta < 0) delta += 360;
-
-    const finalDeg = current + extraTurns*360 + delta;
-    wheel.currentDeg = finalDeg;
-
-    wheel.rotateEl.style.transition = 'transform 2.8s cubic-bezier(.16,.88,.25,1)';
-    wheel.rotateEl.style.transform = `rotate(${finalDeg}deg)`;
-
-    const done = () => {
-      wheel.rotateEl.removeEventListener('transitionend', done);
-      wheel.rotateEl.style.transition = '';
-      resolve();
-    };
-    wheel.rotateEl.addEventListener('transitionend', done);
-  });
-}
-
-async function spin(){
-  if (spinning) return;
-  ensureDailyReset();
-  if (state.spinsLeftToday <= 0){
-    setText('spinResultMsg', 'You have already used your spins for today.');
-    return;
-  }
-
-  const btn = document.getElementById('btnSpin');
-  spinning = true;
-  if (btn) btn.disabled = true;
-
-  setText('spinResultMsg', 'Spinning…');
-
-  try{
-    // 1) calcula pesos com leve variação
-    const weighted = jitterWeights(BASE_PRIZES);
-
-    // 2) define o prêmio vencedor por peso (mais chance nos prêmios "fracos")
-    const winner = pickWeighted(weighted);
-
-    // 3) embaralha posições (dinâmico) e redesenha
-    const order = shuffle(BASE_PRIZES);
-    drawWheel(order);
-
-    // 4) anima até o prêmio
-    await animateToPrize(winner.id);
-
-    // 5) aplica prêmio
-    state.spinsLeftToday = Math.max(0, Number(state.spinsLeftToday||0) - 1);
-    const dateKey = getIrelandDateKey();
-
-    if (winner.type === 'points'){
-      state.points = Number(state.points||0) + Number(winner.value||0);
-      state.cashbackHistory.unshift({ date: dateKey, title:'Credit', delta:+Number(winner.value||0), detail:'Wheel' });
-    } else if (winner.type === 'cash'){
-      const pts = Math.round((Number(winner.value||0) / 0.5)); // €20 => 40 pts
-      state.points = Number(state.points||0) + pts;
-      state.cashbackHistory.unshift({ date: dateKey, title:'Credit', delta:+pts, detail:'Wheel (+€20)' });
-    } else if (winner.type === 'discount'){
-      state.activeDiscount = { id: 'wheel_' + Date.now(), percent: Number(winner.value||0), expiresAt: makeRewardExpiry() };
-      state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:`${winner.value}% OFF (valid for 24h)` });
-    } else if (winner.type === 'shipping'){
-      state.activeShipping = { id: 'wheel_' + Date.now(), expiresAt: makeRewardExpiry() };
-      state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:'Free shipping (valid for 24h)' });
-    } else if (winner.type === 'extra_spin'){
-      state.spinsLeftToday = Number(state.spinsLeftToday||0) + 1;
-      state.cashbackHistory.unshift({ date: dateKey, title:'Bonus', delta:0, detail:'Wheel (Extra spin)' });
+    function animateWheel(){
+      return new Promise((resolve) => {
+        const el = $('wheelVisual');
+        if (!el) return resolve();
+        const turns = 5 + Math.random() * 3;
+        el.style.transition = 'transform 2.2s cubic-bezier(.2,.9,.2,1)';
+        el.style.transform = `rotate(${turns * 360}deg)`;
+        setTimeout(() => {
+          el.style.transition = '';
+          resolve();
+        }, 2300);
+      });
     }
 
-    // ===== Sincroniza prêmios com o banco (MySQL) via API =====
-    try{
-      const api = window.VW_API;
-      if (api && api.apiJson){
-        if (winner.type === 'points'){
-          const r = await api.creditPoints(Number(winner.value||0), 'wheel');
-          if (r && typeof r.points === 'number') state.points = r.points;
-        } else if (winner.type === 'cash'){
-          const ptsAdded = Math.round((Number(winner.value||0) / 0.5));
-          const r = await api.creditPoints(ptsAdded, 'wheel_cash');
-          if (r && typeof r.points === 'number') state.points = r.points;
-        } else if (winner.type === 'discount'){
-          const r = await api.grantDiscount(Number(winner.value||0));
-          const ad = r?.activeDiscount || r?.active_discount;
-          if (ad){
-            state.activeDiscount = {
-              id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
-              percent: Number(ad.percent ?? winner.value ?? 0),
-              expiresAt: ad.expiresAt || ad.expires_at || ad.expires || makeRewardExpiry(),
-            };
-          }
-        }
+    async function spin(){
+      if (spinning) return;
+      if (state.spinsLeftToday <= 0){
+        setText('spinResultMsg', "You've already used today's spins.");
+        return;
       }
-    } catch(err){
-      console.warn('Falha ao sincronizar prêmio com API:', err?.message || err);
+
+      spinning = true;
+      setText('spinResultMsg', 'Spinning…');
+      try{
+        await animateWheel();
+
+        const prize = PRIZES[Math.floor(Math.random()*PRIZES.length)];
+
+        state.spinsLeftToday -= 1;
+        if (prize.type === 'points'){
+          state.points = Number(state.points||0) + Number(prize.value||0);
+          state.cashbackHistory.unshift({
+            date: new Date().toISOString().slice(0,10),
+            title:'Credit', delta:+Number(prize.value||0),
+            detail:'Wheel'
+          });
+        } else if (prize.type === 'cash'){
+          const pts = Math.round((Number(prize.value||0) / 0.5));
+          state.points = Number(state.points||0) + pts;
+          state.cashbackHistory.unshift({
+            date: new Date().toISOString().slice(0,10),
+            title:'Credit', delta:+pts,
+            detail:'Wheel (+€20)'
+          });
+        } else if (prize.type === 'extra_spin'){
+          state.spinsLeftToday += 1;
+        }
+
+        renderAll();
+        setText('spinResultMsg', `🎁 ${prize.label}`);
+      } finally {
+        spinning = false;
+      }
     }
-
-    savePersisted();
-
-    renderAll();
-    setText('spinResultMsg', `🎁 ${winner.label}`);
-  } finally {
-    spinning = false;
-    if (btn) btn.disabled = false;
-  }
-}
-
-
 
     function addAddress(){
       const name = prompt('Address name (e.g., Home):', 'Home');
@@ -1480,27 +1614,24 @@ async function spin(){
       const country = prompt('Country:', 'Ireland');
       if (country === null) return;
 
-      state.addresses.unshift({ id: 'a' + Math.random().toString(16).slice(2), name, line1, line2, country });
+      state.addresses.unshift({
+        id: 'a' + Math.random().toString(16).slice(2),
+        name, line1, line2, country
+      });
       setText('addrMsg', '✅ Address added.');
       renderAddresses();
     }
 
     function logout(){
-  if (window.VintageAuth && typeof window.VintageAuth.logout === 'function'){
-    window.VintageAuth.logout();
-    return;
-  }
-  // Fallback
-  ['vw_token','token','authToken','auth_token','access_token'].forEach((k)=>{ try{ localStorage.removeItem(k); }catch(_){} });
-  try{ sessionStorage.removeItem('vw_token'); }catch(_){}
-  try{ document.cookie = 'vw_token=; Path=/; Max-Age=0; SameSite=Lax'; }catch(_){}
-  window.location.href = 'cliente-login-2.html?back=painel.html';
-}
+      if(window.VintageAuth && typeof window.VintageAuth.logout==='function'){
+        window.VintageAuth.logout();
+        return;
+      }
+      localStorage.removeItem('vw_token');
+      window.location.href = 'cliente-login-2.html';
+    }
 
-
-    // ====== Dados demo ======
     function loadDemo(){
-      // Clean defaults (demo)
       state.me = {
         name: '',
         email: '',
@@ -1508,16 +1639,15 @@ async function spin(){
         avatar: defaultAvatarDataUri(),
       };
 
-      state.spentTotal = 0;
-      state.spentMonth = 0;
-      state.points = 0;
+      state.spentTotal = state.spentTotal || 0;
+      state.spentMonth = state.spentMonth || 0;
 
-      state.spinsLeftToday = 1;
+      loadSharedRewards();
+      loadLocalCart();
 
-      state.cart = [];
-      state.orders = [];
-      state.cashbackHistory = [];
-      state.addresses = [];
+      state.orders = state.orders || [];
+      state.addresses = state.addresses || [];
+      state.cashbackHistory = state.cashbackHistory || [];
 
       setText('accountMsg', '—');
       setText('addrMsg', '—');
@@ -1527,17 +1657,8 @@ async function spin(){
       renderAll();
     }
 
-    // ====== Eventos ======
     document.addEventListener('DOMContentLoaded', () => {
       loadDemo();
-
-      // carrega estado salvo + aplica reset diário por horário oficial da Irlanda
-      loadPersisted();
-      ensureDailyReset();
-      renderAll();
-      scheduleResetTimers();
-
-      setupWheel();
 
       $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
       $('avatarFileInput')?.addEventListener('change', (e) => {
@@ -1549,15 +1670,13 @@ async function spin(){
       $('btnChangePass')?.addEventListener('click', changePassword);
       $('btnAddAddress')?.addEventListener('click', addAddress);
       $('btnClearCart')?.addEventListener('click', clearCart);
+
+      $('btnApplyBenefits')?.addEventListener('click', applySelectedBenefits);
       $('btnLogout')?.addEventListener('click', logout);
 
-      $('btnSpin')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        spin();
-      });
+      $('btnSpin')?.addEventListener('click', spin);
     });
 
-    // ======= Campo reativo dourado =======
     (() => {
       const MAX_PARTICLES_BASE = 120;
       const LINK_DIST = 170;
@@ -1608,8 +1727,16 @@ async function spin(){
       init();
 
       const mouse = { x: -9999, y: -9999, active: false };
-      window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
-      window.addEventListener('mouseleave', () => { mouse.active = false; mouse.x = -9999; mouse.y = -9999; });
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        mouse.active = true;
+      });
+      window.addEventListener('mouseleave', () => {
+        mouse.active = false;
+        mouse.x = -9999;
+        mouse.y = -9999;
+      });
 
       function draw(){
         ctx.clearRect(0,0,W,H);
@@ -1669,201 +1796,5 @@ async function spin(){
       draw();
     })();
   </script>
-<script>
-(function(){
-  const API_ROOT = "https://clientes-0r5d.onrender.com";
-  const TOKEN_KEY = "vw_token";
-
-  function getToken(){
-    try { return localStorage.getItem(TOKEN_KEY); } catch (_) { return null; }
-  }
-
-  function requireTokenOrRedirect(){
-    const t = getToken();
-    if (!t) {
-      window.location.href = "cliente-login-2.html";
-    }
-    return t;
-  }
-
-  function authHeaders(){
-    const t = getToken();
-    return t ? { Authorization: "Bearer " + t } : {};
-  }
-
-
-  async function apiJson(path, opts = {}){
-    const url = API_ROOT + path;
-    const init = {
-      method: opts.method || 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
-        ...authHeaders(),
-      },
-    };
-    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
-
-    const res = await fetch(url, init);
-    if (res.status === 401 || res.status === 403){
-      requireTokenOrRedirect();
-      throw new Error('unauthorized');
-    }
-
-    const text = await res.text();
-    let data = null;
-    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
-
-    if (!res.ok){
-      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-      throw new Error(msg);
-    }
-    return data;
-  }
-
-  function syncPointsUI(points){
-    const p = document.getElementById('pointsNow');
-    if (p) p.textContent = String(points ?? 0);
-    const cash = document.getElementById('cashValue');
-    if (cash){
-      const eur = (Number(points||0) * 0.5);
-      cash.textContent = '= € ' + eur.toFixed(2);
-    }
-  }
-
-  async function loadRewardsStatus(){
-    try{
-      const data = await apiJson('/rewards/status', { method:'GET' });
-
-      const points = Number(data?.points ?? data?.user?.points ?? 0);
-      if (typeof state !== 'undefined') state.points = points;
-
-      const ad = data?.activeDiscount || data?.active_discount || null;
-      if (typeof state !== 'undefined'){
-        state.activeDiscount = ad ? {
-          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
-          percent: Number(ad.percent ?? ad.value ?? 0),
-          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || makeRewardExpiry(),
-        } : null;
-      }
-
-
-      const sh = data?.activeShipping || data?.active_shipping || null;
-      if (typeof state !== 'undefined'){
-        state.activeShipping = sh ? {
-          id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
-          expiresAt: sh.expiresAt || sh.expires_at || sh.expires || makeRewardExpiry(),
-        } : null;
-      }
-      const ar = data?.appliedReward || data?.applied_redemption || data?.redemption || null;
-      if (typeof state !== 'undefined' && ar){
-        state.appliedReward = {
-          id: ar.id ?? ar.redemption_id ?? ar.redemptionId ?? null,
-          type: ar.type || null,
-          amountEUR: Number(ar.amountEUR ?? ar.amount_eur ?? 0),
-          pointsUsed: Number(ar.pointsUsed ?? ar.points_used ?? 0),
-          percent: Number(ar.percent ?? 0),
-        };
-      }
-
-      syncPointsUI(points);
-      if (typeof renderAll === 'function') renderAll();
-      if (typeof renderCart === 'function') renderCart();
-
-      try{ if (typeof savePersisted === 'function') savePersisted(); }catch(_){ }
-
-      return data;
-    } catch(err){
-      console.warn('Rewards status not loaded:', err?.message || err);
-      return null;
-    }
-  }
-
-  window.VW_API = window.VW_API || {};
-  window.VW_API.root = API_ROOT;
-  window.VW_API.apiJson = apiJson;
-  window.VW_API.loadRewardsStatus = loadRewardsStatus;
-  window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
-  window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
-  window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
-  window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
-  window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
-
-  function defaultAvatarDataUri(){
-    const svg = encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
-        <defs>
-          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-            <stop stop-color="#D4AF37" stop-opacity="0.35"/>
-            <stop stop-color="#f0b43b" stop-opacity="0.18" offset="1"/>
-          </linearGradient>
-        </defs>
-        <rect width="240" height="240" rx="120" fill="url(#g)"/>
-        <circle cx="120" cy="92" r="44" fill="rgba(43,39,35,0.16)"/>
-        <path d="M48 212c14-46 50-68 72-68s58 22 72 68" fill="rgba(43,39,35,0.14)"/>
-      </svg>
-    `);
-    return `data:image/svg+xml;charset=utf-8,${svg}`;
-  }
-
-  function applyAvatar(user){
-    const img = document.getElementById("avatar");
-    if (!img) return;
-
-    const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
-
-    if (!raw) {
-      img.src = defaultAvatarDataUri();
-      return;
-    }
-
-    let url = String(raw);
-    if (!/^https?:\/\//i.test(url)) {
-      if (!url.startsWith("/")) url = "/" + url;
-      url = API_ROOT + url;
-    }
-
-    // cache-bust so the new photo appears immediately
-    url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
-    img.src = url;
-  }
-
-  async function loadProfile(){
-    requireTokenOrRedirect();
-
-    try {
-      const res = await fetch(API_ROOT + "/user/me", { headers: authHeaders() });
-
-      if (res.status === 401 || res.status === 403) {
-        requireTokenOrRedirect();
-        return;
-      }
-
-      if (!res.ok) {
-        console.warn("Falha ao carregar /user/me:", res.status);
-        return;
-      }
-
-      const user = await res.json();
-
-      const nameEl = document.getElementById("userName");
-      const emailEl = document.getElementById("userEmail");
-
-      if (nameEl) nameEl.textContent = user.name || "Your Name";
-      if (emailEl) emailEl.textContent = user.email || "email@example.com";
-
-      applyAvatar(user);
-
-      // carrega pontos + desconto (DB)
-      loadRewardsStatus();
-    } catch (err) {
-      console.error("Erro carregando /user/me", err);
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", loadProfile);
-})();
-</script>
-
 </body>
 </html>
