@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "1768546649846",
+    "title": "STROGONOFF",
+    "price": 1,
+    "description": "FRANGA",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768546649846/1768546651308_0_Gemini_Generated_Image_az76g8az76g8az76.png",
+    "gallery": [],
+    "createdAt": 1768546653619,
+    "status": "published"
+  }
+]
