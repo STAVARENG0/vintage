@@ -506,20 +506,16 @@
       font-size: 12px;
       padding-bottom: 6px;
     }
+/* File input hidden (Android/Chrome-friendly): keep it in DOM but off-screen (avoid pointer-events:none / z-index:-1) */
+.file-input-hidden{
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0.01;
+}
 
-    /* File input hidden (avoid display:none; keep it "present" for Android/MIUI pickers) */
-    .file-input-hidden{
-      position: fixed;
-      left: 0;
-      bottom: 0;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    .hidden{ display:none !important; }
+.hidden{ display:none !important; }
   </style>
 </head>
 
@@ -713,6 +709,20 @@
       const base = t ? { "Authorization": "Bearer " + t } : {};
       return Object.assign(base, extra || {});
     }
+
+// UA helpers (Chrome Android has flaky fetch+FormData uploads)
+function isAndroid() {
+  return /Android/i.test(navigator.userAgent || "");
+}
+function isChromeAndroid() {
+  const ua = navigator.userAgent || "";
+  return /Android/i.test(ua) &&
+         /Chrome\/\d+/i.test(ua) &&
+         !/SamsungBrowser/i.test(ua) &&
+         !/EdgA/i.test(ua) &&
+         !/OPR\//i.test(ua);
+}
+
 
     async function apiJson(path, opts = {}){
       const url = API_ROOT + path;
@@ -1179,6 +1189,26 @@
                s.includes("too large") || s.includes("payload") || s.includes("413") || s.includes("415");
       };
 
+
+// Chrome Android: prefer XHR first (fetch+FormData can fail silently)
+if (isChromeAndroid()) {
+  try {
+    if (msgEl) msgEl.textContent = "Uploading (Chrome Android)…";
+    await uploadAvatarXHR(file);
+    return;
+  } catch (err0) {
+    console.error("xhr upload failed (Chrome Android)", err0);
+    if (looksLikeFormatOrSize(err0)) {
+      if (msgEl) msgEl.textContent = "Converting to JPG for Chrome…";
+      const prepared = await prepareAvatarFile(file);
+      if (msgEl) msgEl.textContent = "Uploading converted JPG…";
+      await uploadAvatarXHR(prepared);
+      return;
+    }
+    // If it wasn't a format/size issue, fall through to the generic retry flow below
+  }
+}
+
       // 1) Try fetch with original file
       try {
         if (msgEl) msgEl.textContent = "Uploading original…";
@@ -1262,6 +1292,16 @@
         if (!file) return;
 
         setAvatarFileName(file.name || "photo");
+
+// Chrome/Android can return a placeholder (0 bytes) for cloud-only photos (e.g., Google Photos)
+if ((file.size || 0) === 0) {
+  const msgEl = document.getElementById("accountMsg");
+  if (msgEl) msgEl.textContent = "❌ Essa foto parece estar na nuvem/indisponível (0 bytes). Baixe a foto no aparelho ou tire uma nova e tente novamente.";
+  // Allow re-picking
+  try { input.value = ""; } catch (_) {}
+  return;
+}
+
 
         // Immediate preview (helps confirm selection on Android)
         const avatarImg = document.getElementById("avatar");
