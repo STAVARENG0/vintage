@@ -508,6 +508,33 @@
     }
 
     .hidden{ display:none !important; }
+
+    /* Rewards selectors: show as a 'bolinha' (radio-like) */
+    #rewardsBox input[type="checkbox"]{
+      -webkit-appearance:none;
+      appearance:none;
+      width:18px;
+      height:18px;
+      border:2px solid rgba(212,175,55,.78);
+      border-radius:999px;
+      margin-top:3px;
+      background:rgba(255,255,255,.70);
+      box-shadow: inset 0 0 0 3px rgba(255,255,255,.92);
+      flex:0 0 auto;
+    }
+    #rewardsBox input[type="checkbox"]:checked{
+      background: rgba(212,175,55,1);
+      box-shadow: inset 0 0 0 4px rgba(255,255,255,.96);
+    }
+    #rewardsBox input[type="checkbox"]:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    #rewardsBox label[aria-disabled="true"]{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
   </style>
 </head>
 
@@ -598,8 +625,7 @@
               <div style="margin-top:14px; padding-top:12px; border-top:1px dashed rgba(212,175,55,.45);" id="rewardsBox">
                 <div style="font-weight:900; letter-spacing:.04em;">Rewards</div>
                 <div class="muted" style="margin-top:6px; line-height:1.6;">
-                  Choose your reward(s). You can combine <strong>Free Shipping</strong> with <strong>Points</strong> or a <strong>% Discount</strong>.
-                  You can’t combine <strong>Points</strong> and <strong>% Discount</strong>.
+                  Choose your reward. You can use only <strong>one</strong>: <strong>Free Shipping</strong> OR <strong>Points</strong> OR <strong>Discount</strong>.
                 </div>
 
                 <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
@@ -617,7 +643,7 @@
                     <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
                       <input type="checkbox" id="benefitDiscount" />
                       <span>
-                        <div style="font-weight:900;">Use % discount (valid for 24h)</div>
+                        <div style="font-weight:900;">Use discount (valid for 24h)</div>
                         <div class="muted" style="margin-top:2px; font-weight:700;">
                           <span class="pill" id="discountPill"><strong id="discountLabel">—</strong></span>
                         </div>
@@ -810,6 +836,32 @@
       if (key !== CART_GUEST_KEY){
         try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
       }
+
+      // Try to sync this cart to the backend (debounced)
+      try{ scheduleCartSaveToBackend(); }catch(_){ }
+    }
+
+    // --- NEW: debounce cart sync to backend (cross-device cart) ---
+    let __cartSaveTimer = null;
+    function scheduleCartSaveToBackend(){
+      if (__cartSaveTimer) clearTimeout(__cartSaveTimer);
+      __cartSaveTimer = setTimeout(async () => {
+        try{
+          const api = window.VW_API;
+          if (!api || typeof api.saveCart !== 'function') return;
+          const cartArr = Array.isArray(state.cart) ? state.cart : [];
+          const compact = cartArr.map(it => ({
+            id: String(it.id),
+            title: it.title || it.name || 'Product',
+            price: Number(it.price || 0),
+            qty: Number(it.qty || it.quantity || 1),
+            image: it.image || it.img || it.photo || it.photo_url || it.photoUrl || null,
+          }));
+          await api.saveCart(compact);
+        }catch(e){
+          console.warn('Cart sync failed:', e?.message || e);
+        }
+      }, 600);
     }
 
     window.addEventListener('storage', (e) => {
@@ -820,6 +872,7 @@
         if (changed === CART_GUEST_KEY || changed.startsWith('vw_cart') || changed === SHARED_REWARDS_KEY || changed === CART_REWARDS_SELECTION_KEY){
           loadLocalCart();
           renderCart();
+          try{ scheduleCartSaveToBackend(); }catch(_){ }
         }
       }catch(_){
         // ignore
@@ -1107,11 +1160,19 @@
       const selDis = !!(chkDis && chkDis.checked);
       const selShip = !!(chkShip && chkShip.checked);
 
-      const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
+      // Discount can be percent OR cashback (fixed €)
+      const ad = state.activeDiscount;
+      const discountKind = ad ? (ad.kind || ad.type || (ad.percent != null ? 'percent' : 'cashback')) : null;
+      const discountValue = Number(ad?.value ?? ad?.percent ?? 0);
+      const hasDiscount = !!(isValidReward(ad) && discountValue > 0 && (discountKind === 'percent' || discountKind === 'cashback'));
+
       const hasShipping = isValidReward(state.activeShipping);
 
+      // Only ONE reward is allowed (points OR discount OR free shipping)
       const pointsAmount = (selPts && Number(state.points||0) > 0) ? pointsToCash(state.points) : 0;
-      const discountAmount = (selDis && hasDiscount) ? subtotal * (Number(state.activeDiscount.percent||0) / 100) : 0;
+      const discountAmount = (selDis && hasDiscount)
+        ? (discountKind === 'cashback' ? Math.min(subtotal, discountValue) : (subtotal * (discountValue / 100)))
+        : 0;
       const freeShipping = (selShip && hasShipping);
 
       const total = Math.max(0, subtotal - pointsAmount - discountAmount);
@@ -1124,7 +1185,9 @@
         total,
         freeShipping,
         pointsUsed: (selPts && Number(state.points||0) > 0) ? Number(state.points||0) : 0,
-        discountPercent: (selDis && hasDiscount) ? Number(state.activeDiscount.percent||0) : 0,
+        discountPercent: (selDis && hasDiscount && discountKind !== 'cashback') ? Number(discountValue || 0) : 0,
+        discountCash: (selDis && hasDiscount && discountKind === 'cashback') ? Number(discountValue || 0) : 0,
+        rewardChoice: selShip ? 'shipping' : (selDis ? 'discount' : (selPts ? 'points' : null)),
       };
     }
 
@@ -1148,6 +1211,8 @@
           free_shipping: !!t.freeShipping,
           points_used: Number(t.pointsUsed || 0),
           discount_percent: Number(t.discountPercent || 0),
+          discount_cash: Number(t.discountCash || 0),
+          reward_choice: t.rewardChoice || null,
           updatedAt: new Date().toISOString(),
         }));
       }catch(_){ }
@@ -1167,7 +1232,9 @@
       if (bd){
         let html = `<div>Subtotal: <strong>${fmtEUR(totals.subtotal)}</strong></div>`;
         if (totals.discountAmount > 0){
-          html += `<div>Discount: <strong>- ${fmtEUR(totals.discountAmount)}</strong> (${totals.discountPercent}%)</div>`;
+          html += (totals.discountCash > 0)
+            ? `<div>Discount: <strong>- ${fmtEUR(totals.discountAmount)}</strong></div>`
+            : `<div>Discount: <strong>- ${fmtEUR(totals.discountAmount)}</strong> (${totals.discountPercent}%)</div>`;
         }
         if (totals.pointsAmount > 0){
           html += `<div>Points: <strong>- ${fmtEUR(totals.pointsAmount)}</strong> (${totals.pointsUsed} pts)</div>`;
@@ -1237,55 +1304,75 @@
     }
 
     function renderRewardsBox(){
-      loadSharedRewards();
+      // State is synced from the backend (see VW_API.loadRewardsStatus). Do not overwrite from rewards localStorage here.
+      cleanExpiredRewards();
 
-      // Restore saved selection
+      // Restore saved selection (but enforce only ONE)
       const savedSel = loadCartRewardSelection();
+      const sel = {
+        usePoints: !!savedSel.usePoints,
+        useDiscount: !!savedSel.useDiscount,
+        useShipping: !!savedSel.useShipping,
+      };
+      if (sel.useShipping){ sel.usePoints = false; sel.useDiscount = false; }
+      else if (sel.useDiscount){ sel.usePoints = false; }
+
       const chkPts = $('benefitPoints');
       const chkDis = $('benefitDiscount');
       const chkShip = $('benefitShipping');
 
-      if (chkPts) chkPts.checked = !!savedSel.usePoints;
-      if (chkDis) chkDis.checked = !!savedSel.useDiscount;
-      if (chkShip) chkShip.checked = !!savedSel.useShipping;
+      if (chkPts) chkPts.checked = !!sel.usePoints;
+      if (chkDis) chkDis.checked = !!sel.useDiscount;
+      if (chkShip) chkShip.checked = !!sel.useShipping;
 
-      // Points
+      // Availability
       const pts = Number(state.points || 0);
+      const pointsAvailable = pts > 0;
+
+      const ad = state.activeDiscount;
+      const discountKind = ad ? (ad.kind || ad.type || (ad.percent != null ? 'percent' : 'cashback')) : null;
+      const discountValue = Number(ad?.value ?? ad?.percent ?? 0);
+      const hasDiscount = !!(isValidReward(ad) && discountValue > 0 && (discountKind === 'percent' || discountKind === 'cashback'));
+
+      const hasShipping = isValidReward(state.activeShipping);
+
+      // Points UI
       $('pointsBalanceCart') && ($('pointsBalanceCart').textContent = String(pts));
       $('pointsCashCart') && ($('pointsCashCart').textContent = fmtEUR(pointsToCash(pts)));
+      if (chkPts){
+        if (!pointsAvailable) chkPts.checked = false;
+        chkPts.disabled = !pointsAvailable;
+        try{ chkPts.closest('label')?.setAttribute('aria-disabled', String(!pointsAvailable)); }catch(_){ }
+      }
 
-      // Discount
-      const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
-      const discountWrap = $('discountOption');
+      // Discount UI
       const lbl = $('discountLabel');
       const exp = $('discountExpires');
-
-      if (discountWrap) discountWrap.style.display = '';
-      if (lbl) lbl.textContent = hasDiscount ? `${Number(state.activeDiscount.percent||0)}% OFF` : '—';
-
+      if (lbl){
+        if (hasDiscount){
+          lbl.textContent = (discountKind === 'cashback') ? (fmtEUR(discountValue) + ' OFF') : (String(discountValue) + '% OFF');
+        } else {
+          lbl.textContent = '—';
+        }
+      }
       if (exp){
         stopCountdown(exp);
-        if (hasDiscount){
-          startCountdown(exp, state.activeDiscount.expiresAt);
+        if (hasDiscount && ad?.expiresAt){
+          startCountdown(exp, ad.expiresAt);
         } else {
           exp.textContent = '00:00:00';
         }
       }
-
       if (chkDis){
         if (!hasDiscount) chkDis.checked = false;
         chkDis.disabled = !hasDiscount;
+        try{ chkDis.closest('label')?.setAttribute('aria-disabled', String(!hasDiscount)); }catch(_){ }
       }
 
-      // Shipping
-      const hasShipping = isValidReward(state.activeShipping);
-      const shipWrap = $('shippingOption');
+      // Shipping UI
       const shipLbl = $('shippingLabel');
       const shipExp = $('shippingExpires');
-
-      if (shipWrap) shipWrap.style.display = '';
       if (shipLbl) shipLbl.textContent = 'Free shipping';
-
       if (shipExp){
         stopCountdown(shipExp);
         if (hasShipping && state.activeShipping?.expiresAt){
@@ -1294,36 +1381,48 @@
           shipExp.textContent = '00:00:00';
         }
       }
-
       if (chkShip){
         if (!hasShipping) chkShip.checked = false;
         chkShip.disabled = !hasShipping;
+        try{ chkShip.closest('label')?.setAttribute('aria-disabled', String(!hasShipping)); }catch(_){ }
       }
 
-      // Points checkbox
-      if (chkPts){
-        if (pts <= 0) chkPts.checked = false;
-        chkPts.disabled = pts <= 0;
+      // --- Exclusive selection (only one can be checked) ---
+      function saveSelFromUI(){
+        saveCartRewardSelection({
+          usePoints: !!(chkPts && chkPts.checked),
+          useDiscount: !!(chkDis && chkDis.checked),
+          useShipping: !!(chkShip && chkShip.checked),
+        });
       }
 
-      // Mutual exclusion: points vs discount
       if (chkPts){
         chkPts.onchange = () => {
-          if (chkPts.checked && chkDis) chkDis.checked = false;
-          saveCartRewardSelection({ usePoints: chkPts.checked, useDiscount: !!(chkDis && chkDis.checked), useShipping: !!(chkShip && chkShip.checked) });
+          if (chkPts.checked){
+            if (chkDis) chkDis.checked = false;
+            if (chkShip) chkShip.checked = false;
+          }
+          saveSelFromUI();
           renderCart();
         };
       }
       if (chkDis){
         chkDis.onchange = () => {
-          if (chkDis.checked && chkPts) chkPts.checked = false;
-          saveCartRewardSelection({ usePoints: !!(chkPts && chkPts.checked), useDiscount: chkDis.checked, useShipping: !!(chkShip && chkShip.checked) });
+          if (chkDis.checked){
+            if (chkPts) chkPts.checked = false;
+            if (chkShip) chkShip.checked = false;
+          }
+          saveSelFromUI();
           renderCart();
         };
       }
       if (chkShip){
         chkShip.onchange = () => {
-          saveCartRewardSelection({ usePoints: !!(chkPts && chkPts.checked), useDiscount: !!(chkDis && chkDis.checked), useShipping: chkShip.checked });
+          if (chkShip.checked){
+            if (chkPts) chkPts.checked = false;
+            if (chkDis) chkDis.checked = false;
+          }
+          saveSelFromUI();
           renderCart();
         };
       }
@@ -1331,11 +1430,11 @@
       // Message (selection summary)
       const msg = $('rewardAppliedMsg');
       if (msg){
-        const parts = [];
-        if (chkPts && chkPts.checked) parts.push('Points');
-        if (chkDis && chkDis.checked) parts.push('Discount');
-        if (chkShip && chkShip.checked) parts.push('Free shipping');
-        msg.textContent = parts.length ? `Selected: ${parts.join(' + ')}.` : '—';
+        let chosen = '—';
+        if (chkPts && chkPts.checked) chosen = 'Selected: Points.';
+        if (chkDis && chkDis.checked) chosen = 'Selected: Discount.';
+        if (chkShip && chkShip.checked) chosen = 'Selected: Free shipping.';
+        msg.textContent = chosen;
       }
 
       // Checkout URL (always reflects current selection)
@@ -1360,6 +1459,8 @@
         if (t.freeShipping) qs.push('free_shipping=1');
         if (t.pointsUsed) qs.push(`points_used=${encodeURIComponent(String(t.pointsUsed))}`);
         if (t.discountPercent) qs.push(`discount_percent=${encodeURIComponent(String(t.discountPercent))}`);
+        if (t.discountCash) qs.push(`discount_cash=${encodeURIComponent(String(t.discountCash))}`);
+        if (t.rewardChoice) qs.push(`reward_choice=${encodeURIComponent(String(t.rewardChoice))}`);
 
         ck.href = qs.length ? `checkout.html?${qs.join('&')}` : 'checkout.html';
       }
@@ -1375,36 +1476,32 @@
 
 
 async function applySelectedBenefits(){
-      // This simply saves the current selection + totals so checkout can read them.
+      // Save the current selection + totals so checkout can read them.
       const t = computeCartTotals();
       saveCartRewardSelection({
-        usePoints: t.pointsUsed > 0,
-        useDiscount: t.discountPercent > 0,
-        useShipping: !!t.freeShipping,
+        usePoints: t.rewardChoice === 'points',
+        useDiscount: t.rewardChoice === 'discount',
+        useShipping: t.rewardChoice === 'shipping',
       });
       persistCheckoutPayload(t);
 
+      // Also try to sync the cart to the backend (so it works across devices)
+      try{ scheduleCartSaveToBackend && scheduleCartSaveToBackend(); }catch(_){ }
+
       const msg = $('rewardAppliedMsg');
       if (msg){
-        const parts = [];
-        if (t.pointsUsed) parts.push(`Points (${t.pointsUsed} pts)`);
-        if (t.discountPercent) parts.push(`Discount (${t.discountPercent}%)`);
-        if (t.freeShipping) parts.push('Free shipping');
-        msg.textContent = parts.length ? `Saved for checkout: ${parts.join(' + ')}.` : 'Saved for checkout.';
-      }
-
-      // Optional: sync to API if available (won't block the UI)
-      try{
-        const api = window.VW_API;
-        if (api && api.apiJson){
-          // no-op here (checkout will validate server-side when you wire it)
+        if (t.rewardChoice === 'points') msg.textContent = `Saved for checkout: Points (${t.pointsUsed} pts).`;
+        else if (t.rewardChoice === 'discount'){
+          const label = t.discountCash ? (fmtEUR(t.discountCash) + ' OFF') : (t.discountPercent + '% OFF');
+          msg.textContent = `Saved for checkout: Discount (${label}).`;
         }
-      }catch(_){ }
+        else if (t.rewardChoice === 'shipping') msg.textContent = 'Saved for checkout: Free shipping.';
+        else msg.textContent = 'Saved for checkout.';
+      }
 
       renderCart();
       if (typeof renderHero === 'function') renderHero();
     }
-
 
 function statusToStepIndex(status){
       const s = String(status || '').toLowerCase();
@@ -1523,6 +1620,7 @@ function statusToStepIndex(status){
     window.removeCartItem = function(id){
       state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
       saveLocalCart();
+      try{ scheduleCartSaveToBackend(); }catch(_){ }
       renderCart();
     };
 
@@ -1533,6 +1631,7 @@ function statusToStepIndex(status){
       try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
       try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
       renderCart();
+      try{ scheduleCartSaveToBackend(); }catch(_){ }
     }
 
     // Avatar picker (somente na Account)
@@ -1903,8 +2002,161 @@ function statusToStepIndex(status){
     }
   }
 
-  async function loadRewardsStatus(){
+  // --- NEW: cart persistence helpers (cross-device cart) ---
+  async function extractCartFromResponse(data){
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    const c = data.cart || data.items || (data.data && (data.data.cart || data.data.items));
+    return Array.isArray(c) ? c : [];
+  }
+
+  function normalizeCart(items){
+    const arr = Array.isArray(items) ? items : [];
+    return arr.map((it) => {
+      const obj = (it && typeof it === 'object') ? { ...it } : {};
+      const title = obj.title || obj.name || obj.product || 'Product';
+      const image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
+      const qty = Number(obj.qty ?? obj.quantity ?? 1);
+      const price = Number(obj.price ?? 0);
+      return {
+        ...obj,
+        id: obj.id ?? obj.product_id ?? obj.productId ?? title,
+        title,
+        image,
+        qty: (Number.isFinite(qty) && qty > 0) ? qty : 1,
+        price: Number.isFinite(price) ? price : 0,
+      };
+    });
+  }
+
+  async function loadCartRemote(){
+    const tries = ['/cart','/cart/me','/cart/current','/cart/items','/cart/get'];
+    for (const path of tries){
+      try{
+        const data = await apiJson(path, { method:'GET' });
+        const items = await extractCartFromResponse(data);
+        return normalizeCart(items);
+      }catch(_){ }
+    }
+    return [];
+  }
+
+  async function saveCartRemote(items){
+    const cart = normalizeCart(items);
+    const compact = cart.map(it => ({
+      id: String(it.id),
+      title: it.title || 'Product',
+      price: Number(it.price || 0),
+      qty: Number(it.qty || 1),
+      image: it.image || null,
+    }));
+
+    const attempts = [
+      { path:'/cart', method:'PUT', body:{ cart: compact } },
+      { path:'/cart', method:'POST', body:{ cart: compact } },
+      { path:'/cart/save', method:'POST', body:{ cart: compact } },
+      { path:'/cart/upsert', method:'POST', body:{ cart: compact } },
+      { path:'/cart/set', method:'POST', body:{ cart: compact } },
+    ];
+
+    for (const a of attempts){
+      try{ return await apiJson(a.path, { method:a.method, body:a.body }); }catch(_){ }
+    }
+    return null;
+  }
+
+  async function bootstrapCartSync(){
     try{
+      const localCart = (typeof state !== 'undefined' && Array.isArray(state.cart)) ? state.cart : [];
+      const remoteCart = await loadCartRemote();
+
+      if (remoteCart.length && !localCart.length){
+        try{ state.cart = remoteCart; }catch(_){ }
+        try{ if (typeof saveLocalCart === 'function') saveLocalCart(); }catch(_){ }
+        try{ if (typeof renderCart === 'function') renderCart(); }catch(_){ }
+        return;
+      }
+
+      if (localCart.length && !remoteCart.length){
+        await saveCartRemote(localCart);
+        return;
+      }
+
+      if (localCart.length && remoteCart.length){
+        const map = new Map();
+        for (const it of remoteCart){ map.set(String(it.id), { ...it }); }
+        for (const it of localCart){
+          const k = String(it.id);
+          const cur = map.get(k);
+          if (!cur) map.set(k, { ...it });
+          else {
+            const q1 = Number(cur.qty || 1);
+            const q2 = Number(it.qty || 1);
+            map.set(k, { ...cur, ...it, qty: Math.max(q1, q2) });
+          }
+        }
+        const merged = Array.from(map.values());
+        try{ state.cart = merged; }catch(_){ }
+        try{ if (typeof saveLocalCart === 'function') saveLocalCart(); }catch(_){ }
+        await saveCartRemote(merged);
+        try{ if (typeof renderCart === 'function') renderCart(); }catch(_){ }
+      }
+    }catch(e){
+      console.warn('bootstrapCartSync failed:', e?.message || e);
+    }
+  }
+
+  async function loadRewardsStatus(){
+    // Prefer new bonuses endpoint (/bonus/balance). If it fails, fallback to legacy /rewards/status.
+    try{
+      try{
+        const data = await apiJson('/bonus/balance', { method:'GET' });
+        const available = Array.isArray(data?.available) ? data.available : (Array.isArray(data?.bonuses) ? data.bonuses : []);
+
+        // Points: prefer user.me.points from /user/me. If not present, sum available points bonuses.
+        let points = 0;
+        try{ points = Number((state?.me && (state.me.points ?? state.me.points_balance ?? state.me.pointsBalance)) ?? 0); }catch(_){ }
+        if (!points){
+          points = available
+            .filter(b => b && String(b.type) === 'points' && !b.used)
+            .reduce((s,b) => s + Number(b.value || 0), 0);
+        }
+        try{ if (typeof state !== 'undefined') state.points = Number(points || 0); }catch(_){ }
+
+        // Latest available discount (percent or cashback)
+        const disc = available.find(b => b && (b.type === 'percent' || b.type === 'cashback'));
+        try{
+          if (typeof state !== 'undefined'){
+            state.activeDiscount = disc ? {
+              id: disc.id ?? null,
+              kind: disc.type,
+              value: Number(disc.value || 0),
+              expiresAt: disc.expiresAt || disc.expires_at || disc.expires || null,
+            } : null;
+          }
+        }catch(_){ }
+
+        // Latest available shipping
+        const ship = available.find(b => b && b.type === 'shipping');
+        try{
+          if (typeof state !== 'undefined'){
+            state.activeShipping = ship ? {
+              id: ship.id ?? null,
+              expiresAt: ship.expiresAt || ship.expires_at || ship.expires || null,
+            } : null;
+          }
+        }catch(_){ }
+
+        syncPointsUI(points);
+        try{ if (typeof renderAll === 'function') renderAll(); }catch(_){ }
+        try{ if (typeof renderCart === 'function') renderCart(); }catch(_){ }
+
+        return data;
+      }catch(e){
+        // fallback below
+      }
+
+      // --- Legacy fallback ---
       const data = await apiJson('/rewards/status', { method:'GET' });
 
       const points = Number(data?.points ?? data?.user?.points ?? 0);
@@ -1927,40 +2179,6 @@ function statusToStepIndex(status){
         } : null;
       }
 
-      // aplicados (opcional; depende do teu backend)
-      let main = data?.appliedValueReward || data?.appliedReward || data?.applied_redemption || data?.redemption || null;
-      let shipRed = data?.appliedShipping || data?.applied_shipping || data?.shippingRedemption || data?.shipping_redemption || null;
-
-      const arr = data?.appliedRewards || data?.applied_rewards || data?.redemptions || null;
-      if (Array.isArray(arr)){
-        for (const r of arr){
-          const t = String(r?.type || '');
-          if (!main && (t === 'points' || t === 'discount')) main = r;
-          if (!shipRed && (t === 'shipping' || t === 'free_shipping')) shipRed = r;
-        }
-      }
-
-      if (typeof state !== 'undefined'){
-        state.appliedValueReward = null;
-        if (main && (main.type === 'points' || main.type === 'discount')){
-          state.appliedValueReward = {
-            id: main.id ?? main.redemption_id ?? main.redemptionId ?? null,
-            type: main.type || null,
-            amountEUR: Number(main.amountEUR ?? main.amount_eur ?? 0),
-            pointsUsed: Number(main.pointsUsed ?? main.points_used ?? 0),
-            percent: Number(main.percent ?? main.discount_percent ?? 0),
-          };
-        }
-
-        state.appliedShippingReward = null;
-        if (shipRed){
-          state.appliedShippingReward = {
-            id: shipRed.id ?? shipRed.redemption_id ?? shipRed.redemptionId ?? shipRed.shipping_id ?? shipRed.shippingId ?? null,
-            type: 'shipping',
-          };
-        }
-      }
-
       syncPointsUI(points);
       if (typeof renderAll === 'function') renderAll();
       if (typeof renderCart === 'function') renderCart();
@@ -1975,12 +2193,19 @@ function statusToStepIndex(status){
   window.VW_API = window.VW_API || {};
   window.VW_API.root = API_ROOT;
   window.VW_API.apiJson = apiJson;
-  window.VW_API.loadRewardsStatus = loadRewardsStatus;
-  window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
-  window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
-  window.VW_API.applyShipping = () => apiJson('/rewards/apply-shipping', { method:'POST', body:{} });
-  window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
-  window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
+
+  // Bonuses (new backend)
+  window.VW_API.loadRewardsStatus = loadRewardsStatus; // keeps the same name used elsewhere
+  window.VW_API.bonusBalance = () => apiJson('/bonus/balance', { method:'GET' });
+  window.VW_API.bonusSpin = () => apiJson('/bonus/spin', { method:'POST', body:{} });
+  window.VW_API.bonusApply = (bonusId) => apiJson('/bonus/apply', { method:'POST', body:{ bonusId } });
+
+  // Cart persistence (tries common endpoints; your backend may implement one of these)
+  window.VW_API.loadCart = loadCartRemote;
+  window.VW_API.saveCart = saveCartRemote;
+  window.VW_API.bootstrapCartSync = bootstrapCartSync;
+
+  // Checkout
   window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
 
   function defaultAvatarDataUri(){
@@ -2053,7 +2278,10 @@ function statusToStepIndex(status){
       if (emailEl) emailEl.textContent = user.email || "email@example.com";
 
       applyAvatar(user);
-      // Load rewards (points + discount + free shipping) from the backend
+      // Sync cart with backend (cross-device)
+      try{ await bootstrapCartSync(); }catch(_){ }
+
+      // Load rewards/bonuses (points + discount + free shipping) from the backend
       loadRewardsStatus();
     } catch (err) {
       console.error("Error loading /user/me", err);
