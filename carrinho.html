@@ -690,75 +690,14 @@
     const USER_ID_KEY = "vw_user_id";
     const CART_GUEST_KEY = "vw_cart";
 
-    // Accept token stored under different keys and normalize to vw_token
-    const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
-
-    function getAnyToken(){
-      for (const k of TOKEN_KEYS){
-        try{ const t = localStorage.getItem(k); if (t) return t; }catch(_){ }
-      }
-      // cookie fallback
-      try{
-        const m = document.cookie.match(/(?:^|;\s*)vw_token=([^;]+)/);
-        if (m) return decodeURIComponent(m[1]);
-      }catch(_){ }
-      return null;
-    }
-
-    function ensureCanonicalToken(){
-      const t = getAnyToken();
-      if (t){
-        try{ if (!localStorage.getItem(TOKEN_KEY)) localStorage.setItem(TOKEN_KEY, t); }catch(_){ }
-      }
-      return t;
-    }
-
-    function b64urlToJson(b64url){
-      const b64 = (b64url || '').replace(/-/g, '+').replace(/_/g, '/');
-      const pad = b64.length % 4 ? '='.repeat(4 - (b64.length % 4)) : '';
-      const json = atob(b64 + pad);
-      return JSON.parse(json);
-    }
-
-    function ensureUserIdFromToken(){
-      try{
-        const existing = localStorage.getItem(USER_ID_KEY);
-        if (existing) return existing;
-      }catch(_){ }
-
-      const token = ensureCanonicalToken();
-      if (!token) return null;
-
-      try{
-        const parts = String(token).split('.');
-        if (parts.length >= 2){
-          const payload = b64urlToJson(parts[1]);
-          const uid = payload?.id ?? payload?.user_id ?? payload?.userId ?? payload?.uid ?? payload?.sub;
-          if (uid){
-            try{ localStorage.setItem(USER_ID_KEY, String(uid)); }catch(_){ }
-            return String(uid);
-          }
-        }
-      }catch(_){ }
-      return null;
-    }
-
-    // Normalize token now (so guard + API work even if login used another key)
-    ensureCanonicalToken();
-
-
     function getActiveCartKey(){
+      // Match the same rule used on the store/menu pages:
+      // only use the user-specific key when a token AND a user id exist.
       try{
-        // Prefer user id from loaded profile, then localStorage, then JWT payload
-        let uid = (state?.me && (state.me.id ?? state.me.user_id ?? state.me.userId)) || null;
-        if (!uid){
-          try{ uid = localStorage.getItem(USER_ID_KEY); }catch(_){ uid = null; }
-        }
-        if (!uid){
-          uid = ensureUserIdFromToken();
-        }
-        if (uid) return `vw_cart_u_${uid}`;
-      }catch(_){ }
+        const uid = (state?.me && (state.me.id ?? state.me.user_id ?? state.me.userId)) || localStorage.getItem(USER_ID_KEY);
+        const tok = localStorage.getItem(TOKEN_KEY);
+        if (uid && tok) return `vw_cart_u_${uid}`;
+      }catch(_){}
       return CART_GUEST_KEY;
     }
 
@@ -797,14 +736,21 @@
     }
 
     window.addEventListener('storage', (e) => {
-      const k = getActiveCartKey();
-      if (e.key === k || e.key === CART_GUEST_KEY){
-        loadLocalCart();
-        renderCart();
+      // Keep the cart synced if it changes in another tab/page.
+      try{
+        if (!e || !e.key) return;
+        const k = getActiveCartKey();
+        if (e.key === k || e.key === CART_GUEST_KEY || String(e.key).startsWith('vw_cart')){
+          loadLocalCart();
+          renderCart();
+        }
+      }catch(_){
+        // ignore
       }
     });
+
     try{
-      if(!ensureCanonicalToken()){
+      if(!localStorage.getItem(TOKEN_KEY)){
         window.location.href = "cliente-login-2.html";
       }
     }catch(_){}
@@ -838,6 +784,17 @@
 
     function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
     function setHTML(id, t){ const el=$(id); if(el) el.innerHTML = t; }
+
+
+    // Basic HTML escaping to avoid breaking the layout when product titles contain special chars
+    function escHtml(v){
+      return String(v ?? '').replace(/[&<>"']/g, (c) => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[c]));
+    }
+    function escAttr(v){
+      return escHtml(v).replace(/`/g, '&#96;');
+    }
 
     function defaultAvatarDataUri(){
       const svg = encodeURIComponent(`
@@ -1006,22 +963,35 @@
         return;
       }
 
-      wrap.innerHTML = cart.map(it => `
-        <div class="card" style="padding:12px; margin:0;">
-          <div class="row" style="flex-wrap:nowrap;">
-            <div style="display:flex; gap:10px; align-items:center; min-width: 0;">
-              <div style="width:44px;height:44px;border-radius:14px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-weight:900;color:#3b2206;">
-                ${String(it.title||'').slice(0,1).toUpperCase() || '•'}
+      wrap.innerHTML = cart.map(it => {
+        const title = it.title || 'Item';
+        const qty = Number(it.qty || 1);
+        const price = Number(it.price || 0);
+        const lineTotal = price * qty;
+        const letter = String(title).slice(0,1).toUpperCase() || '•';
+        const img = it.image ? String(it.image) : '';
+
+        const thumb = img
+          ? `<img src="${escAttr(img)}" alt="${escAttr(title)}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+          : `<div style="font-weight:900;color:#3b2206;">${escHtml(letter)}</div>`;
+
+        return `
+          <div class="card" style="padding:12px; margin:0;">
+            <div class="row" style="flex-wrap:nowrap; align-items:center;">
+              <div style="display:flex; gap:12px; align-items:center; min-width:0; flex:1;">
+                <div style="width:54px;height:54px;border-radius:16px;overflow:hidden;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;flex:0 0 auto;">
+                  ${thumb}
+                </div>
+                <div style="min-width:0;">
+                  <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(title)}</div>
+                  <div class="muted">${fmtEUR(price)} • qty: <strong>${qty}</strong> • <strong>${fmtEUR(lineTotal)}</strong></div>
+                </div>
               </div>
-              <div style="min-width:0;">
-                <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${it.title || 'Item'}</div>
-                <div class="muted">${fmtEUR(it.price)} • qty: <strong>${it.qty || 1}</strong></div>
-              </div>
+              <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
             </div>
-            <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function fmtDateTime(dt){
