@@ -507,14 +507,16 @@
       padding-bottom: 6px;
     }
 
-    /* File input hidden (avoid display:none for Android file picker quirks) */
+    /* File input hidden (avoid display:none; keep it "present" for Android/MIUI pickers) */
     .file-input-hidden{
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
+      position: fixed;
+      left: 0;
+      bottom: 0;
       width: 1px;
       height: 1px;
       opacity: 0;
+      z-index: -1;
+      pointer-events: none;
     }
 
     .hidden{ display:none !important; }
@@ -1026,8 +1028,8 @@
     }
 
 
-    // Upload avatar with XHR (more reliable than fetch+FormData on some Android/MIUI WebViews)
-    function uploadAvatar(file) {
+    // Upload avatar with XHR (more reliable than fetch+FormData on some Android/MIUI/WebViews)
+    function uploadAvatarXHR(file) {
       const msgEl = document.getElementById("accountMsg");
       const avatarImg = document.getElementById("avatar");
       if (!file) return Promise.resolve();
@@ -1103,6 +1105,125 @@
       });
     }
 
+    // Upload avatar with fetch + AbortController (fast on modern browsers, sometimes flaky on Android)
+    async function uploadAvatarFetch(file, timeoutMs = 20000) {
+      const msgEl = document.getElementById("accountMsg");
+      const avatarImg = document.getElementById("avatar");
+      if (!file) return;
+
+      const fd = new FormData();
+      fd.append("avatar", file, file.name || "avatar.jpg");
+
+      const ctrl = (window.AbortController ? new AbortController() : null);
+      const to = setTimeout(() => { try { ctrl && ctrl.abort(); } catch (_) {} }, timeoutMs);
+      if (msgEl) msgEl.textContent = "Uploading photo…";
+
+      try {
+        const res = await fetch(API_ROOT + "/user/me/avatar", {
+          method: "POST",
+          headers: authHeaders(), // Authorization only
+          body: fd,
+          signal: ctrl ? ctrl.signal : undefined,
+          mode: "cors",
+          cache: "no-store"
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          requireTokenOrRedirect();
+          return;
+        }
+
+        if (!res.ok) {
+          // Try to surface server error (helps debugging Android-only issues)
+          let txt = "";
+          try { txt = (await res.text()) || ""; } catch (_) {}
+          txt = (txt || "").trim();
+          throw Object.assign(new Error(txt || ("HTTP " + res.status)), { status: res.status });
+        }
+
+        let data = null;
+        try { data = await res.json(); } catch (_) {}
+
+        if (data && data.avatar_url) {
+          if (avatarImg) {
+            avatarImg.src = data.avatar_url.startsWith("http") ? data.avatar_url : (API_ROOT + data.avatar_url);
+          }
+          currentUser = currentUser || {};
+          currentUser.avatar_url = data.avatar_url;
+        } else if (avatarImg) {
+          try { avatarImg.src = URL.createObjectURL(file); } catch (_) {}
+        }
+
+        if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
+      } finally {
+        clearTimeout(to);
+      }
+    }
+
+    // Smart uploader:
+    // 1) try original file via fetch (most compatible with your working iPhone/desktop behavior)
+    // 2) if it fails (timeout/network), try XHR
+    // 3) if server rejects format/size, convert to JPEG and retry
+    async function uploadAvatarSmart(file) {
+      const msgEl = document.getElementById("accountMsg");
+      if (!file) return;
+
+      const meta = `type=${file.type || "(unknown)"}, size=${Math.round((file.size||0)/1024)}KB`;
+      if (msgEl) msgEl.textContent = "Selected photo: " + meta;
+
+      // Helper to decide if error looks like "unsupported" / "too large"
+      const looksLikeFormatOrSize = (err) => {
+        const s = (err && err.message ? String(err.message) : "").toLowerCase();
+        return (err && err.status && [400, 413, 415].includes(err.status)) ||
+               s.includes("unsupported") || s.includes("format") || s.includes("type") || s.includes("heic") ||
+               s.includes("too large") || s.includes("payload") || s.includes("413") || s.includes("415");
+      };
+
+      // 1) Try fetch with original file
+      try {
+        if (msgEl) msgEl.textContent = "Uploading original…";
+        await uploadAvatarFetch(file, 20000);
+        return;
+      } catch (err1) {
+        console.error("fetch upload failed", err1);
+
+        // If server complains about format/size, convert to JPEG and retry immediately
+        if (looksLikeFormatOrSize(err1)) {
+          try {
+            if (msgEl) msgEl.textContent = "Converting to JPG for compatibility…";
+            const prepared = await prepareAvatarFile(file);
+            if (msgEl) msgEl.textContent = "Uploading converted JPG…";
+            await uploadAvatarFetch(prepared, 20000);
+            return;
+          } catch (err2) {
+            console.error("fetch upload (converted) failed", err2);
+            // fall through to XHR
+          }
+        }
+
+        // 2) Try XHR with original
+        try {
+          if (msgEl) msgEl.textContent = "Retrying upload…";
+          await uploadAvatarXHR(file);
+          return;
+        } catch (err3) {
+          console.error("xhr upload failed", err3);
+
+          // 3) Try XHR with converted file as last resort
+          try {
+            if (msgEl) msgEl.textContent = "Converting to JPG and retrying…";
+            const prepared = await prepareAvatarFile(file);
+            await uploadAvatarXHR(prepared);
+            return;
+          } catch (err4) {
+            console.error("xhr upload (converted) failed", err4);
+            if (msgEl) msgEl.textContent = "❌ Upload failed. " + (err4 && err4.message ? err4.message : "Try another photo (JPG/PNG)." );
+            throw err4;
+          }
+        }
+      }
+    }
+
     function changePassword() {
       const p1 = document.getElementById("passNew")?.value || "";
       const p2 = document.getElementById("passConfirm")?.value || "";
@@ -1149,15 +1270,10 @@
         } catch (_) {}
 
         try {
-          // Normalize for Android (WEBP/HEIC/large images) before upload
-          const msgEl = document.getElementById("accountMsg");
-          if (msgEl) msgEl.textContent = "Processing photo…";
-          const prepared = await prepareAvatarFile(file);
-          await uploadAvatar(prepared);
+          await uploadAvatarSmart(file);
         } catch (err) {
+          // uploadAvatarSmart already updates the UI
           console.error(err);
-          const msgEl = document.getElementById("accountMsg");
-          if (msgEl) msgEl.textContent = "❌ " + (err && err.message ? err.message : "Could not process this photo.");
         }
 
         // Allow re-picking the same file
