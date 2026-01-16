@@ -10,5 +10,17 @@
     "gallery": [],
     "createdAt": 1768546653619,
     "status": "published"
+  },
+  {
+    "id": "1768546688410",
+    "title": "FEIJOADA",
+    "price": 1,
+    "description": "FEIJAO BRASIL",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768546688410/1768546690018_0_Gemini_Generated_Image_izcdsizcdsizcdsi.png",
+    "gallery": [],
+    "createdAt": 1768546692592,
+    "status": "published"
   }
 ]
