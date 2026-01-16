@@ -508,6 +508,17 @@
     }
 
     .hidden{ display:none !important; }
+
+    /* Android fix: keep file input in DOM (avoid display:none) */
+    .file-input-hidden{
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
   </style>
 </head>
 
@@ -678,7 +689,7 @@
     </div>
   </div>
 
-  <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
+  <input id="avatarFileInput" type="file" accept="image/*" class="file-input-hidden" />
   <script src="auth-guard.js"></script>
   <script>
     const API_ROOT = "https://clientes-0r5d.onrender.com";
@@ -1007,7 +1018,9 @@
       const pick = document.getElementById("btnPickAvatar");
       if (pick) pick.addEventListener("click", () => {
         const input = document.getElementById("avatarFileInput");
-        if (input) input.click();
+        if (!input) return;
+        input.value = ""; // Android: allow picking the same file twice + ensure change fires
+        input.click();
       });
 
       const input = document.getElementById("avatarFileInput");
