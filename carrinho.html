@@ -1028,14 +1028,51 @@
         msg.textContent = parts.length ? parts.join(' ') : '—';
       }
 
-      // Checkout URL carries applied IDs
+      // Checkout URL carries cart + totals + applied IDs
       const ck = $('btnResumeCheckout');
       if (ck){
         const qs = [];
+
+        // 1) Send cart items to the old checkout (it already supports ?cart=...)
+        const cartArr = Array.isArray(state.cart) ? state.cart : [];
+        if (cartArr.length){
+          const compact = cartArr.map(it => ({
+            id: String(it.id),
+            title: it.title || 'Product',
+            price: Number(it.price || 0),
+            qty: Number(it.qty || 1)
+          }));
+          qs.push(`cart=${encodeURIComponent(JSON.stringify(compact))}`);
+        }
+
+        // 2) Send who is buying (so WebRock can map payment -> user)
+        const uid = (
+          state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)
+        ) || localStorage.getItem('vw_user_id') || '';
+        if (uid) qs.push(`user_id=${encodeURIComponent(String(uid))}`);
+
+        // 3) Send subtotal AFTER rewards (discount/points). Shipping is handled in checkout.
+        const subtotalRaw = cartArr.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+        let discountAmount = 0;
+        let pointsAmount = 0;
+        if (mainLocked && main && main.type === 'discount'){
+          discountAmount = subtotalRaw * (Number(main.percent || 0) / 100);
+        } else if (mainLocked && main && main.type === 'points'){
+          pointsAmount = Number(main.amountEUR || 0);
+        }
+        const paySubtotal = Math.max(0, subtotalRaw - discountAmount - pointsAmount);
+        qs.push(`pay_subtotal=${encodeURIComponent(paySubtotal.toFixed(2))}`);
+
+        // 4) Free shipping reward (if applied)
+        if (shipLocked) qs.push('free_shipping=1');
+
+        // Keep IDs (optional; useful later)
         if (mainLocked) qs.push(`reward=${encodeURIComponent(String(main.id))}`);
         if (shipLocked) qs.push(`ship=${encodeURIComponent(String(ship.id))}`);
+
         ck.href = qs.length ? `checkout.html?${qs.join('&')}` : 'checkout.html';
       }
+
 
       // Apply button
       const btn = $('btnApplyBenefits');
