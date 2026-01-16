@@ -618,7 +618,7 @@
                     <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
                       <input type="checkbox" id="benefitDiscount" />
                       <span>
-                        <div style="font-weight:900;">Use % discount (valid for 24h)</div>
+                        <div style="font-weight:900;">Use % discount</div>
                         <div class="muted" style="margin-top:2px; font-weight:700;">
                           <span class="pill" id="discountPill"><strong id="discountLabel">—</strong></span>
                         </div>
@@ -949,22 +949,65 @@
       }
     }
 
+    
     function determineLevel(spentMonth){
       const v = Number(spentMonth) || 0;
-      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
-      if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
-      return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
+
+      // Bronze: 0–299 / Silver: 300–699 / Gold: 700+
+      if (v >= 700){
+        return {
+          key: 'GOLD',
+          label: 'Gold',
+          dot: 'var(--gold2)',
+          fill: ['rgba(212,175,55,.95)','rgba(240,180,59,.95)'],
+          spinsPerDay: 5,
+          discountPercent: 30,
+          discountMin: 200,
+          hint: 'Gold: 5 spins/day • 30% OFF from €200.'
+        };
+      }
+
+      if (v >= 300){
+        return {
+          key: 'SILVER',
+          label: 'Silver',
+          dot: 'var(--silver)',
+          fill: ['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
+          spinsPerDay: 3,
+          discountPercent: 20,
+          discountMin: 150,
+          hint: 'Silver: 3 spins/day • 20% OFF from €150.'
+        };
+      }
+
+      return {
+        key: 'BRONZE',
+        label: 'Bronze',
+        dot: 'var(--bronze)',
+        fill: ['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
+        spinsPerDay: 1,
+        discountPercent: 10,
+        discountMin: 120,
+        hint: 'Bronze: 1 spin/day • 10% OFF from €120.'
+      };
     }
 
     function levelProgress(spentMonth){
       const v = Number(spentMonth) || 0;
-      // Bronze: 0-300, Silver: 300-800, Gold: >=800
-      if (v < 300) return { pct: (v/300)*100, text: `€${v.toFixed(0)} this month` };
-      if (v < 800) return { pct: ((v-300)/(800-300))*100, text: `€${v.toFixed(0)} this month` };
+      // Bronze: 0–300, Silver: 300–700, Gold: 700–1000
+      if (v < 300){
+        return { pct: (v / 300) * 100, text: `€${v.toFixed(0)} this month` };
+      }
+      if (v < 700){
+        return { pct: ((v - 300) / (700 - 300)) * 100, text: `€${v.toFixed(0)} this month` };
+      }
+      if (v < 1000){
+        return { pct: ((v - 700) / (1000 - 700)) * 100, text: `€${v.toFixed(0)} this month` };
+      }
       return { pct: 100, text: `€${v.toFixed(0)} this month` };
     }
 
-    function $(id){ return document.getElementById(id); }
+function $(id){ return document.getElementById(id); }
 
     function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
     function setHTML(id, t){ const el=$(id); if(el) el.innerHTML = t; }
@@ -1094,6 +1137,7 @@
       `).join('');
     }
 
+    
     function computeCartTotals(){
       const cart = Array.isArray(state.cart) ? state.cart : [];
       const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
@@ -1108,11 +1152,29 @@
       const selDis = !!(chkDis && chkDis.checked);
       const selShip = !!(chkShip && chkShip.checked);
 
-      const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
+      const hasSpinDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
       const hasShipping = isValidReward(state.activeShipping);
 
+      const lvl = determineLevel(state.spentMonth);
+      const lvlPercent = Number(lvl.discountPercent || 0);
+      const lvlMin = Number(lvl.discountMin || 0);
+
+      const levelEligible = subtotal >= lvlMin && lvlPercent > 0;
+      const spinPercent = hasSpinDiscount ? Number(state.activeDiscount.percent || 0) : 0;
+
+      // Points always converted fully if selected
       const pointsAmount = (selPts && Number(state.points||0) > 0) ? pointsToCash(state.points) : 0;
-      const discountAmount = (selDis && hasDiscount) ? subtotal * (Number(state.activeDiscount.percent||0) / 100) : 0;
+
+      // Decide which % applies when using "% discount":
+      // - if cart >= level minimum, level discount is available
+      // - spin discount (if any) can override if it is higher
+      let discountPercent = 0;
+      if (selDis){
+        const levelP = levelEligible ? lvlPercent : 0;
+        discountPercent = Math.max(levelP, spinPercent);
+      }
+
+      const discountAmount = subtotal * (discountPercent / 100);
       const freeShipping = (selShip && hasShipping);
 
       const total = Math.max(0, subtotal - pointsAmount - discountAmount);
@@ -1125,11 +1187,11 @@
         total,
         freeShipping,
         pointsUsed: (selPts && Number(state.points||0) > 0) ? Number(state.points||0) : 0,
-        discountPercent: (selDis && hasDiscount) ? Number(state.activeDiscount.percent||0) : 0,
+        discountPercent,
       };
     }
 
-    function persistCheckoutPayload(t){
+function persistCheckoutPayload(t){
       try{
         const uid = (
           state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)
@@ -1215,28 +1277,7 @@
                 </div>
                 <div style="min-width:0;">
                   <div style="font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(title)}</div>
-                  <div class="muted">${fmtEUR(price)} • qty: <strong>${qty}</strong> • <strong>${fmtEUR(lineTotal)}</strong></div>
-                </div>
-              </div>
-              <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-
-    function fmtDateTime(dt){
-      if (!dt) return '';
-      try{
-        const d = new Date(dt);
-        if (Number.isNaN(d.getTime())) return String(dt);
-        return d.toLocaleString('en-IE', { dateStyle:'short', timeStyle:'short' });
-      } catch(_){
-        return String(dt);
-      }
-    }
-
+                  <div class="muted">${fmtEUR(price)}
     function renderRewardsBox(){
       loadSharedRewards();
 
@@ -1252,30 +1293,43 @@
 
       // Points
       const pts = Number(state.points || 0);
-      $('pointsBalanceCart') && ($('pointsBalanceCart').textContent = String(pts));
-      $('pointsCashCart') && ($('pointsCashCart').textContent = fmtEUR(pointsToCash(pts)));
+      if ($('pointsBalanceCart')) $('pointsBalanceCart').textContent = String(pts);
+      if ($('pointsCashCart')) $('pointsCashCart').textContent = fmtEUR(pointsToCash(pts));
 
-      // Discount
-      const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
+      // Discount (spin + level on the same option)
+      const hasSpinDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
       const discountWrap = $('discountOption');
       const lbl = $('discountLabel');
       const exp = $('discountExpires');
 
-      if (discountWrap) discountWrap.style.display = '';
-      if (lbl) lbl.textContent = hasDiscount ? `${Number(state.activeDiscount.percent||0)}% OFF` : '—';
+      const lvl = determineLevel(state.spentMonth);
+      const lvlPercent = Number(lvl.discountPercent || 0);
+      const lvlMin = Number(lvl.discountMin || 0);
+      const spinPercent = hasSpinDiscount ? Number(state.activeDiscount.percent || 0) : 0;
 
-      if (exp){
-        stopCountdown(exp);
-        if (hasDiscount){
-          startCountdown(exp, state.activeDiscount.expiresAt);
-        } else {
-          exp.textContent = '00:00:00';
-        }
+      if (discountWrap) discountWrap.style.display = '';
+
+      let labelText = '—';
+      let helperText = '';
+
+      if (hasSpinDiscount && spinPercent >= lvlPercent){
+        labelText = `${spinPercent}% OFF (Spin)`;
+        helperText = lvlPercent
+          ? `Level ${lvl.label}: ${lvlPercent}% OFF from ${fmtEUR(lvlMin)}.`
+          : '';
+      } else if (lvlPercent){
+        labelText = `${lvlPercent}% OFF (Level ${lvl.label})`;
+        helperText = `Valid for carts from ${fmtEUR(lvlMin)}.`;
       }
 
+      if (lbl) lbl.textContent = labelText;
+      if (exp) exp.textContent = helperText || 'No % discount unlocked yet.';
+
+      // Enable discount checkbox only if there is some % available
       if (chkDis){
-        if (!hasDiscount) chkDis.checked = false;
-        chkDis.disabled = !hasDiscount;
+        const anyDiscount = hasSpinDiscount || !!lvlPercent;
+        chkDis.disabled = !anyDiscount;
+        if (!anyDiscount) chkDis.checked = false;
       }
 
       // Shipping
@@ -1286,15 +1340,7 @@
 
       if (shipWrap) shipWrap.style.display = '';
       if (shipLbl) shipLbl.textContent = 'Free shipping';
-
-      if (shipExp){
-        stopCountdown(shipExp);
-        if (hasShipping && state.activeShipping?.expiresAt){
-          startCountdown(shipExp, state.activeShipping.expiresAt);
-        } else {
-          shipExp.textContent = '00:00:00';
-        }
-      }
+      if (shipExp) shipExp.textContent = hasShipping ? 'No time limit.' : 'No free shipping yet.';
 
       if (chkShip){
         if (!hasShipping) chkShip.checked = false;
@@ -1311,20 +1357,32 @@
       if (chkPts){
         chkPts.onchange = () => {
           if (chkPts.checked && chkDis) chkDis.checked = false;
-          saveCartRewardSelection({ usePoints: chkPts.checked, useDiscount: !!(chkDis && chkDis.checked), useShipping: !!(chkShip && chkShip.checked) });
+          saveCartRewardSelection({
+            usePoints: chkPts.checked,
+            useDiscount: !!(chkDis && chkDis.checked),
+            useShipping: !!(chkShip && chkShip.checked),
+          });
           renderCart();
         };
       }
       if (chkDis){
         chkDis.onchange = () => {
           if (chkDis.checked && chkPts) chkPts.checked = false;
-          saveCartRewardSelection({ usePoints: !!(chkPts && chkPts.checked), useDiscount: chkDis.checked, useShipping: !!(chkShip && chkShip.checked) });
+          saveCartRewardSelection({
+            usePoints: !!(chkPts && chkPts.checked),
+            useDiscount: chkDis.checked,
+            useShipping: !!(chkShip && chkShip.checked),
+          });
           renderCart();
         };
       }
       if (chkShip){
         chkShip.onchange = () => {
-          saveCartRewardSelection({ usePoints: !!(chkPts && chkPts.checked), useDiscount: !!(chkDis && chkDis.checked), useShipping: chkShip.checked });
+          saveCartRewardSelection({
+            usePoints: !!(chkPts && chkPts.checked),
+            useDiscount: !!(chkDis && chkDis.checked),
+            useShipping: chkShip.checked,
+          });
           renderCart();
         };
       }
@@ -1345,19 +1403,38 @@
         const t = computeCartTotals();
         const qs = [];
 
-        // cart
         const cartArr = Array.isArray(state.cart) ? state.cart : [];
         if (cartArr.length){
-          const compact = cartArr.map(it => ({ id:String(it.id), title: it.title || 'Product', price:Number(it.price||0), qty:Number(it.qty||1) }));
+          const compact = cartArr.map(it => ({
+            id: String(it.id),
+            title: it.title || 'Product',
+            price: Number(it.price || 0),
+            qty: Number(it.qty || 1),
+          }));
           qs.push(`cart=${encodeURIComponent(JSON.stringify(compact))}`);
         }
 
-        // user
-        const uid = (state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)) || localStorage.getItem('vw_user_id') || '';
+        const uid = (state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId))
+          || localStorage.getItem('vw_user_id') || '';
         if (uid) qs.push(`user_id=${encodeURIComponent(String(uid))}`);
 
-        // totals
         qs.push(`pay_subtotal=${encodeURIComponent(Number(t.total||0).toFixed(2))}`);
+        if (t.freeShipping) qs.push('free_shipping=1');
+        if (t.pointsUsed) qs.push(`points_used=${encodeURIComponent(String(t.pointsUsed))}`);
+        if (t.discountPercent) qs.push(`discount_percent=${encodeURIComponent(String(t.discountPercent))}`);
+
+        ck.href = qs.length ? `checkout.html?${qs.join('&')}` : 'checkout.html';
+      }
+
+      // Apply button
+      const btn = $('btnApplyBenefits');
+      if (btn){
+        const any = !!((chkPts && chkPts.checked) || (chkDis && chkDis.checked) || (chkShip && chkShip.checked));
+        btn.disabled = !any;
+      }
+    }
+
+|0).toFixed(2))}`);
         if (t.freeShipping) qs.push('free_shipping=1');
         if (t.pointsUsed) qs.push(`points_used=${encodeURIComponent(String(t.pointsUsed))}`);
         if (t.discountPercent) qs.push(`discount_percent=${encodeURIComponent(String(t.discountPercent))}`);
