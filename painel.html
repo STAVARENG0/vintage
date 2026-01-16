@@ -539,6 +539,7 @@
               <a class="btn small" href="conta.html">👤 Account</a>
               <a class="btn small" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
+              <a class="btn small" href="cashback.html">⭐ Cashback</a>
             </div>
 
 
@@ -864,6 +865,15 @@
       setText('spinStatus', `${state.spinsLeftToday || 0} spin(s)`);
       updateResetHint();
     }
+
+    // Atualiza apenas pontos/spins da roleta (sem re-renderizar nome/foto)
+    function renderSpinUIOnly(){
+      setText('pointsNow', String(state.points || 0));
+      setText('cashValue', `= ${fmtEUR(pointsToCash(state.points || 0))}`);
+      setText('spinsNow', String(state.spinsLeftToday || 0));
+      setText('spinStatus', `${state.spinsLeftToday || 0} spin(s)`);
+    }
+
 
     function renderConta(){
   const nameEl = $('accName');
@@ -1395,7 +1405,7 @@ async function spin(){
 
     savePersisted();
 
-    renderAll();
+    renderSpinUIOnly();
     setText('spinResultMsg', `🎁 ${winner.label}`);
   } finally {
     spinning = false;
@@ -1778,6 +1788,17 @@ async function spin(){
       if (emailEl) emailEl.textContent = user.email || "email@example.com";
 
       applyAvatar(user);
+
+      // Mantem state.me sincronizado para que re-renders internos nao apaguem nome/foto
+      try {
+        if (typeof state !== "undefined"){
+          state.me = state.me || {};
+          state.me.name = user.name || state.me.name || "";
+          state.me.email = user.email || state.me.email || "";
+          const img = document.getElementById("avatar");
+          if (img && img.src) state.me.avatar = img.src;
+        }
+      } catch (_) {}
 
       // carrega pontos + desconto (DB)
       loadRewardsStatus();
