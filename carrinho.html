@@ -685,6 +685,60 @@
     };
     // ====== Simple access guard (prototype) ======
     const TOKEN_KEY = "vw_token";
+
+    // ====== Local cart (shared with store pages) ======
+    const USER_ID_KEY = "vw_user_id";
+    const CART_GUEST_KEY = "vw_cart";
+
+    function getActiveCartKey(){
+      try{
+        const uid = (state?.me && (state.me.id ?? state.me.user_id ?? state.me.userId)) || localStorage.getItem(USER_ID_KEY);
+        if (uid) return `vw_cart_u_${uid}`;
+      }catch(_){}
+      return CART_GUEST_KEY;
+    }
+
+    function migrateGuestCartIfNeeded(){
+      const key = getActiveCartKey();
+      if (key === CART_GUEST_KEY) return;
+      try{
+        const guest = JSON.parse(localStorage.getItem(CART_GUEST_KEY) || '[]');
+        const userCart = JSON.parse(localStorage.getItem(key) || '[]');
+        if((!Array.isArray(userCart) || userCart.length === 0) && Array.isArray(guest) && guest.length){
+          localStorage.setItem(key, JSON.stringify(guest));
+          localStorage.removeItem(CART_GUEST_KEY);
+        }
+      }catch(_){}
+    }
+
+    function loadLocalCart(){
+      migrateGuestCartIfNeeded();
+      const key = getActiveCartKey();
+      let arr = [];
+      try{ arr = JSON.parse(localStorage.getItem(key) || '[]'); }catch(_){ arr = []; }
+      if (!Array.isArray(arr)) arr = [];
+      // normalize
+      state.cart = arr.map(it => ({
+        id: it.id,
+        title: it.title || it.name || it.product || "Product",
+        price: Number(it.price || 0),
+        qty: Number(it.qty || it.quantity || 1),
+        image: it.image || it.img || it.photo || null
+      }));
+    }
+
+    function saveLocalCart(){
+      const key = getActiveCartKey();
+      try{ localStorage.setItem(key, JSON.stringify(state.cart || [])); }catch(_){}
+    }
+
+    window.addEventListener('storage', (e) => {
+      const k = getActiveCartKey();
+      if (e.key === k || e.key === CART_GUEST_KEY){
+        loadLocalCart();
+        renderCart();
+      }
+    });
     try{
       if(!localStorage.getItem(TOKEN_KEY)){
         window.location.href = "cliente-login-2.html";
@@ -1279,12 +1333,14 @@ function statusToStepIndex(status){
 
     window.removeCartItem = function(id){
       state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
+      saveLocalCart();
       renderCart();
     };
 
     function clearCart(){
       if (!confirm('Clear the cart?')) return;
       state.cart = [];
+      saveLocalCart();
       renderCart();
     }
 
@@ -1784,6 +1840,12 @@ function statusToStepIndex(status){
       }
 
       const user = await res.json();
+
+      try{ state.me = user; }catch(_){ }
+      try{ if (user && (user.id ?? user.user_id ?? user.userId)) localStorage.setItem('vw_user_id', String(user.id ?? user.user_id ?? user.userId)); }catch(_){ }
+      // Re-load cart using the logged-in user id (so it maps to vw_cart_u_<id>)
+      loadLocalCart();
+      renderCart();
 
       const nameEl = document.getElementById("userName");
       const emailEl = document.getElementById("userEmail");
