@@ -5,6 +5,8 @@ const morgan = require("morgan");
 const path = require("path");
 
 const { ensureDbReady } = require("./services/db");
+const db = require("./config/db");
+
 const { errorHandler, notFound } = require("./middleware/errors");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
@@ -19,8 +21,11 @@ app.set("trust proxy", 1);
 // CORS global (API – JSON)
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN === "*" ? "*" : (process.env.CORS_ORIGIN || "*"),
-    credentials: true
+    origin:
+      process.env.CORS_ORIGIN === "*"
+        ? "*"
+        : process.env.CORS_ORIGIN || "*",
+    credentials: true,
   })
 );
 
@@ -30,7 +35,6 @@ app.use(morgan("dev"));
 
 /**
  * ✅ CORS LIBERADO MANUALMENTE PARA ARQUIVOS ESTÁTICOS (IMAGENS)
- * ISSO RESOLVE DEFINITIVAMENTE O ERRO NotSameOrigin
  */
 const uploadDir = process.env.UPLOAD_DIR || "uploads";
 app.use(
@@ -39,7 +43,7 @@ app.use(
     setHeaders: (res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET");
-    }
+    },
   })
 );
 
@@ -60,9 +64,36 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 8080;
 
+/**
+ * ✅ MIGRATION AUTOMÁTICA (Render grátis)
+ * Cria expires_at se não existir
+ */
+async function runMigrations() {
+  try {
+    await db.query(`
+      ALTER TABLE bonuses
+      ADD COLUMN expires_at DATETIME NULL;
+    `);
+    console.log("✅ Migration OK: expires_at criada");
+  } catch (err) {
+    if (
+      err.message.includes("Duplicate") ||
+      err.message.includes("exists")
+    ) {
+      console.log("ℹ️ Migration ignorada: expires_at já existe");
+    } else {
+      console.error("❌ Migration error:", err.message);
+    }
+  }
+}
+
 ensureDbReady()
-  .then(() => {
-    app.listen(PORT, () => console.log(`API running on :${PORT}`));
+  .then(async () => {
+    await runMigrations();
+
+    app.listen(PORT, () =>
+      console.log(`API running on :${PORT}`)
+    );
   })
   .catch((e) => {
     console.error("DB connection failed:", e);
