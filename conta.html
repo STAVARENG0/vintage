@@ -948,10 +948,15 @@
       const MAX_SIDE = 1024;
       const TARGET_MAX_BYTES = 1_500_000; // ~1.5MB
 
-      // Helper: decode image (prefer createImageBitmap, fallback to <img>)
+      // Helper: decode image (prefer createImageBitmap, but it can hang on some Android/MIUI devices)
       async function decodeToDrawable(f){
+        const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('decode-timeout')), ms));
         if (window.createImageBitmap) {
-          try { return await createImageBitmap(f); } catch (_) {}
+          try {
+            return await Promise.race([createImageBitmap(f), timeout(8000)]);
+          } catch (_) {
+            // fall through to <img> decode
+          }
         }
         return await loadImageFromFile(f);
       }
@@ -1021,52 +1026,81 @@
     }
 
 
-    async function uploadAvatar(file) {
+    // Upload avatar with XHR (more reliable than fetch+FormData on some Android/MIUI WebViews)
+    function uploadAvatar(file) {
       const msgEl = document.getElementById("accountMsg");
       const avatarImg = document.getElementById("avatar");
-      if (!file) return;
-      if (msgEl) msgEl.textContent = "Uploading photo…";
+      if (!file) return Promise.resolve();
 
-      const fd = new FormData();
-      fd.append("avatar", file);
+      return new Promise((resolve, reject) => {
+        const fd = new FormData();
+        // Explicit filename helps some servers/frameworks
+        fd.append("avatar", file, file.name || "avatar.jpg");
 
-      try {
-        const res = await fetch(API_ROOT + "/user/me/avatar", {
-          method: "POST",
-          headers: authHeaders(),
-          body: fd
-        });
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", API_ROOT + "/user/me/avatar", true);
 
-        if (res.status === 401 || res.status === 403) {
-          requireTokenOrRedirect();
-          return;
-        }
+        // Auth header only (do NOT set Content-Type for FormData)
+        const t = getToken();
+        if (t) xhr.setRequestHeader("Authorization", "Bearer " + t);
 
-        if (!res.ok) {
-          let errText = '';
-          try { errText = await res.text(); } catch (_) {}
-          throw new Error(errText || ("HTTP " + res.status));
-        }
+        // Reasonable timeout so it doesn't hang forever
+        xhr.timeout = 30000;
 
-        let data = null;
-        try { data = await res.json(); } catch (_) {}
-
-        if (data && data.avatar_url) {
-          if (avatarImg) {
-            avatarImg.src = data.avatar_url.startsWith("http") ? data.avatar_url : (API_ROOT + data.avatar_url);
+        xhr.upload.onprogress = (ev) => {
+          if (!msgEl) return;
+          if (ev && ev.lengthComputable) {
+            const pct = Math.round((ev.loaded / ev.total) * 100);
+            msgEl.textContent = `Uploading photo… ${pct}%`;
+          } else {
+            msgEl.textContent = "Uploading photo…";
           }
-          currentUser = currentUser || {};
-          currentUser.avatar_url = data.avatar_url;
-        } else if (avatarImg) {
-          // Fallback preview
-          avatarImg.src = URL.createObjectURL(file);
-        }
+        };
 
-        if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
-      } catch (err) {
+        xhr.onload = () => {
+          try {
+            if (xhr.status === 401 || xhr.status === 403) {
+              requireTokenOrRedirect();
+              resolve();
+              return;
+            }
+            if (xhr.status < 200 || xhr.status >= 300) {
+              const errText = (xhr.responseText || "").trim();
+              reject(new Error(errText || ("HTTP " + xhr.status)));
+              return;
+            }
+
+            let data = null;
+            try { data = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch (_) {}
+
+            if (data && data.avatar_url) {
+              if (avatarImg) {
+                avatarImg.src = data.avatar_url.startsWith("http") ? data.avatar_url : (API_ROOT + data.avatar_url);
+              }
+              currentUser = currentUser || {};
+              currentUser.avatar_url = data.avatar_url;
+            } else if (avatarImg) {
+              // Fallback preview
+              try { avatarImg.src = URL.createObjectURL(file); } catch (_) {}
+            }
+
+            if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
+            resolve();
+          } catch (e) {
+            reject(e);
+          }
+        };
+
+        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.ontimeout = () => reject(new Error("Upload timed out. Check your connection and try again."));
+
+        if (msgEl) msgEl.textContent = "Uploading photo…";
+        xhr.send(fd);
+      }).catch((err) => {
         console.error(err);
         if (msgEl) msgEl.textContent = "❌ Error uploading photo. " + (err && err.message ? err.message : "");
-      }
+        throw err;
+      });
     }
 
     function changePassword() {
@@ -1116,6 +1150,8 @@
 
         try {
           // Normalize for Android (WEBP/HEIC/large images) before upload
+          const msgEl = document.getElementById("accountMsg");
+          if (msgEl) msgEl.textContent = "Processing photo…";
           const prepared = await prepareAvatarFile(file);
           await uploadAvatar(prepared);
         } catch (err) {
