@@ -506,16 +506,8 @@
       font-size: 12px;
       padding-bottom: 6px;
     }
-/* File input hidden (Android/Chrome-friendly): keep it in DOM but off-screen (avoid pointer-events:none / z-index:-1) */
-.file-input-hidden{
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  opacity: 0.01;
-}
 
-.hidden{ display:none !important; }
+    .hidden{ display:none !important; }
   </style>
 </head>
 
@@ -547,6 +539,7 @@
               <a class="btn small primary" href="conta.html">👤 Account</a>
               <a class="btn small" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
+              <a class="btn small" href="cashback.html">⭐ Cashback</a>
             </div>
 
 
@@ -686,7 +679,7 @@
     </div>
   </div>
 
-  <input id="avatarFileInput" type="file" accept="image/*" class="file-input-hidden" />
+  <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
   <script src="auth-guard.js"></script>
   <script>
     const API_ROOT = "https://clientes-0r5d.onrender.com";
@@ -709,20 +702,6 @@
       const base = t ? { "Authorization": "Bearer " + t } : {};
       return Object.assign(base, extra || {});
     }
-
-// UA helpers (Chrome Android has flaky fetch+FormData uploads)
-function isAndroid() {
-  return /Android/i.test(navigator.userAgent || "");
-}
-function isChromeAndroid() {
-  const ua = navigator.userAgent || "";
-  return /Android/i.test(ua) &&
-         /Chrome\/\d+/i.test(ua) &&
-         !/SamsungBrowser/i.test(ua) &&
-         !/EdgA/i.test(ua) &&
-         !/OPR\//i.test(ua);
-}
-
 
     async function apiJson(path, opts = {}){
       const url = API_ROOT + path;
@@ -748,10 +727,37 @@ function isChromeAndroid() {
       return data;
     }
 
-    // API helpers exposed (minimal)
+    function syncPointsUI(points){
+      const p = document.getElementById('pointsNow');
+      if (p) p.textContent = String(points ?? 0);
+      const cash = document.getElementById('cashValue');
+      if (cash){
+        const eur = (Number(points||0) * 0.5);
+        cash.textContent = '= € ' + eur.toFixed(2);
+      }
+    }
+
+    async function loadRewardsStatus(){
+      try{
+        const data = await apiJson('/rewards/status', { method:'GET' });
+        const points = Number(data?.points ?? data?.user?.points ?? 0);
+        syncPointsUI(points);
+        return data;
+      } catch(err){
+        console.warn('Rewards status not loaded:', err?.message || err);
+        return null;
+      }
+    }
+
     window.VW_API = window.VW_API || {};
     window.VW_API.root = API_ROOT;
     window.VW_API.apiJson = apiJson;
+    window.VW_API.loadRewardsStatus = loadRewardsStatus;
+    window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
+    window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
+    window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
+    window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
+    window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
 
 
     function defaultAvatarDataUri() {
@@ -930,212 +936,20 @@ function isChromeAndroid() {
       }
     }
 
-
-    // --- Avatar helpers (Android-friendly) ---
-    function setAvatarFileName(name){
-      const el = document.getElementById("avatarFileName");
-      if (el) el.innerHTML = `<strong>${name || "—"}</strong>`;
-    }
-
-    function loadImageFromFile(file){
-      return new Promise((resolve, reject) => {
-        const url = URL.createObjectURL(file);
-        const img = new Image();
-        img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
-        img.src = url;
-      });
-    }
-
-    async function prepareAvatarFile(file){
-      if (!file) return null;
-
-      // Some gallery providers can hand back a placeholder with 0 bytes until the file is downloaded.
-      if ((file.size || 0) === 0) {
-        throw new Error("Couldn't read this photo (0 bytes). Try picking another photo, or download it to the device first.");
-      }
-
-      // Android/MIUI/Google Photos sometimes returns images with empty type or formats like WEBP/HEIC.
-      // We'll try to decode and normalize to JPEG, resizing + compressing to stay under a safe size.
-      const MAX_SIDE = 1024;
-      const TARGET_MAX_BYTES = 1_500_000; // ~1.5MB
-
-      // Helper: decode image (prefer createImageBitmap, but it can hang on some Android/MIUI devices)
-      async function decodeToDrawable(f){
-        const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('decode-timeout')), ms));
-        if (window.createImageBitmap) {
-          try {
-            return await Promise.race([createImageBitmap(f), timeout(8000)]);
-          } catch (_) {
-            // fall through to <img> decode
-          }
-        }
-        return await loadImageFromFile(f);
-      }
-
-      // Helper: canvas -> Blob (fallback for old WebViews)
-      function canvasToBlob(canvas, type, quality){
-        return new Promise((resolve) => {
-          if (canvas.toBlob) {
-            canvas.toBlob((b) => resolve(b), type, quality);
-          } else {
-            try {
-              const dataUrl = canvas.toDataURL(type, quality);
-              const parts = dataUrl.split(',');
-              const mime = (parts[0].match(/data:(.*?);base64/)||[])[1] || type;
-              const bin = atob(parts[1]);
-              const arr = new Uint8Array(bin.length);
-              for (let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
-              resolve(new Blob([arr], { type: mime }));
-            } catch (_) {
-              resolve(null);
-            }
-          }
-        });
-      }
-
-      // Decide if we *need* conversion (unknown type, non-jpeg/png, or big file)
-      const okTypes = ["image/jpeg","image/png"];
-      const tooBig = (file.size || 0) > TARGET_MAX_BYTES;
-      const needsConvert = !okTypes.includes(file.type) || tooBig;
-
-      if (!needsConvert) return file;
-
-      let drawable;
-      try {
-        drawable = await decodeToDrawable(file);
-      } catch (err) {
-        // If we can't decode (often HEIC/HEIF on some Android browsers), give a clear message.
-        throw new Error("This photo format isn't supported on this device/browser. Please pick a JPG/PNG (or take a new photo). HEIC/HEIF may fail on some Androids.");
-      }
-
-      // Get dimensions
-      const width = drawable.width || drawable.naturalWidth || 1;
-      const height = drawable.height || drawable.naturalHeight || 1;
-      const scale = Math.min(1, MAX_SIDE / Math.max(width, height));
-      const w = Math.max(1, Math.round(width * scale));
-      const h = Math.max(1, Math.round(height * scale));
-
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(drawable, 0, 0, w, h);
-
-      // Try a few qualities until we get under target size
-      let blob = null;
-      for (const q of [0.9, 0.85, 0.8, 0.75, 0.7, 0.65]) {
-        blob = await canvasToBlob(canvas, 'image/jpeg', q);
-        if (blob && blob.size <= TARGET_MAX_BYTES) break;
-      }
-
-      if (!blob) {
-        // last resort: send original
-        return file;
-      }
-
-      const base = (file.name || 'avatar').replace(/\.[^.]+$/, '');
-      return new File([blob], base + '.jpg', { type: 'image/jpeg' });
-    }
-
-
-    // Upload avatar with XHR (more reliable than fetch+FormData on some Android/MIUI/WebViews)
-    function uploadAvatarXHR(file) {
-      const msgEl = document.getElementById("accountMsg");
-      const avatarImg = document.getElementById("avatar");
-      if (!file) return Promise.resolve();
-
-      return new Promise((resolve, reject) => {
-        const fd = new FormData();
-        // Explicit filename helps some servers/frameworks
-        fd.append("avatar", file, file.name || "avatar.jpg");
-
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", API_ROOT + "/user/me/avatar", true);
-
-        // Auth header only (do NOT set Content-Type for FormData)
-        const t = getToken();
-        if (t) xhr.setRequestHeader("Authorization", "Bearer " + t);
-
-        // Reasonable timeout so it doesn't hang forever
-        xhr.timeout = 30000;
-
-        xhr.upload.onprogress = (ev) => {
-          if (!msgEl) return;
-          if (ev && ev.lengthComputable) {
-            const pct = Math.round((ev.loaded / ev.total) * 100);
-            msgEl.textContent = `Uploading photo… ${pct}%`;
-          } else {
-            msgEl.textContent = "Uploading photo…";
-          }
-        };
-
-        xhr.onload = () => {
-          try {
-            if (xhr.status === 401 || xhr.status === 403) {
-              requireTokenOrRedirect();
-              resolve();
-              return;
-            }
-            if (xhr.status < 200 || xhr.status >= 300) {
-              const errText = (xhr.responseText || "").trim();
-              reject(new Error(errText || ("HTTP " + xhr.status)));
-              return;
-            }
-
-            let data = null;
-            try { data = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch (_) {}
-
-            if (data && data.avatar_url) {
-              if (avatarImg) {
-                avatarImg.src = data.avatar_url.startsWith("http") ? data.avatar_url : (API_ROOT + data.avatar_url);
-              }
-              currentUser = currentUser || {};
-              currentUser.avatar_url = data.avatar_url;
-            } else if (avatarImg) {
-              // Fallback preview
-              try { avatarImg.src = URL.createObjectURL(file); } catch (_) {}
-            }
-
-            if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
-            resolve();
-          } catch (e) {
-            reject(e);
-          }
-        };
-
-        xhr.onerror = () => reject(new Error("Network error"));
-        xhr.ontimeout = () => reject(new Error("Upload timed out. Check your connection and try again."));
-
-        if (msgEl) msgEl.textContent = "Uploading photo…";
-        xhr.send(fd);
-      }).catch((err) => {
-        console.error(err);
-        if (msgEl) msgEl.textContent = "❌ Error uploading photo. " + (err && err.message ? err.message : "");
-        throw err;
-      });
-    }
-
-    // Upload avatar with fetch + AbortController (fast on modern browsers, sometimes flaky on Android)
-    async function uploadAvatarFetch(file, timeoutMs = 20000) {
+    async function uploadAvatar(file) {
       const msgEl = document.getElementById("accountMsg");
       const avatarImg = document.getElementById("avatar");
       if (!file) return;
+      if (msgEl) msgEl.textContent = "Uploading photo…";
 
       const fd = new FormData();
-      fd.append("avatar", file, file.name || "avatar.jpg");
-
-      const ctrl = (window.AbortController ? new AbortController() : null);
-      const to = setTimeout(() => { try { ctrl && ctrl.abort(); } catch (_) {} }, timeoutMs);
-      if (msgEl) msgEl.textContent = "Uploading photo…";
+      fd.append("avatar", file);
 
       try {
         const res = await fetch(API_ROOT + "/user/me/avatar", {
           method: "POST",
-          headers: authHeaders(), // Authorization only
-          body: fd,
-          signal: ctrl ? ctrl.signal : undefined,
-          mode: "cors",
-          cache: "no-store"
+          headers: authHeaders(),
+          body: fd
         });
 
         if (res.status === 401 || res.status === 403) {
@@ -1144,113 +958,24 @@ function isChromeAndroid() {
         }
 
         if (!res.ok) {
-          // Try to surface server error (helps debugging Android-only issues)
-          let txt = "";
-          try { txt = (await res.text()) || ""; } catch (_) {}
-          txt = (txt || "").trim();
-          throw Object.assign(new Error(txt || ("HTTP " + res.status)), { status: res.status });
+          throw new Error("Erro ao fazer upload");
         }
 
         let data = null;
         try { data = await res.json(); } catch (_) {}
 
         if (data && data.avatar_url) {
-          if (avatarImg) {
-            avatarImg.src = data.avatar_url.startsWith("http") ? data.avatar_url : (API_ROOT + data.avatar_url);
-          }
+          if (avatarImg) avatarImg.src = data.avatar_url;
           currentUser = currentUser || {};
           currentUser.avatar_url = data.avatar_url;
         } else if (avatarImg) {
-          try { avatarImg.src = URL.createObjectURL(file); } catch (_) {}
+          avatarImg.src = URL.createObjectURL(file);
         }
 
         if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
-      } finally {
-        clearTimeout(to);
-      }
-    }
-
-    // Smart uploader:
-    // 1) try original file via fetch (most compatible with your working iPhone/desktop behavior)
-    // 2) if it fails (timeout/network), try XHR
-    // 3) if server rejects format/size, convert to JPEG and retry
-    async function uploadAvatarSmart(file) {
-      const msgEl = document.getElementById("accountMsg");
-      if (!file) return;
-
-      const meta = `type=${file.type || "(unknown)"}, size=${Math.round((file.size||0)/1024)}KB`;
-      if (msgEl) msgEl.textContent = "Selected photo: " + meta;
-
-      // Helper to decide if error looks like "unsupported" / "too large"
-      const looksLikeFormatOrSize = (err) => {
-        const s = (err && err.message ? String(err.message) : "").toLowerCase();
-        return (err && err.status && [400, 413, 415].includes(err.status)) ||
-               s.includes("unsupported") || s.includes("format") || s.includes("type") || s.includes("heic") ||
-               s.includes("too large") || s.includes("payload") || s.includes("413") || s.includes("415");
-      };
-
-
-// Chrome Android: prefer XHR first (fetch+FormData can fail silently)
-if (isChromeAndroid()) {
-  try {
-    if (msgEl) msgEl.textContent = "Uploading (Chrome Android)…";
-    await uploadAvatarXHR(file);
-    return;
-  } catch (err0) {
-    console.error("xhr upload failed (Chrome Android)", err0);
-    if (looksLikeFormatOrSize(err0)) {
-      if (msgEl) msgEl.textContent = "Converting to JPG for Chrome…";
-      const prepared = await prepareAvatarFile(file);
-      if (msgEl) msgEl.textContent = "Uploading converted JPG…";
-      await uploadAvatarXHR(prepared);
-      return;
-    }
-    // If it wasn't a format/size issue, fall through to the generic retry flow below
-  }
-}
-
-      // 1) Try fetch with original file
-      try {
-        if (msgEl) msgEl.textContent = "Uploading original…";
-        await uploadAvatarFetch(file, 20000);
-        return;
-      } catch (err1) {
-        console.error("fetch upload failed", err1);
-
-        // If server complains about format/size, convert to JPEG and retry immediately
-        if (looksLikeFormatOrSize(err1)) {
-          try {
-            if (msgEl) msgEl.textContent = "Converting to JPG for compatibility…";
-            const prepared = await prepareAvatarFile(file);
-            if (msgEl) msgEl.textContent = "Uploading converted JPG…";
-            await uploadAvatarFetch(prepared, 20000);
-            return;
-          } catch (err2) {
-            console.error("fetch upload (converted) failed", err2);
-            // fall through to XHR
-          }
-        }
-
-        // 2) Try XHR with original
-        try {
-          if (msgEl) msgEl.textContent = "Retrying upload…";
-          await uploadAvatarXHR(file);
-          return;
-        } catch (err3) {
-          console.error("xhr upload failed", err3);
-
-          // 3) Try XHR with converted file as last resort
-          try {
-            if (msgEl) msgEl.textContent = "Converting to JPG and retrying…";
-            const prepared = await prepareAvatarFile(file);
-            await uploadAvatarXHR(prepared);
-            return;
-          } catch (err4) {
-            console.error("xhr upload (converted) failed", err4);
-            if (msgEl) msgEl.textContent = "❌ Upload failed. " + (err4 && err4.message ? err4.message : "Try another photo (JPG/PNG)." );
-            throw err4;
-          }
-        }
+      } catch (err) {
+        console.error(err);
+        if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
       }
     }
 
@@ -1287,43 +1012,9 @@ if (isChromeAndroid()) {
       });
 
       const input = document.getElementById("avatarFileInput");
-      if (input) input.addEventListener("change", async (e) => {
+      if (input) input.addEventListener("change", (e) => {
         const file = e.target.files && e.target.files[0];
-        if (!file) return;
-
-        setAvatarFileName(file.name || "photo");
-
-// Chrome/Android can return a placeholder (0 bytes) for cloud-only photos (e.g., Google Photos)
-if ((file.size || 0) === 0) {
-  const msgEl = document.getElementById("accountMsg");
-  if (msgEl) msgEl.textContent = "❌ Essa foto parece estar na nuvem/indisponível (0 bytes). Baixe a foto no aparelho ou tire uma nova e tente novamente.";
-  // Allow re-picking
-  try { input.value = ""; } catch (_) {}
-  return;
-}
-
-
-        // Immediate preview (helps confirm selection on Android)
-        const avatarImg = document.getElementById("avatar");
-        try {
-          if (avatarImg) avatarImg.src = URL.createObjectURL(file);
-        } catch (_) {}
-
-        try {
-          await uploadAvatarSmart(file);
-        } catch (err) {
-          // uploadAvatarSmart already updates the UI
-          console.error(err);
-        }
-
-        // Allow re-picking the same file
-        try { input.value = ""; } catch (_) {}
-      });
-
-      const avatarWrap = document.querySelector(".avatar-wrap");
-      if (avatarWrap) avatarWrap.addEventListener("click", () => {
-        const input = document.getElementById("avatarFileInput");
-        if (input) input.click();
+        if (file) uploadAvatar(file);
       });
 
       const btnAcc = document.getElementById("btnSaveAccount");
@@ -1357,6 +1048,7 @@ if ((file.size || 0) === 0) {
       attachEvents();
       await loadProfile();
       await loadSettings();
+      await loadRewardsStatus();
     }
 
     document.addEventListener("DOMContentLoaded", initPage);
