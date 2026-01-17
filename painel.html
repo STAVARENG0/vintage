@@ -1675,21 +1675,30 @@ const TOKEN_KEY = "vw_token";
     }
   }
 
-  async function loadRewardsStatus(){
-    try{
-      const data = await apiJson('/rewards/status', { method:'GET' });
-
-      const points = Number(data?.points ?? data?.user?.points ?? 0);
-      if (typeof state !== 'undefined') state.points = points;
-
-      const ad = data?.activeDiscount || data?.active_discount || null;
-      if (typeof state !== 'undefined'){
-        state.activeDiscount = ad ? {
-          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
-          percent: Number(ad.percent ?? ad.value ?? 0),
-          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
-        } : null;
+  async function loadRewardsStatus() {
+  try {
+    const res = await fetch('https://vintage-production.up.railway.app/bonus/points', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('vw_token')
       }
+    });
+
+    const data = await res.json();
+
+    const points = Number(data.points || 0);
+
+    if (typeof state !== 'undefined') {
+      state.points = points;
+    }
+
+    renderRewards?.();
+    computeCartTotals?.();
+
+  } catch (e) {
+    console.error('Failed to load bonus points', e);
+  }
+}
+
 
       const ar = data?.appliedReward || data?.applied_redemption || data?.redemption || null;
       if (typeof state !== 'undefined' && ar){
