@@ -2030,16 +2030,16 @@ function statusToStepIndex(status){
   }
 
   async function loadCartRemote(){
-    const tries = ['/cart','/cart/me','/cart/current','/cart/items','/cart/get'];
-    for (const path of tries){
-      try{
-        const data = await apiJson(path, { method:'GET' });
-        const items = await extractCartFromResponse(data);
-        return normalizeCart(items);
-      }catch(_){ }
-    }
+  try {
+    const data = await apiJson('/cart', { method: 'GET' });
+    const items = await extractCartFromResponse(data);
+    return normalizeCart(items);
+  } catch (e) {
+    console.error('Erro ao carregar carrinho remoto:', e);
     return [];
   }
+}
+
 
   async function saveCartRemote(items){
     const cart = normalizeCart(items);
