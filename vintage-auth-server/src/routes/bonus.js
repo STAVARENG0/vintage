@@ -124,5 +124,44 @@ router.post("/apply", requireAuth, async (req, res, next) => {
     next(e);
   }
 });
+// 🧾 STATUS DE RECOMPENSAS (usado pelo painel)
+router.get("/status", requireAuth, async (req, res, next) => {
+  try {
+    const rows = await q(
+      `
+      SELECT id, type, value, used, expires_at
+      FROM bonuses
+      WHERE user_id=?
+      `,
+      [req.user.id]
+    );
+
+    const now = new Date();
+
+    const activeDiscount = rows.find(
+      r =>
+        !r.used &&
+        (r.type === "percent" || r.type === "cashback") &&
+        r.expires_at &&
+        new Date(r.expires_at) > now
+    );
+
+    const activeShipping = rows.find(
+      r =>
+        !r.used &&
+        r.type === "shipping" &&
+        r.expires_at &&
+        new Date(r.expires_at) > now
+    );
+
+    res.json({
+      hasReward: !!(activeDiscount || activeShipping),
+      discount: activeDiscount || null,
+      shipping: activeShipping || null
+    });
+  } catch (e) {
+    next(e);
+  }
+});
 
 module.exports = router;
