@@ -1146,9 +1146,36 @@ html = r"""<!DOCTYPE html>
       `).join('');
     }
 
-    function computeCartTotals(){
+    async function computeCartTotals(){
       const cart = Array.isArray(state.cart) ? state.cart : [];
       const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
+// ====== BONUS DA ROLETA ======
+let bonusDiscountAmount = 0;
+let activeBonusId = null;
+
+try {
+  const res = await fetch('/bonus/status', {
+    headers: {
+      'Authorization': `Bearer ${getToken()}`
+    }
+  });
+
+  const data = await res.json();
+
+  if (data?.hasReward && data.discount) {
+    activeBonusId = data.bonusId;
+
+    if (data.discount.type === 'percent') {
+      bonusDiscountAmount = subtotal * (data.discount.value / 100);
+    }
+
+    if (data.discount.type === 'cashback') {
+      bonusDiscountAmount = data.discount.value;
+    }
+  }
+} catch (e) {
+  console.warn('Erro ao buscar bonus:', e);
+}
 
       cleanExpiredRewards();
 
@@ -1172,7 +1199,10 @@ html = r"""<!DOCTYPE html>
       const discountAmount = (selDis && hasDiscount) ? (subtotal * (discountPercent / 100)) : 0;
       const freeShipping = (selShip && hasShipping);
 
-      const total = Math.max(0, subtotal - pointsAmount - discountAmount);
+      const total = Math.max(
+  0,
+  subtotal - pointsAmount - discountAmount - bonusDiscountAmount
+);
 
       return {
         cart,
