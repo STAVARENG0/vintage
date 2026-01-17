@@ -103,16 +103,7 @@ async function runMigrations() {
    START SERVER (RAILWAY)
 ========================= */
 
-const PORT = process.env.PORT || 3000;
 
-ensureDbReady()
-  .then(async () => {
-    await runMigrations();
-
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log("🚀 API running on:", PORT);
-    });
-  })
   .catch((e) => {
     console.error("❌ DB connection failed:", e);
     process.exit(1);
