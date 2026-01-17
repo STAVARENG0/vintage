@@ -1,243 +1,121 @@
-<script>
-(function(){
-  const API_ROOT = "https://clientes-0r5d.onrender.com";
-  const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
+const express = require("express");
+const { requireAuth } = require("../middleware/auth");
+const { q, tx } = require("../services/db");
 
-  function getToken(){
-    for (const k of TOKEN_KEYS){
-      try{
-        const t = localStorage.getItem(k);
-        if (t) return t;
-      }catch(_){}
-    }
-    return null;
-  }
+const router = express.Router();
 
-  function requireTokenOrRedirect(){
-    const t = getToken();
-    if (!t) window.location.href = "cliente-login-2.html";
-    return t;
-  }
+async function getOrCreateCartId(conn, userId){
+  const [rows] = await conn.execute("SELECT id FROM carts WHERE user_id=? LIMIT 1", [userId]);
+  if(rows.length) return rows[0].id;
 
-  function authHeaders(){
-    const token = getToken();
-    if (!token) return {};
-    return { Authorization: "Bearer " + token };
-  }
+  const [r] = await conn.execute("INSERT INTO carts (user_id, updated_at) VALUES (?, NOW())", [userId]);
+  return r.insertId;
+}
 
-  async function apiJson(path, opts = {}){
-    const url = API_ROOT + path;
-    const init = {
-      method: opts.method || "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...(opts.headers || {}),
-        ...authHeaders(),
-      },
-    };
-    if (opts.body !== undefined){
-      init.body = (typeof opts.body === "string") ? opts.body : JSON.stringify(opts.body);
-    }
+router.get("/", requireAuth, async (req, res, next) => {
+  try{
+    const cart = await q("SELECT id, updated_at FROM carts WHERE user_id=? LIMIT 1", [req.user.id]);
+    if(!cart.length) return res.json({ items: [], updated_at: null });
 
-    const res = await fetch(url, init);
-    if (res.status === 401 || res.status === 403){
-      requireTokenOrRedirect();
-      throw new Error("unauthorized");
-    }
+    const items = await q("SELECT id, product_id, title, price, qty, image_url FROM cart_items WHERE cart_id=? ORDER BY id DESC",
+      [cart[0].id]
+    );
+    res.json({ cart_id: cart[0].id, updated_at: cart[0].updated_at, items });
+  }catch(e){ next(e); }
+});
 
-    const text = await res.text();
-    let data = null;
-    try{ data = text ? JSON.parse(text) : null; }catch(_){ data = text; }
+// Sync from localStorage (items: [{product_id,title,price,qty,image_url}])
+router.post("/sync", requireAuth, async (req, res, next) => {
+  try{
+    const { items } = req.body || {};
+    const list = Array.isArray(items) ? items : [];
 
-    if (!res.ok){
-      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-      throw new Error(msg);
-    }
-    return data;
-  }
+    const out = await tx(async (conn) => {
+      const cartId = await getOrCreateCartId(conn, req.user.id);
 
-  // ===== Rewards: backend first, fallback to localStorage =====
-  async function loadRewardsStatus(){
-    // tenta backend
-    try{
-      const data = await apiJson("/bonus/balance", { method: "GET" });
+      // Upsert by product_id (string)
+      for(const it of list){
+        const productId = String(it.product_id || it.id || it.sku || "");
+        if(!productId) continue;
+        const title = String(it.title || it.name || "");
+        const price = Number(it.price || 0);
+        const qty = Math.max(1, Number(it.qty || it.quantity || 1));
+        const imageUrl = it.image_url || it.image || null;
 
-      const list = Array.isArray(data?.available)
-        ? data.available
-        : (Array.isArray(data?.bonuses) ? data.bonuses : []);
-
-      const now = Date.now();
-
-      const norm = (list || [])
-        .filter(b => !b.used)
-        .map((b) => {
-          const type = String(b.type || b.kind || "").toLowerCase();
-          const created = b.created_at || b.createdAt || b.created || null;
-          let expiresAt = b.expiresAt || b.expires_at || b.expires || null;
-
-          // shipping + discount expiram em 24h
-          if (!expiresAt && (type === "percent" || type === "discount" || type === "shipping")){
-            const base = created ? new Date(created).getTime() : now;
-            expiresAt = new Date(base + 24*60*60*1000).toISOString();
-          }
-
-          return { ...b, type, value: Number(b.value || 0), created_at: created, expiresAt };
-        });
-
-      // points (cashback) acumulam
-      const points = norm
-        .filter(b => b.type === "cashback" || b.type === "points")
-        .reduce((s, b) => s + (Number(b.value) || 0), 0);
-
-      state.points = Math.max(0, Math.floor(points));
-
-      // discount (percent)
-      const disc = norm.find(b =>
-        (b.type === "percent" || b.type === "discount") &&
-        (Number(b.value) || 0) > 0 &&
-        (!b.expiresAt || new Date(b.expiresAt).getTime() > now)
-      );
-      state.activeDiscount = disc ? { id: disc.id, percent: Number(disc.value || 0), expiresAt: disc.expiresAt } : null;
-
-      // shipping
-      const ship = norm.find(b =>
-        b.type === "shipping" &&
-        (!b.expiresAt || new Date(b.expiresAt).getTime() > now)
-      );
-      state.activeShipping = ship ? { id: ship.id, expiresAt: ship.expiresAt } : null;
-
-      if (typeof renderCart === "function") renderCart();
-      if (typeof renderCashback === "function") renderCashback();
-
-      return { ok:true, points: state.points, activeDiscount: state.activeDiscount, activeShipping: state.activeShipping };
-    }catch(e){
-      // fallback localStorage (wheel -> cart)
-      console.warn("Rewards backend indisponível. A usar localStorage.", e?.message || e);
-      try{
-        const raw = localStorage.getItem("vwi_rewards_state_v1");
-        if (raw){
-          const s = JSON.parse(raw) || {};
-          if (typeof s.points === "number") state.points = Math.max(0, Math.floor(s.points));
-          state.activeDiscount = s.activeDiscount || null;
-          state.activeShipping = s.activeShipping || null;
-          if (Array.isArray(s.cashbackHistory)) state.cashbackHistory = s.cashbackHistory;
+        const [rows] = await conn.execute("SELECT id, qty FROM cart_items WHERE cart_id=? AND product_id=? LIMIT 1",
+          [cartId, productId]
+        );
+        if(rows.length){
+          const newQty = qty; // overwrite
+          await conn.execute("UPDATE cart_items SET title=?, price=?, qty=?, image_url=? WHERE id=?",
+            [title, price, newQty, imageUrl, rows[0].id]
+          );
+        } else {
+          await conn.execute("INSERT INTO cart_items (cart_id, product_id, title, price, qty, image_url) VALUES (?,?,?,?,?,?)",
+            [cartId, productId, title, price, qty, imageUrl]
+          );
         }
-      }catch(_){}
-
-      if (typeof renderCart === "function") renderCart();
-      if (typeof renderCashback === "function") renderCashback();
-
-      return { ok:true, points: state.points, activeDiscount: state.activeDiscount, activeShipping: state.activeShipping };
-    }
-  }
-
-  // ===== Cart remote sync: DISABLED (until /cart exists) =====
-  const DISABLE_REMOTE_CART = true;
-
-  async function bootstrapCartSync(){
-    // no-op (disabled)
-  }
-
-  function defaultAvatarDataUri(){
-    const svg = encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
-        <defs>
-          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-            <stop stop-color="#D4AF37" stop-opacity="0.35"/>
-            <stop stop-color="#f0b43b" stop-opacity="0.18" offset="1"/>
-          </linearGradient>
-        </defs>
-        <rect width="240" height="240" rx="120" fill="url(#g)"/>
-        <circle cx="120" cy="92" r="44" fill="rgba(43,39,35,0.16)"/>
-        <path d="M48 212c14-46 50-68 72-68s58 22 72 68" fill="rgba(43,39,35,0.14)"/>
-      </svg>
-    `);
-    return `data:image/svg+xml;charset=utf-8,${svg}`;
-  }
-
-  function applyAvatar(user){
-    const img = document.getElementById("avatar");
-    if (!img) return;
-
-    const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
-    if (!raw){
-      img.src = defaultAvatarDataUri();
-      return;
-    }
-
-    let url = String(raw);
-    if (!/^https?:\/\//i.test(url)){
-      if (!url.startsWith("/")) url = "/" + url;
-      url = API_ROOT + url;
-    }
-
-    url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
-    img.src = url;
-  }
-
-  // ===== Public API =====
-  window.VW_API = window.VW_API || {};
-  window.VW_API.root = API_ROOT;
-  window.VW_API.apiJson = apiJson;
-
-  // bonuses
-  window.VW_API.loadRewardsStatus = loadRewardsStatus;
-  window.VW_API.bonusBalance = () => apiJson("/bonus/balance", { method:"GET" });
-  window.VW_API.bonusSpin = () => apiJson("/bonus/spin", { method:"POST", body:{} });
-  window.VW_API.bonusApply = (bonusId) => apiJson("/bonus/apply", { method:"POST", body:{ bonusId } });
-
-  // cart (disabled)
-  window.VW_API.bootstrapCartSync = bootstrapCartSync;
-  if (DISABLE_REMOTE_CART){
-    window.VW_API.loadCart = async () => [];
-    window.VW_API.saveCart = async () => ({ ok:true });
-  }
-
-  // checkout
-  window.VW_API.checkoutCreate = (payload) => apiJson("/checkout/create", { method:"POST", body: payload || {} });
-
-  async function loadProfile(){
-    requireTokenOrRedirect();
-
-    try{
-      const res = await fetch(API_ROOT + "/user/me", { headers: authHeaders() });
-
-      if (res.status === 401 || res.status === 403){
-        requireTokenOrRedirect();
-        return;
-      }
-      if (!res.ok){
-        console.warn("Failed to load /user/me:", res.status);
-        return;
       }
 
-      const user = await res.json();
+      await conn.execute("UPDATE carts SET updated_at=NOW() WHERE id=?", [cartId]);
+      const [items2] = await conn.execute("SELECT id, product_id, title, price, qty, image_url FROM cart_items WHERE cart_id=? ORDER BY id DESC", [cartId]);
+      return items2;
+    });
 
-      try{ state.me = user; }catch(_){}
-      try{
-        if (user && (user.id ?? user.user_id ?? user.userId)){
-          localStorage.setItem("vw_user_id", String(user.id ?? user.user_id ?? user.userId));
-        }
-      }catch(_){}
+    res.json({ ok: true, items: out });
+  }catch(e){ next(e); }
+});
 
-      // mantém cart localStorage como fonte de verdade
-      try{ if (typeof loadLocalCart === "function") loadLocalCart(); }catch(_){}
-      try{ if (typeof renderCart === "function") renderCart(); }catch(_){}
+// Add or update an item
+router.post("/items", requireAuth, async (req, res, next) => {
+  try{
+    const it = req.body || {};
+    const productId = String(it.product_id || it.id || it.sku || "");
+    if(!productId) return res.status(400).json({ error: "Missing product_id" });
 
-      const nameEl = document.getElementById("userName");
-      const emailEl = document.getElementById("userEmail");
-      if (nameEl) nameEl.textContent = user.name || "Your Name";
-      if (emailEl) emailEl.textContent = user.email || "email@example.com";
+    const title = String(it.title || it.name || "");
+    const price = Number(it.price || 0);
+    const qty = Math.max(1, Number(it.qty || it.quantity || 1));
+    const imageUrl = it.image_url || it.image || null;
 
-      applyAvatar(user);
+    const out = await tx(async (conn) => {
+      const cartId = await getOrCreateCartId(conn, req.user.id);
 
-      // rewards (backend se existir; senão localStorage)
-      loadRewardsStatus();
-    }catch(err){
-      console.error("Error loading /user/me", err);
-    }
-  }
+      const [rows] = await conn.execute("SELECT id FROM cart_items WHERE cart_id=? AND product_id=? LIMIT 1", [cartId, productId]);
+      if(rows.length){
+        await conn.execute("UPDATE cart_items SET title=?, price=?, qty=?, image_url=? WHERE id=?",
+          [title, price, qty, imageUrl, rows[0].id]
+        );
+      } else {
+        await conn.execute("INSERT INTO cart_items (cart_id, product_id, title, price, qty, image_url) VALUES (?,?,?,?,?,?)",
+          [cartId, productId, title, price, qty, imageUrl]
+        );
+      }
+      await conn.execute("UPDATE carts SET updated_at=NOW() WHERE id=?", [cartId]);
 
-  document.addEventListener("DOMContentLoaded", loadProfile);
-})();
-</script>
+      const [items2] = await conn.execute("SELECT id, product_id, title, price, qty, image_url FROM cart_items WHERE cart_id=? ORDER BY id DESC", [cartId]);
+      return items2;
+    });
+
+    res.json({ ok: true, items: out });
+  }catch(e){ next(e); }
+});
+
+router.delete("/items/:id", requireAuth, async (req, res, next) => {
+  try{
+    const id = Number(req.params.id);
+    if(!id) return res.status(400).json({ error: "Bad id" });
+
+    await tx(async (conn) => {
+      const [cartRows] = await conn.execute("SELECT id FROM carts WHERE user_id=? LIMIT 1", [req.user.id]);
+      if(!cartRows.length) return;
+
+      await conn.execute("DELETE FROM cart_items WHERE id=? AND cart_id=?", [id, cartRows[0].id]);
+      await conn.execute("UPDATE carts SET updated_at=NOW() WHERE id=?", [cartRows[0].id]);
+    });
+
+    res.json({ ok: true });
+  }catch(e){ next(e); }
+});
+
+module.exports = router;
