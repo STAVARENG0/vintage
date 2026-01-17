@@ -16,9 +16,12 @@ const checkoutRoutes = require("./routes/checkout");
 
 const app = express();
 
+/* =========================
+   CONFIG BÁSICA
+========================= */
+
 app.set("trust proxy", 1);
 
-// CORS global (API – JSON)
 app.use(
   cors({
     origin:
@@ -33,9 +36,10 @@ app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-/**
- * ✅ CORS LIBERADO MANUALMENTE PARA ARQUIVOS ESTÁTICOS (IMAGENS)
- */
+/* =========================
+   ARQUIVOS ESTÁTICOS
+========================= */
+
 const uploadDir = process.env.UPLOAD_DIR || "uploads";
 app.use(
   "/uploads",
@@ -47,27 +51,35 @@ app.use(
   })
 );
 
-app.get("/health", async (req, res) => {
+/* =========================
+   HEALTHCHECK
+========================= */
+
+app.get("/health", (req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });
 
-// Rotas da API
+/* =========================
+   ROTAS
+========================= */
+
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/cart", cartRoutes);
 app.use("/rewards", bonusRoutes);
 app.use("/checkout", checkoutRoutes);
 
-// Middlewares finais
+/* =========================
+   ERROS
+========================= */
+
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8080;
+/* =========================
+   MIGRATION
+========================= */
 
-/**
- * ✅ MIGRATION AUTOMÁTICA (Render grátis)
- * Cria expires_at se não existir
- */
 async function runMigrations() {
   try {
     await db.query(`
@@ -87,19 +99,21 @@ async function runMigrations() {
   }
 }
 
+/* =========================
+   START SERVER (RAILWAY)
+========================= */
+
+const PORT = process.env.PORT || 3000;
+
 ensureDbReady()
   .then(async () => {
     await runMigrations();
 
- const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("API running on:", PORT);
-});
-
-
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log("🚀 API running on:", PORT);
+    });
   })
   .catch((e) => {
-    console.error("DB connection failed:", e);
+    console.error("❌ DB connection failed:", e);
     process.exit(1);
   });
