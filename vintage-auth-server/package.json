@@ -5,8 +5,10 @@
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+  "start": "node server.js",
+  "dev": "nodemon server.js"
+}
+
   },
   "engines": {
     "node": ">=18"
