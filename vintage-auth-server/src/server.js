@@ -91,9 +91,12 @@ ensureDbReady()
   .then(async () => {
     await runMigrations();
 
-    app.listen(PORT, () =>
-      console.log(`API running on :${PORT}`)
-    );
+ const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+  console.log("API running on:", PORT);
+});
+
   })
   .catch((e) => {
     console.error("DB connection failed:", e);
