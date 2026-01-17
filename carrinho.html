@@ -1958,10 +1958,14 @@ function statusToStepIndex(status){
     return t;
   }
 
-  function authHeaders(){
-    const t = getToken();
-    return t ? { Authorization: "Bearer " + t } : {};
-  }
+  function authHeaders() {
+  const token = localStorage.getItem("token");
+  if (!token) return {};
+  return {
+    Authorization: "Bearer " + token
+  };
+}
+
 
 
 
