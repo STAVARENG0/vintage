@@ -1160,19 +1160,16 @@
       const selDis = !!(chkDis && chkDis.checked);
       const selShip = !!(chkShip && chkShip.checked);
 
-      // Discount can be percent OR cashback (fixed €)
+      // Discount (percent) — valid only if you have an active 24h bonus
       const ad = state.activeDiscount;
-      const discountKind = ad ? (ad.kind || ad.type || (ad.percent != null ? 'percent' : 'cashback')) : null;
-      const discountValue = Number(ad?.value ?? ad?.percent ?? 0);
-      const hasDiscount = !!(isValidReward(ad) && discountValue > 0 && (discountKind === 'percent' || discountKind === 'cashback'));
+      const discountPercent = Number(ad?.percent ?? ad?.value ?? 0);
+      const hasDiscount = !!(isValidReward(ad) && discountPercent > 0);
 
       const hasShipping = isValidReward(state.activeShipping);
 
       // Only ONE reward is allowed (points OR discount OR free shipping)
       const pointsAmount = (selPts && Number(state.points||0) > 0) ? pointsToCash(state.points) : 0;
-      const discountAmount = (selDis && hasDiscount)
-        ? (discountKind === 'cashback' ? Math.min(subtotal, discountValue) : (subtotal * (discountValue / 100)))
-        : 0;
+      const discountAmount = (selDis && hasDiscount) ? (subtotal * (discountPercent / 100)) : 0;
       const freeShipping = (selShip && hasShipping);
 
       const total = Math.max(0, subtotal - pointsAmount - discountAmount);
@@ -1185,8 +1182,8 @@
         total,
         freeShipping,
         pointsUsed: (selPts && Number(state.points||0) > 0) ? Number(state.points||0) : 0,
-        discountPercent: (selDis && hasDiscount && discountKind !== 'cashback') ? Number(discountValue || 0) : 0,
-        discountCash: (selDis && hasDiscount && discountKind === 'cashback') ? Number(discountValue || 0) : 0,
+        discountPercent: (selDis && hasDiscount) ? Number(discountPercent || 0) : 0,
+        discountCash: 0,
         rewardChoice: selShip ? 'shipping' : (selDis ? 'discount' : (selPts ? 'points' : null)),
       };
     }
@@ -1330,9 +1327,8 @@
       const pointsAvailable = pts > 0;
 
       const ad = state.activeDiscount;
-      const discountKind = ad ? (ad.kind || ad.type || (ad.percent != null ? 'percent' : 'cashback')) : null;
-      const discountValue = Number(ad?.value ?? ad?.percent ?? 0);
-      const hasDiscount = !!(isValidReward(ad) && discountValue > 0 && (discountKind === 'percent' || discountKind === 'cashback'));
+      const discountPercent = Number(ad?.percent ?? ad?.value ?? 0);
+      const hasDiscount = !!(isValidReward(ad) && discountPercent > 0);
 
       const hasShipping = isValidReward(state.activeShipping);
 
@@ -1350,7 +1346,7 @@
       const exp = $('discountExpires');
       if (lbl){
         if (hasDiscount){
-          lbl.textContent = (discountKind === 'cashback') ? (fmtEUR(discountValue) + ' OFF') : (String(discountValue) + '% OFF');
+          lbl.textContent = (String(discountPercent) + '% OFF');
         } else {
           lbl.textContent = '—';
         }
@@ -1687,29 +1683,18 @@ function statusToStepIndex(status){
       setText('passMsg', '✅ Password updated.');
     }
 
-    // Wheel (demo)
+    // Wheel (backend - saves prizes in MySQL via /bonus/spin)
     let spinning = false;
-    const PRIZES = [
-      { label:'€20',         type:'cash',       value:20 },
-      { label:'5% OFF',      type:'discount',   value:5  },
-      { label:'10% OFF',     type:'discount',   value:10 },
-      { label:'10 POINTS',   type:'points',     value:10 },
-      { label:'FREE SHIPPING', type:'shipping', value:1  },
-      { label:'EXTRA SPIN',  type:'extra_spin', value:1  },
-    ];
 
-    function animateWheel(){
-      return new Promise((resolve) => {
-        const el = $('wheelVisual');
-        if (!el) return resolve();
-        const turns = 5 + Math.random() * 3;
-        el.style.transition = 'transform 2.2s cubic-bezier(.2,.9,.2,1)';
-        el.style.transform = `rotate(${turns * 360}deg)`;
-        setTimeout(() => {
-          el.style.transition = '';
-          resolve();
-        }, 2300);
-      });
+    function formatPrizeLabel(prize){
+      if(!prize) return '—';
+      const type = String(prize.type || '').toLowerCase();
+      const val = Number(prize.value || 0);
+      if(type === 'cashback' || type === 'points') return `${val} POINTS`;
+      if(type === 'percent' || type === 'discount') return `${val}% OFF`;
+      if(type === 'shipping') return `FREE SHIPPING`;
+      if(type === 'none') return `NO PRIZE`;
+      return `${type} ${val}`;
     }
 
     async function spin(){
@@ -1719,27 +1704,44 @@ function statusToStepIndex(status){
         return;
       }
 
+      const api = window.VW_API;
+      if (!api || typeof api.bonusSpin !== 'function'){
+        setText('spinResultMsg', "API not ready. Refresh the page.");
+        return;
+      }
+
       spinning = true;
       setText('spinResultMsg', 'Spinning…');
       try{
         await animateWheel();
 
-        const prize = PRIZES[Math.floor(Math.random()*PRIZES.length)];
+        const resp = await api.bonusSpin();
+        const prize = resp && (resp.prize || resp.data?.prize) ? (resp.prize || resp.data.prize) : resp;
 
         state.spinsLeftToday -= 1;
-        if (prize.type === 'points'){
-          state.points = Number(state.points||0) + Number(prize.value||0);
-          state.cashbackHistory.unshift({ date: new Date().toISOString().slice(0,10), title:'Credit', delta:+Number(prize.value||0), detail:'Wheel' });
-        } else if (prize.type === 'cash'){
-          const pts = Math.round((Number(prize.value||0) / 0.5)); // €20 => 40 pts
-          state.points = Number(state.points||0) + pts;
-          state.cashbackHistory.unshift({ date: new Date().toISOString().slice(0,10), title:'Credit', delta:+pts, detail:'Wheel (+€20)' });
-        } else if (prize.type === 'extra_spin'){
-          state.spinsLeftToday += 1;
+
+        // Refresh rewards from backend (points + 24h discount + 24h shipping)
+        try{ await api.loadRewardsStatus(); }catch(_){}
+
+        // Small local history for points
+        const type = String(prize?.type || '').toLowerCase();
+        if (type === 'cashback' || type === 'points'){
+          const pts = Number(prize?.value || 0);
+          if (pts > 0){
+            state.cashbackHistory.unshift({
+              date: new Date().toISOString().slice(0,10),
+              title: 'Credit',
+              delta: +pts,
+              detail: 'Wheel',
+            });
+          }
         }
 
         renderAll();
-        setText('spinResultMsg', `🎁 ${prize.label}`);
+        setText('spinResultMsg', `🎁 ${formatPrizeLabel(prize)}`);
+      } catch (e){
+        console.error('Spin error:', e);
+        setText('spinResultMsg', 'Error spinning. Try again.');
       } finally {
         spinning = false;
       }
@@ -2015,12 +2017,22 @@ function statusToStepIndex(status){
     return arr.map((it) => {
       const obj = (it && typeof it === 'object') ? { ...it } : {};
       const title = obj.title || obj.name || obj.product || 'Product';
-      const image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
+      const image = obj.image_url || obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
+
+      // Stable product identifier (shared across devices)
+      const productId = String(obj.product_id ?? obj.productId ?? obj.sku ?? obj.id ?? title);
+
+      // If this came from MySQL, obj.id is the cart_items row id and product_id exists.
+      const rowId = (obj.product_id != null && obj.id != null) ? obj.id : (obj.row_id ?? obj.cart_item_id ?? null);
+
       const qty = Number(obj.qty ?? obj.quantity ?? 1);
       const price = Number(obj.price ?? 0);
+
       return {
         ...obj,
-        id: obj.id ?? obj.product_id ?? obj.productId ?? title,
+        id: productId,
+        product_id: productId,
+        row_id: rowId,
         title,
         image,
         qty: (Number.isFinite(qty) && qty > 0) ? qty : 1,
@@ -2043,26 +2055,54 @@ function statusToStepIndex(status){
 
   async function saveCartRemote(items){
     const cart = normalizeCart(items);
+
+    // Payload format expected by the backend: { items: [{product_id,title,price,qty,image_url}] }
     const compact = cart.map(it => ({
-      id: String(it.id),
-      title: it.title || 'Product',
+      product_id: String(it.product_id ?? it.id ?? ''),
+      title: it.title || it.name || 'Product',
       price: Number(it.price || 0),
-      qty: Number(it.qty || 1),
-      image: it.image || null,
-    }));
+      qty: Math.max(1, Number(it.qty || it.quantity || 1)),
+      image_url: it.image || it.img || it.photo || it.photo_url || it.photoUrl || null,
+    })).filter(it => it.product_id);
 
-    const attempts = [
-      { path:'/cart', method:'PUT', body:{ cart: compact } },
-      { path:'/cart', method:'POST', body:{ cart: compact } },
-      { path:'/cart/save', method:'POST', body:{ cart: compact } },
-      { path:'/cart/upsert', method:'POST', body:{ cart: compact } },
-      { path:'/cart/set', method:'POST', body:{ cart: compact } },
-    ];
-
-    for (const a of attempts){
-      try{ return await apiJson(a.path, { method:a.method, body:a.body }); }catch(_){ }
+    // 1) Read current remote cart (to know which DB rows must be deleted)
+    let remoteRows = [];
+    try{
+      const data0 = await apiJson('/cart', { method: 'GET' });
+      const r0 = await extractCartFromResponse(data0);
+      remoteRows = Array.isArray(r0) ? r0 : [];
+    }catch(e){
+      // If the endpoint doesn't exist yet, just stop silently (so UI still works locally)
+      console.warn('Remote cart GET failed:', e?.message || e);
+      return { ok:false, error: e?.message || String(e) };
     }
-    return null;
+
+    // 2) Upsert all current items
+    try{
+      await apiJson('/cart/sync', { method: 'POST', body: { items: compact } });
+    }catch(e){
+      console.warn('Remote cart sync failed:', e?.message || e);
+      return { ok:false, error: e?.message || String(e) };
+    }
+
+    // 3) Delete remote items that are NOT present locally (so it behaves like "replace")
+    const keep = new Set(compact.map(x => String(x.product_id)));
+    for (const r of remoteRows){
+      const pid = String(r.product_id ?? r.productId ?? '');
+      const rowId = r.id; // cart_items.id (DB row id)
+      if (pid && rowId && !keep.has(pid)){
+        try{ await apiJson(`/cart/items/${rowId}`, { method: 'DELETE' }); }catch(_){ }
+      }
+    }
+
+    // 4) Return the fresh remote cart (with latest row ids)
+    try{
+      const data1 = await apiJson('/cart', { method: 'GET' });
+      const r1 = await extractCartFromResponse(data1);
+      return normalizeCart(r1);
+    }catch(_){
+      return cart;
+    }
   }
 
   async function bootstrapCartSync(){
@@ -2107,86 +2147,62 @@ function statusToStepIndex(status){
   }
 
   async function loadRewardsStatus(){
-    // Prefer new bonuses endpoint (/bonus/balance). If it fails, fallback to legacy /rewards/status.
+    // Source of truth: backend bonuses table (MySQL)
     try{
-      try{
-        const data = await apiJson('/bonus/balance', { method:'GET' });
-        const available = Array.isArray(data?.available) ? data.available : (Array.isArray(data?.bonuses) ? data.bonuses : []);
+      const data = await apiJson('/bonus/balance', { method: 'GET' });
 
-        // Points: prefer user.me.points from /user/me. If not present, sum available points bonuses.
-        let points = 0;
-        try{ points = Number((state?.me && (state.me.points ?? state.me.points_balance ?? state.me.pointsBalance)) ?? 0); }catch(_){ }
-        if (!points){
-          points = available
-            .filter(b => b && String(b.type) === 'points' && !b.used)
-            .reduce((s,b) => s + Number(b.value || 0), 0);
+      const list = Array.isArray(data?.available)
+        ? data.available
+        : (Array.isArray(data?.bonuses) ? data.bonuses : []);
+
+      const now = Date.now();
+
+      const norm = (list || []).filter(b => !b.used).map((b) => {
+        const type = String(b.type || b.kind || '').toLowerCase();
+        const created = b.created_at || b.createdAt || b.created || null;
+        let expiresAt = b.expiresAt || b.expires_at || b.expires || null;
+
+        // Only shipping + percent discount expire after 24h
+        if (!expiresAt && (type === 'percent' || type === 'discount' || type === 'shipping')){
+          const base = created ? new Date(created).getTime() : now;
+          expiresAt = new Date(base + 24 * 60 * 60 * 1000).toISOString();
         }
-        try{ if (typeof state !== 'undefined') state.points = Number(points || 0); }catch(_){ }
 
-        // Latest available discount (percent or cashback)
-        const disc = available.find(b => b && (b.type === 'percent' || b.type === 'cashback'));
-        try{
-          if (typeof state !== 'undefined'){
-            state.activeDiscount = disc ? {
-              id: disc.id ?? null,
-              kind: disc.type,
-              value: Number(disc.value || 0),
-              expiresAt: disc.expiresAt || disc.expires_at || disc.expires || null,
-            } : null;
-          }
-        }catch(_){ }
+        return {
+          ...b,
+          type,
+          value: Number(b.value || 0),
+          created_at: created,
+          expiresAt,
+        };
+      });
 
-        // Latest available shipping
-        const ship = available.find(b => b && b.type === 'shipping');
-        try{
-          if (typeof state !== 'undefined'){
-            state.activeShipping = ship ? {
-              id: ship.id ?? null,
-              expiresAt: ship.expiresAt || ship.expires_at || ship.expires || null,
-            } : null;
-          }
-        }catch(_){ }
+      // POINTS (accumulative, no expiry)
+      const points = norm
+        .filter(b => b.type === 'cashback' || b.type === 'points')
+        .reduce((s, b) => s + (Number(b.value) || 0), 0);
+      state.points = Math.max(0, Math.floor(points));
 
-        syncPointsUI(points);
-        try{ if (typeof renderAll === 'function') renderAll(); }catch(_){ }
-        try{ if (typeof renderCart === 'function') renderCart(); }catch(_){ }
+      // DISCOUNT (percent, 24h)
+      const disc = norm.find(b => (b.type === 'percent' || b.type === 'discount') && (Number(b.value) || 0) > 0 && (!b.expiresAt || (new Date(b.expiresAt).getTime() > now)));
+      state.activeDiscount = disc ? { id: disc.id, percent: Number(disc.value || 0), expiresAt: disc.expiresAt } : null;
 
-        return data;
-      }catch(e){
-        // fallback below
-      }
+      // FREE SHIPPING (24h)
+      const ship = norm.find(b => b.type === 'shipping' && (!b.expiresAt || (new Date(b.expiresAt).getTime() > now)));
+      state.activeShipping = ship ? { id: ship.id, expiresAt: ship.expiresAt } : null;
 
-      // --- Legacy fallback ---
-      const data = await apiJson('/rewards/status', { method:'GET' });
+      // Re-render rewards + totals
+      renderCart();
+      renderCashback();
 
-      const points = Number(data?.points ?? data?.user?.points ?? 0);
-      if (typeof state !== 'undefined') state.points = points;
-
-      const ad = data?.activeDiscount || data?.active_discount || null;
-      if (typeof state !== 'undefined'){
-        state.activeDiscount = ad ? {
-          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
-          percent: Number(ad.percent ?? ad.value ?? 0),
-          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
-        } : null;
-      }
-
-      const sh = data?.activeShipping || data?.active_shipping || null;
-      if (typeof state !== 'undefined'){
-        state.activeShipping = sh ? {
-          id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
-          expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
-        } : null;
-      }
-
-      syncPointsUI(points);
-      if (typeof renderAll === 'function') renderAll();
-      if (typeof renderCart === 'function') renderCart();
-
-      return data;
-    } catch(err){
-      console.warn('Rewards status not loaded:', err?.message || err);
-      return null;
+      return { ok:true, points: state.points, activeDiscount: state.activeDiscount, activeShipping: state.activeShipping };
+    }catch(e){
+      console.warn('Rewards status not loaded:', e?.message || e);
+      // keep UI working even if backend is not ready
+      state.activeDiscount = null;
+      state.activeShipping = null;
+      renderCart();
+      return { ok:false, error: e?.message || String(e) };
     }
   }
 
