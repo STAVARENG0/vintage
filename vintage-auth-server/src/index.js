@@ -11,8 +11,7 @@ const { ping } = require("./db");
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
-const bonusRoutes = require("./routes/bonus");   // ✅ BONUS
-const cartRoutes = require("./routes/cart");     // ✅ CART
+const bonusRoutes = require("./routes/bonus");   // ✅ BONUS    
 const checkoutRoutes = require("./routes/checkout"); // ✅ CHECKOUT
 
 const app = express();
@@ -84,7 +83,6 @@ app.get("/health", async (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/bonus", bonusRoutes);
-app.use("/cart", cartRoutes);
 app.use("/checkout", checkoutRoutes);
 
 // 404
