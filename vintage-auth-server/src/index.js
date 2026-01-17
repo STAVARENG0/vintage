@@ -94,6 +94,3 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server error" });
 });
 
-app.listen(cfg.port, () => {
-  console.log(`Server running on port ${cfg.port}`);
-});
