@@ -71,6 +71,26 @@ router.post("/spin", requireAuth, async (req, res, next) => {
   }
 });
 
+// 🟡 TOTAL DE POINTS DISPONÍVEIS (USADO PELO CARRINHO)
+router.get("/points", requireAuth, async (req, res, next) => {
+  try {
+    const rows = await q(
+      `
+      SELECT SUM(value) AS total
+      FROM bonuses
+      WHERE user_id = ?
+        AND type = 'points'
+        AND used = 0
+      `,
+      [req.user.id]
+    );
+
+    res.json({ points: Number(rows[0].total || 0) });
+  } catch (e) {
+    next(e);
+  }
+});
+
 // 💰 LISTAR BÔNUS DO USUÁRIO
 router.get("/balance", requireAuth, async (req, res, next) => {
   try {
@@ -84,9 +104,6 @@ router.get("/balance", requireAuth, async (req, res, next) => {
       [req.user.id]
     );
 
-    // disponíveis:
-    // - pontos: sempre
-    // - outros: só se não usados e não expirados
     const available = rows.filter((r) => {
       if (r.type === "points") return !r.used;
       if (r.used) return false;
@@ -100,7 +117,7 @@ router.get("/balance", requireAuth, async (req, res, next) => {
   }
 });
 
-// ✅ MARCAR BÔNUS COMO USADO (frete / desconto)
+// ✅ MARCAR BÔNUS COMO USADO
 router.post("/apply", requireAuth, async (req, res, next) => {
   try {
     const { bonusId } = req.body || {};
@@ -124,7 +141,8 @@ router.post("/apply", requireAuth, async (req, res, next) => {
     next(e);
   }
 });
-// 🧾 STATUS DE RECOMPENSAS (usado pelo painel)
+
+// 🧾 STATUS DE RECOMPENSAS (desconto / frete)
 router.get("/status", requireAuth, async (req, res, next) => {
   try {
     const rows = await q(
