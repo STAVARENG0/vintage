@@ -1154,7 +1154,7 @@ let bonusDiscountAmount = 0;
 let activeBonusId = null;
 
 try {
-  const res = await fetch('/bonus/status', {
+  const res = await fetch('https://vintage-production.up.railway.app/bonus/status', {
     headers: {
       'Authorization': `Bearer ${getToken()}`
     }
