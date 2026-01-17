@@ -22,7 +22,7 @@ app.set("trust proxy", 1);
  */
 app.use(
   helmet({
-    crossOriginResourcePolicy: false
+    crossOriginResourcePolicy: false,
   })
 );
 
@@ -67,7 +67,7 @@ app.use(
     setHeaders: (res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET");
-    }
+    },
   })
 );
 
@@ -94,3 +94,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server error" });
 });
 
+// ✅ START SERVER (Railway)
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("🚀 API running on:", PORT);
+});
