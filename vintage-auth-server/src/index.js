@@ -11,15 +11,15 @@ const { ping } = require("./db");
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
+const bonusRoutes = require("./routes/bonus");   // ✅ BONUS
+const cartRoutes = require("./routes/cart");     // ✅ CART
+const checkoutRoutes = require("./routes/checkout"); // ✅ CHECKOUT
 
 const app = express();
 
 app.set("trust proxy", 1);
 
-/**
- * 🔥 HELMET AJUSTADO (ESSENCIAL)
- * Libera imagens para outros domínios
- */
+// Helmet
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
@@ -29,6 +29,7 @@ app.use(
 app.use(express.json({ limit: "200kb" }));
 app.use(passport.initialize());
 
+// Rate limit
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 120,
@@ -37,7 +38,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// 🌐 CORS DA API
+// CORS
 const allowedOrigins = [
   "https://vintage-clothes.ie",
   "https://www.vintage-clothes.ie",
@@ -56,9 +57,7 @@ app.use(
   })
 );
 
-/**
- * ✅ UPLOADS COM HEADERS CORRETOS
- */
+// Uploads
 const uploadsRoot = process.env.UPLOAD_DIR || "uploads";
 
 app.use(
@@ -81,12 +80,17 @@ app.get("/health", async (req, res) => {
   }
 });
 
-// Rotas
+// 🔥 ROTAS REGISTRADAS CORRETAMENTE
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
+app.use("/bonus", bonusRoutes);
+app.use("/cart", cartRoutes);
+app.use("/checkout", checkoutRoutes);
 
 // 404
-app.use((req, res) => res.status(404).json({ message: "Not found" }));
+app.use((req, res) => {
+  res.status(404).json({ message: "Not found" });
+});
 
 // Error handler
 app.use((err, req, res, next) => {
@@ -94,10 +98,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server error" });
 });
 
-// ✅ START SERVER (Railway)
-const PORT = process.env.PORT;
+// Start server
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 API running on:", PORT);
 });
-
