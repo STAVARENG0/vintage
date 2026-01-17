@@ -1757,15 +1757,17 @@ function statusToStepIndex(status){
         const type = String(prize?.type || '').toLowerCase();
         if (type === 'cashback' || type === 'points'){
           const pts = Number(prize?.value || 0);
-          if (pts > 0){
-            state.cashbackHistory.unshift({
-              date: new Date().toISOString().slice(0,10),
-              title: 'Credit',
-              delta: +pts,
-              detail: 'Wheel',
-            });
-          }
-        }
+          if (pts > 0) {
+  state.points = (state.points || 0) + pts;
+
+  state.cashbackHistory.unshift({
+    date: new Date().toISOString().slice(0,10),
+    title: 'credit',
+    delta: pts,
+    detail: 'Wheel',
+  });
+}
+
 
         renderAll();
         setText('spinResultMsg', `🎁 ${formatPrizeLabel(prize)}`);
