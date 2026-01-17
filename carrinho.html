@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html = r"""<!DOCTYPE html>
 <html lang="en-IE">
 <head>
   <meta charset="utf-8" />
@@ -1958,16 +1958,11 @@ function statusToStepIndex(status){
     return t;
   }
 
-  function authHeaders() {
-  const token = localStorage.getItem("token");
-  if (!token) return {};
-  return {
-    Authorization: "Bearer " + token
-  };
-}
-
-
-
+  function authHeaders(){
+    const token = getToken();
+    if (!token) return {};
+    return { Authorization: "Bearer " + token };
+  }
 
   async function apiJson(path, opts = {}){
     const url = API_ROOT + path;
@@ -1998,17 +1993,7 @@ function statusToStepIndex(status){
     return data;
   }
 
-  function syncPointsUI(points){
-    const p = document.getElementById('pointsNow');
-    if (p) p.textContent = String(points ?? 0);
-    const cash = document.getElementById('cashValue');
-    if (cash){
-      const eur = (Number(points||0) * 0.5);
-      cash.textContent = '= € ' + eur.toFixed(2);
-    }
-  }
-
-  // --- NEW: cart persistence helpers (cross-device cart) ---
+  // --- Cart helpers (kept, but remote sync is disabled below while /cart is missing) ---
   async function extractCartFromResponse(data){
     if (!data) return [];
     if (Array.isArray(data)) return data;
@@ -2023,11 +2008,8 @@ function statusToStepIndex(status){
       const title = obj.title || obj.name || obj.product || 'Product';
       const image = obj.image_url || obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
 
-      // Stable product identifier (shared across devices)
       const productId = String(obj.product_id ?? obj.productId ?? obj.sku ?? obj.id ?? title);
-
-      // If this came from MySQL, obj.id is the cart_items row id and product_id exists.
-      const rowId = (obj.product_id != null && obj.id != null) ? obj.id : (obj.row_id ?? obj.cart_item_id ?? null);
+      const rowId = (obj.product_id != null and obj.id != null) and obj.id or (obj.row_id ?? obj.cart_item_id ?? None)
 
       const qty = Number(obj.qty ?? obj.quantity ?? 1);
       const price = Number(obj.price ?? 0);
@@ -2046,21 +2028,19 @@ function statusToStepIndex(status){
   }
 
   async function loadCartRemote(){
-  try {
-    const data = await apiJson('/cart', { method: 'GET' });
-    const items = await extractCartFromResponse(data);
-    return normalizeCart(items);
-  } catch (e) {
-    console.error('Erro ao carregar carrinho remoto:', e);
-    return [];
+    try {
+      const data = await apiJson('/cart', { method: 'GET' });
+      const items = await extractCartFromResponse(data);
+      return normalizeCart(items);
+    } catch (e) {
+      console.error('Erro ao carregar carrinho remoto:', e);
+      return [];
+    }
   }
-}
-
 
   async function saveCartRemote(items){
     const cart = normalizeCart(items);
 
-    // Payload format expected by the backend: { items: [{product_id,title,price,qty,image_url}] }
     const compact = cart.map(it => ({
       product_id: String(it.product_id ?? it.id ?? ''),
       title: it.title || it.name || 'Product',
@@ -2069,19 +2049,16 @@ function statusToStepIndex(status){
       image_url: it.image || it.img || it.photo || it.photo_url || it.photoUrl || null,
     })).filter(it => it.product_id);
 
-    // 1) Read current remote cart (to know which DB rows must be deleted)
     let remoteRows = [];
     try{
       const data0 = await apiJson('/cart', { method: 'GET' });
       const r0 = await extractCartFromResponse(data0);
       remoteRows = Array.isArray(r0) ? r0 : [];
     }catch(e){
-      // If the endpoint doesn't exist yet, just stop silently (so UI still works locally)
       console.warn('Remote cart GET failed:', e?.message || e);
       return { ok:false, error: e?.message || String(e) };
     }
 
-    // 2) Upsert all current items
     try{
       await apiJson('/cart/sync', { method: 'POST', body: { items: compact } });
     }catch(e){
@@ -2089,17 +2066,15 @@ function statusToStepIndex(status){
       return { ok:false, error: e?.message || String(e) };
     }
 
-    // 3) Delete remote items that are NOT present locally (so it behaves like "replace")
     const keep = new Set(compact.map(x => String(x.product_id)));
     for (const r of remoteRows){
       const pid = String(r.product_id ?? r.productId ?? '');
-      const rowId = r.id; // cart_items.id (DB row id)
+      const rowId = r.id;
       if (pid && rowId && !keep.has(pid)){
         try{ await apiJson(`/cart/items/${rowId}`, { method: 'DELETE' }); }catch(_){ }
       }
     }
 
-    // 4) Return the fresh remote cart (with latest row ids)
     try{
       const data1 = await apiJson('/cart', { method: 'GET' });
       const r1 = await extractCartFromResponse(data1);
@@ -2110,48 +2085,11 @@ function statusToStepIndex(status){
   }
 
   async function bootstrapCartSync(){
-    try{
-      const localCart = (typeof state !== 'undefined' && Array.isArray(state.cart)) ? state.cart : [];
-      const remoteCart = await loadCartRemote();
-
-      if (remoteCart.length && !localCart.length){
-        try{ state.cart = remoteCart; }catch(_){ }
-        try{ if (typeof saveLocalCart === 'function') saveLocalCart(); }catch(_){ }
-        try{ if (typeof renderCart === 'function') renderCart(); }catch(_){ }
-        return;
-      }
-
-      if (localCart.length && !remoteCart.length){
-        await saveCartRemote(localCart);
-        return;
-      }
-
-      if (localCart.length && remoteCart.length){
-        const map = new Map();
-        for (const it of remoteCart){ map.set(String(it.id), { ...it }); }
-        for (const it of localCart){
-          const k = String(it.id);
-          const cur = map.get(k);
-          if (!cur) map.set(k, { ...it });
-          else {
-            const q1 = Number(cur.qty || 1);
-            const q2 = Number(it.qty || 1);
-            map.set(k, { ...cur, ...it, qty: Math.max(q1, q2) });
-          }
-        }
-        const merged = Array.from(map.values());
-        try{ state.cart = merged; }catch(_){ }
-        try{ if (typeof saveLocalCart === 'function') saveLocalCart(); }catch(_){ }
-        await saveCartRemote(merged);
-        try{ if (typeof renderCart === 'function') renderCart(); }catch(_){ }
-      }
-    }catch(e){
-      console.warn('bootstrapCartSync failed:', e?.message || e);
-    }
+    // Disabled below (no-op) while /cart is not ready.
   }
 
   async function loadRewardsStatus(){
-    // Source of truth: backend bonuses table (MySQL)
+    // Try backend first, fallback to localStorage while /bonus/balance is missing.
     try{
       const data = await apiJson('/bonus/balance', { method: 'GET' });
 
@@ -2166,7 +2104,6 @@ function statusToStepIndex(status){
         const created = b.created_at || b.createdAt || b.created || null;
         let expiresAt = b.expiresAt || b.expires_at || b.expires || null;
 
-        // Only shipping + percent discount expire after 24h
         if (!expiresAt && (type === 'percent' || type === 'discount' || type === 'shipping')){
           const base = created ? new Date(created).getTime() : now;
           expiresAt = new Date(base + 24 * 60 * 60 * 1000).toISOString();
@@ -2181,32 +2118,37 @@ function statusToStepIndex(status){
         };
       });
 
-      // POINTS (accumulative, no expiry)
       const points = norm
         .filter(b => b.type === 'cashback' || b.type === 'points')
         .reduce((s, b) => s + (Number(b.value) || 0), 0);
       state.points = Math.max(0, Math.floor(points));
 
-      // DISCOUNT (percent, 24h)
       const disc = norm.find(b => (b.type === 'percent' || b.type === 'discount') && (Number(b.value) || 0) > 0 && (!b.expiresAt || (new Date(b.expiresAt).getTime() > now)));
       state.activeDiscount = disc ? { id: disc.id, percent: Number(disc.value || 0), expiresAt: disc.expiresAt } : null;
 
-      // FREE SHIPPING (24h)
       const ship = norm.find(b => b.type === 'shipping' && (!b.expiresAt || (new Date(b.expiresAt).getTime() > now)));
       state.activeShipping = ship ? { id: ship.id, expiresAt: ship.expiresAt } : null;
 
-      // Re-render rewards + totals
       renderCart();
       renderCashback();
 
       return { ok:true, points: state.points, activeDiscount: state.activeDiscount, activeShipping: state.activeShipping };
     }catch(e){
-      console.warn('Rewards status not loaded:', e?.message || e);
-      // keep UI working even if backend is not ready
-      state.activeDiscount = null;
-      state.activeShipping = null;
+      console.warn('Rewards backend not available. Using localStorage.', e?.message || e);
+      try{
+        const raw = localStorage.getItem('vwi_rewards_state_v1');
+        if (raw){
+          const data = JSON.parse(raw);
+          state.points = Math.max(0, Math.floor(Number(data.points || 0)));
+          state.activeDiscount = data.activeDiscount || null;
+          state.activeShipping = data.activeShipping || null;
+        }
+      }catch(_){}
+
       renderCart();
-      return { ok:false, error: e?.message || String(e) };
+      renderCashback();
+
+      return { ok:true, points: state.points, activeDiscount: state.activeDiscount, activeShipping: state.activeShipping };
     }
   }
 
@@ -2214,16 +2156,24 @@ function statusToStepIndex(status){
   window.VW_API.root = API_ROOT;
   window.VW_API.apiJson = apiJson;
 
-  // Bonuses (new backend)
-  window.VW_API.loadRewardsStatus = loadRewardsStatus; // keeps the same name used elsewhere
+  // Bonuses
+  window.VW_API.loadRewardsStatus = loadRewardsStatus;
   window.VW_API.bonusBalance = () => apiJson('/bonus/balance', { method:'GET' });
   window.VW_API.bonusSpin = () => apiJson('/bonus/spin', { method:'POST', body:{} });
   window.VW_API.bonusApply = (bonusId) => apiJson('/bonus/apply', { method:'POST', body:{ bonusId } });
 
-  // Cart persistence (tries common endpoints; your backend may implement one of these)
+  // Cart persistence (DISABLED while backend /cart is missing)
   window.VW_API.loadCart = loadCartRemote;
   window.VW_API.saveCart = saveCartRemote;
   window.VW_API.bootstrapCartSync = bootstrapCartSync;
+
+  // 🔒 Disable remote cart sync for now (so no more 404 spam and cart works via localStorage)
+  const DISABLE_REMOTE_CART = true;
+  if (DISABLE_REMOTE_CART){
+    window.VW_API.loadCart = async () => [];
+    window.VW_API.saveCart = async () => ({ ok:true });
+    window.VW_API.bootstrapCartSync = async () => {};
+  }
 
   // Checkout
   window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
@@ -2262,7 +2212,6 @@ function statusToStepIndex(status){
       url = API_ROOT + url;
     }
 
-    // cache-bust so the new photo appears immediately
     url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
     img.src = url;
   }
@@ -2287,7 +2236,6 @@ function statusToStepIndex(status){
 
       try{ state.me = user; }catch(_){ }
       try{ if (user && (user.id ?? user.user_id ?? user.userId)) localStorage.setItem('vw_user_id', String(user.id ?? user.user_id ?? user.userId)); }catch(_){ }
-      // Re-load cart using the logged-in user id (so it maps to vw_cart_u_<id>)
       loadLocalCart();
       renderCart();
 
@@ -2298,10 +2246,11 @@ function statusToStepIndex(status){
       if (emailEl) emailEl.textContent = user.email || "email@example.com";
 
       applyAvatar(user);
-      // Sync cart with backend (cross-device)
-      try{ await bootstrapCartSync(); }catch(_){ }
 
-      // Load rewards/bonuses (points + discount + free shipping) from the backend
+      // Even with cart sync disabled, keep this call safe.
+      try{ await (window.VW_API.bootstrapCartSync && window.VW_API.bootstrapCartSync()); }catch(_){}
+
+      // Load rewards (backend if exists, otherwise localStorage)
       loadRewardsStatus();
     } catch (err) {
       console.error("Error loading /user/me", err);
@@ -2313,4 +2262,4 @@ function statusToStepIndex(status){
 </script>
 
 </body>
-</html>
+</html>"""
