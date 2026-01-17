@@ -55,7 +55,7 @@ app.get("/health", async (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/cart", cartRoutes);
-app.use("/bonus", bonusRoutes);
+app.use("/rewards", bonusRoutes);
 app.use("/checkout", checkoutRoutes);
 
 // Middlewares finais
