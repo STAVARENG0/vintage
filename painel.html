@@ -1624,8 +1624,14 @@ async function spin(){
   }
 
   function authHeaders(){
+    const h = {};
     const t = getToken();
-    return t ? { Authorization: "Bearer " + t } : {};
+    if (t) h.Authorization = "Bearer " + t;
+    try{
+      const uid = localStorage.getItem('vw_user_id') || '';
+      if (uid) h['X-User-Id'] = String(uid);
+    }catch(_){ }
+    return h;
   }
 
 
@@ -1775,6 +1781,9 @@ async function spin(){
       }
 
       const user = await res.json();
+
+      try{ if (typeof state !== 'undefined') state.me = user; }catch(_){ }
+      try{ if (user && (user.id ?? user.user_id ?? user.userId)) localStorage.setItem('vw_user_id', String(user.id ?? user.user_id ?? user.userId)); }catch(_){ }
 
       const nameEl = document.getElementById("userName");
       const emailEl = document.getElementById("userEmail");
