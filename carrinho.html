@@ -1094,7 +1094,6 @@
       `).join('');
     }
 
-    
     function computeCartTotals(){
       const cart = Array.isArray(state.cart) ? state.cart : [];
       const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
@@ -1112,25 +1111,11 @@
       const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
       const hasShipping = isValidReward(state.activeShipping);
 
-      // desconto em % sempre calcula sobre o subtotal
-      const discountPercent = (selDis && hasDiscount) ? Number(state.activeDiscount.percent||0) : 0;
-      const discountAmount = discountPercent > 0 ? subtotal * (discountPercent / 100) : 0;
-
-      // pontos: só usa o necessário pra cobrir o que sobrar depois do desconto
-      const ptsTotal = Number(state.points || 0);
-      let pointsUsed = 0;
-      let pointsAmount = 0;
-
-      const afterDiscount = Math.max(0, subtotal - discountAmount);
-      if (selPts && ptsTotal > 0 && afterDiscount > 0){
-        const valuePerPoint = pointsToCash(1) || 0.5; // 10 pts = €5 → 0.5 €/pt
-        const maxPointsByValue = Math.floor(afterDiscount / valuePerPoint);
-        pointsUsed = Math.min(ptsTotal, maxPointsByValue);
-        pointsAmount = pointsUsed > 0 ? pointsToCash(pointsUsed) : 0;
-      }
-
+      const pointsAmount = (selPts && Number(state.points||0) > 0) ? pointsToCash(state.points) : 0;
+      const discountAmount = (selDis && hasDiscount) ? subtotal * (Number(state.activeDiscount.percent||0) / 100) : 0;
       const freeShipping = (selShip && hasShipping);
-      const total = Math.max(0, afterDiscount - pointsAmount);
+
+      const total = Math.max(0, subtotal - pointsAmount - discountAmount);
 
       return {
         cart,
@@ -1139,8 +1124,8 @@
         discountAmount,
         total,
         freeShipping,
-        pointsUsed,
-        discountPercent,
+        pointsUsed: (selPts && Number(state.points||0) > 0) ? Number(state.points||0) : 0,
+        discountPercent: (selDis && hasDiscount) ? Number(state.activeDiscount.percent||0) : 0,
       };
     }
 
@@ -1390,12 +1375,9 @@
 
 
 
-
-    async function applySelectedBenefits(){
-      // Calcula totals atuais com base na seleção
+async function applySelectedBenefits(){
+      // This simply saves the current selection + totals so checkout can read them.
       const t = computeCartTotals();
-
-      // Salva a escolha pro carro e pro checkout
       saveCartRewardSelection({
         usePoints: t.pointsUsed > 0,
         useDiscount: t.discountPercent > 0,
@@ -1403,7 +1385,6 @@
       });
       persistCheckoutPayload(t);
 
-      // Mensagem pro usuário
       const msg = $('rewardAppliedMsg');
       if (msg){
         const parts = [];
@@ -1413,26 +1394,18 @@
         msg.textContent = parts.length ? `Saved for checkout: ${parts.join(' + ')}.` : 'Saved for checkout.';
       }
 
-      // Sincroniza com o back-end (pontos/desconto/frete usados)
+      // Optional: sync to API if available (won't block the UI)
       try{
-        const api = window.VW_API || {};
-        if (t.pointsUsed && typeof api.applyPoints === 'function'){
-          await api.applyPoints(t.pointsUsed);
-        }
-        if (t.discountPercent && typeof api.applyDiscount === 'function'){
-          await api.applyDiscount();
-        }
-        if (t.freeShipping && typeof api.applyShipping === 'function'){
-          await api.applyShipping();
-        }
-        if (typeof loadRewardsStatus === 'function'){
-          await loadRewardsStatus();
+        const api = window.VW_API;
+        if (api && api.apiJson){
+          // no-op here (checkout will validate server-side when you wire it)
         }
       }catch(_){ }
 
       renderCart();
       if (typeof renderHero === 'function') renderHero();
     }
+
 
 function statusToStepIndex(status){
       const s = String(status || '').toLowerCase();
@@ -1864,7 +1837,8 @@ function statusToStepIndex(status){
   </script>
 <script>
 (function(){
-  const API_ROOT = "https://clientes-0r5d.onrender.com";
+    const API_ROOT = "https://clientes-0r5d.onrender.com"; // backend de login/conta
+    const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
   const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
 
   function getToken(){
@@ -1892,8 +1866,11 @@ function statusToStepIndex(status){
 
 
 
-  async function apiJson(path, opts = {}){
-    const url = API_ROOT + path;
+    async function apiJson(path, opts = {}){
+    const p = String(path || '');
+    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
+    const base = isRewards ? REWARDS_ROOT : API_ROOT;
+    const url = base + path;
     const init = {
       method: opts.method || 'GET',
       headers: {
