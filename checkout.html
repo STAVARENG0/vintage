@@ -141,6 +141,44 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 // ===== Keys used by the site =====
 const CART_KEYS_ORDER = ['vw_cart','hs_cart','cart','v_cart','cartItems','cart_items','cartData'];
 const FULFILMENT_KEY = 'fulfilment_mode'; // 'delivery' | 'pickup'
+const CHECKOUT_PAYLOAD_KEY = 'vw_checkout_payload';
+
+// Rewards: dados enviados pelo carrinho (localStorage + URL)
+function readCheckoutPayload(){
+  try{
+    const raw = localStorage.getItem(CHECKOUT_PAYLOAD_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  }catch(e){
+    return null;
+  }
+}
+
+function readRewardsFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const free = params.get('free_shipping') === '1' || params.get('free_shipping') === 'true';
+  const points = Number(params.get('points_used') || 0) || 0;
+  const discount = Number(params.get('discount_percent') || 0) || 0;
+  return { freeShippingFlag: free, pointsFromUrl: points, discountFromUrl: discount };
+}
+
+function getEffectiveRewards(){
+  const payload = readCheckoutPayload();
+  const urlR = readRewardsFromUrl();
+
+  const paySubtotal = Number(payload && payload.pay_subtotal != null ? payload.pay_subtotal : 0) || 0;
+  const freeShipping = (payload && payload.free_shipping === true) || urlR.freeShippingFlag;
+  const pointsUsed = Number(
+    (payload && payload.points_used != null ? payload.points_used : urlR.pointsFromUrl) || 0
+  ) || 0;
+  const discountPercent = Number(
+    (payload && payload.discount_percent != null ? payload.discount_percent : urlR.discountFromUrl) || 0
+  ) || 0;
+
+  return { paySubtotal, freeShipping, pointsUsed, discountPercent };
+}
 
 // Year
 document.getElementById('year').textContent = new Date().getFullYear();
@@ -235,29 +273,43 @@ function initFulfilmentUI(){
 
 function renderSummary(){
   const list = document.getElementById('cartList');
-  let subtotal = 0;
+  let baseSubtotal = 0;
   if(!cart.length){
     list.innerHTML = '<p style="color:#6f6f6f;text-align:center;">Your cart is empty.</p>';
   }else{
     list.innerHTML = cart.map(item=>{
-      const sub = item.qty * item.price; subtotal += sub;
+      const sub = item.qty * item.price; baseSubtotal += sub;
       return `<div class="item">
                 <div class="item-title">${item.qty}× ${item.title}</div>
                 <div class="item-sub">${fmtEUR(sub)}</div>
               </div>`;
     }).join('');
   }
-  const ship = computeShipping(fulfilment);
+
+  const rewards = getEffectiveRewards();
+
+  let subtotal = baseSubtotal;
+  if (rewards && rewards.paySubtotal > 0 && rewards.paySubtotal <= baseSubtotal){
+    subtotal = rewards.paySubtotal;
+  }
+
+  const shipInfo = computeShipping(fulfilment);
+  let shippingAmount = Number(shipInfo.amount || 0);
+  if (rewards && rewards.freeShipping){
+    shippingAmount = 0;
+  }
+
   document.getElementById('subtotalValue').textContent = fmtEUR(subtotal);
-  document.getElementById('shippingLabel').textContent = ship.label || 'Shipping';
-  document.getElementById('shippingValue').textContent = fmtEUR(ship.amount || 0);
+  document.getElementById('shippingLabel').textContent = shipInfo.label || 'Shipping';
+  document.getElementById('shippingValue').textContent = fmtEUR(shippingAmount);
 
   let effectiveTotal = 0;
   const helper = document.getElementById('helperMsg');
   const payBtn = document.getElementById('paypal-button-paypal');
   const cardBtn = document.getElementById('paypal-button-card');
+
   if(subtotal > 0){
-    effectiveTotal = subtotal + Number(ship.amount||0);
+    effectiveTotal = subtotal + shippingAmount;
     helper.classList.add('hidden');
     payBtn.classList.remove('hidden');
     cardBtn.classList.remove('hidden');
@@ -267,8 +319,9 @@ function renderSummary(){
     payBtn.classList.add('hidden');
     cardBtn.classList.add('hidden');
   }
+
   document.getElementById('totalAmount').textContent = effectiveTotal.toFixed(2);
-  return { subtotal, shipping: Number(ship.amount||0), total: effectiveTotal };
+  return { subtotal, shipping: shippingAmount, total: effectiveTotal, rewards };
 }
 
 const state = renderSummary();
