@@ -1385,37 +1385,6 @@ async function spin(){
   spinning = true;
   if (btn) btn.disabled = true;
 
-  // 1) consulta backend para validar spin (24h por usuário, servidor é o dono da regra)
-  try{
-    const res = await apiJson('/rewards/spin', { method: 'POST', body: {} });
-    const can = res && res.canSpin === true;
-    if (!can){
-      let msg = (res && (res.message || res.error)) || 'You have already used your spin for today.';
-      try{
-        if (res && typeof res.remainingMs === 'number'){
-          const sec = Math.floor(res.remainingMs / 1000);
-          const h = Math.floor(sec / 3600);
-          const m = Math.floor((sec % 3600) / 60);
-          if (h > 0){
-            msg += ` Try again in ${h}h ${m}min.`;
-          } else if (m > 0){
-            msg += ` Try again in ${m}min.`;
-          }
-        }
-      } catch(_){}
-      setText('spinResultMsg', msg);
-      spinning = false;
-      if (btn) btn.disabled = false;
-      return;
-    }
-  } catch(err){
-    console.error('Error calling /rewards/spin', err);
-    setText('spinResultMsg', 'Unable to validate your spin right now. Please try again later.');
-    spinning = false;
-    if (btn) btn.disabled = false;
-    return;
-  }
-
   setText('spinResultMsg', 'Spinning…');
 
   try{
