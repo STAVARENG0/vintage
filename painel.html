@@ -1877,6 +1877,185 @@ async function spin(){
   document.addEventListener("DOMContentLoaded", loadProfile);
 })();
 </script>
+<script>
+// Override do SPIN para usar o backend e bloquear por 24h independente do horário do PC
+(function(){
+  // Formata o remainingMs que vem do backend em "Xh YYm"
+  function formatMsToHM(ms){
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    return `${h}h ${String(m).padStart(2, '0')}m`;
+  }
+
+  // Sobrescreve o texto de reset para não depender do relógio do computador
+  window.updateResetHint = function(){
+    if (typeof setText === 'function'){
+      setText('resetHint', 'Limit: 1 spin every 24 hours (server time).');
+    } else {
+      const el = document.getElementById('resetHint');
+      if (el) el.textContent = 'Limit: 1 spin every 24 hours (server time).';
+    }
+  };
+
+  // Não usa mais timers baseados no horário local, só aplica o texto estático
+  window.scheduleResetTimers = function(){
+    if (typeof updateResetHint === 'function'){
+      updateResetHint();
+    }
+  };
+
+  // NOVA versão da função spin() – sempre valida no servidor
+  window.spin = async function(){
+    if (typeof spinning !== 'undefined' && spinning) return;
+    if (typeof spinning !== 'undefined') spinning = true;
+
+    const btn = document.getElementById('btnSpin');
+    if (btn) btn.disabled = true;
+
+    if (typeof setText === 'function') {
+      setText('spinResultMsg', 'Checking your spin…');
+    }
+
+    try{
+      const api = window.VW_API;
+      if (!api || !api.apiJson){
+        if (typeof setText === 'function') {
+          setText('spinResultMsg', 'Rewards service unavailable. Please try again.');
+        }
+        return;
+      }
+
+      let allowed = false;
+      let remainingMs = 0;
+
+      // *** AQUI a checagem real: /rewards/spin no backend ***
+      try{
+        const res = await api.apiJson('/rewards/spin', { method:'POST' });
+
+        if (res && res.ok !== false && res.canSpin !== false){
+          allowed = true;
+        } else {
+          remainingMs = Number(res && res.remainingMs || 0);
+          const msg = res && (res.message || res.error) || '';
+
+          if (remainingMs > 0){
+            const txt = `You already used your spin. Try again in ${formatMsToHM(remainingMs)}.`;
+            if (typeof setText === 'function') setText('spinResultMsg', txt);
+          } else {
+            if (typeof setText === 'function') setText('spinResultMsg', msg || 'Spin not available right now.');
+          }
+
+          // Servidor bloqueou: força 0 spins na UI
+          if (typeof state !== 'undefined'){
+            state.spinsLeftToday = 0;
+          }
+          if (typeof setText === 'function'){
+            setText('spinsNow', '0');
+            setText('spinStatus', '0 spin(s)');
+          }
+          return;
+        }
+      } catch(err){
+        console.warn('Error calling /rewards/spin:', err && err.message || err);
+        if (typeof setText === 'function') {
+          setText('spinResultMsg', 'Could not validate your spin. Please try again.');
+        }
+        return;
+      }
+
+      if (!allowed) return;
+
+      // A partir daqui é o mesmo fluxo antigo da roleta: anima, sorteia e aplica prêmio
+      if (typeof setText === 'function') {
+        setText('spinResultMsg', 'Spinning…');
+      }
+
+      const weighted = jitterWeights(BASE_PRIZES);
+      const winner = pickWeighted(weighted);
+      const order = shuffle(BASE_PRIZES);
+      drawWheel(order);
+      await animateToPrize(winner.id);
+
+      const dateKey = (typeof getIrelandDateKey === 'function')
+        ? getIrelandDateKey()
+        : (new Date()).toISOString().slice(0,10);
+
+      if (typeof state !== 'undefined'){
+        // NÃO é mais usado pra segurança, só pra UI
+        state.spinsLeftToday = 0;
+      }
+
+      // ===== Atualiza histórico/points em memória (como antes) =====
+      if (typeof state !== 'undefined'){
+        if (winner.type === 'points'){
+          state.points = Number(state.points||0) + Number(winner.value||0);
+          state.cashbackHistory.unshift({ date: dateKey, title:'Credit', delta:+Number(winner.value||0), detail:'Wheel' });
+        } else if (winner.type === 'cash'){
+          const pts = Math.round((Number(winner.value||0) / 0.5)); // €20 => 40 pts
+          state.points = Number(state.points||0) + pts;
+          state.cashbackHistory.unshift({ date: dateKey, title:'Credit', delta:+pts, detail:'Wheel (+€20)' });
+        } else if (winner.type === 'discount'){
+          state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:`${winner.value}% OFF (next purchase)` });
+        } else if (winner.type === 'shipping'){
+          state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:'Free shipping (next purchase)' });
+        } else if (winner.type === 'extra_spin'){
+          // Extra spin fica só como informação visual por enquanto
+          state.cashbackHistory.unshift({ date: dateKey, title:'Bonus', delta:0, detail:'Wheel (Extra spin)' });
+        }
+      }
+
+      // ===== Sincroniza prêmio com o backend de rewards (já existia) =====
+      try{
+        const rApi = window.VW_API;
+        if (rApi && rApi.apiJson && typeof state !== 'undefined'){
+          if (winner.type === 'points'){
+            const r = await rApi.creditPoints(Number(winner.value||0), 'wheel');
+            if (r && typeof r.points === 'number') state.points = r.points;
+          } else if (winner.type === 'cash'){
+            const ptsAdded = Math.round((Number(winner.value||0) / 0.5));
+            const r = await rApi.creditPoints(ptsAdded, 'wheel_cash');
+            if (r && typeof r.points === 'number') state.points = r.points;
+          } else if (winner.type === 'discount'){
+            const r = await rApi.grantDiscount(Number(winner.value||0));
+            const ad = r && (r.activeDiscount || r.active_discount);
+            if (ad){
+              state.activeDiscount = {
+                id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
+                percent: Number(ad.percent ?? winner.value ?? 0),
+                expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+              };
+            }
+          } else if (winner.type === 'shipping'){
+            const r = await rApi.grantShipping();
+            const sh = r && (r.activeShipping || r.active_shipping);
+            if (sh){
+              state.activeShipping = {
+                id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
+                expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
+              };
+            }
+          }
+        }
+      } catch(err){
+        console.warn('Failed to sync prize with API:', err && err.message || err);
+      }
+
+      if (typeof savePersisted === 'function') savePersisted();
+      if (typeof renderAll === 'function') renderAll();
+
+      if (typeof setText === 'function'){
+        setText('spinsNow', '0');
+        setText('spinStatus', '0 spin(s)');
+        setText('spinResultMsg', `🎁 ${winner.label}`);
+      }
+    } finally {
+      if (typeof spinning !== 'undefined') spinning = false;
+      if (btn) btn.disabled = false;
+    }
+  };
+})();
+</script>
 
 </body>
 </html>
