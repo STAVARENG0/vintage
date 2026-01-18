@@ -942,6 +942,13 @@
       const msgEl = document.getElementById("accountMsg");
       const avatarImg = document.getElementById("avatar");
       if (!file) return;
+
+      // preview imediato enquanto faz upload
+      try {
+        const previewUrl = URL.createObjectURL(file);
+        if (avatarImg) avatarImg.src = previewUrl;
+      } catch (_) {}
+
       if (msgEl) msgEl.textContent = "Uploading photo…";
 
       const fd = new FormData();
@@ -966,12 +973,19 @@
         let data = null;
         try { data = await res.json(); } catch (_) {}
 
-        if (data && data.avatar_url) {
-          if (avatarImg) avatarImg.src = data.avatar_url;
+        if (data && (data.avatar_url || data.avatar)) {
+          let finalUrl = String(data.avatar_url || data.avatar);
+          if (!/^https?:\/\//i.test(finalUrl)) {
+            let path = finalUrl;
+            if (!path.startsWith("/")) path = "/" + path;
+            finalUrl = API_ROOT + path;
+          }
+          // cache-busting pra evitar avatar antigo em cache
+          finalUrl += (finalUrl.includes("?") ? "&" : "?") + "v=" + Date.now();
+
+          if (avatarImg) avatarImg.src = finalUrl;
           currentUser = currentUser || {};
-          currentUser.avatar_url = data.avatar_url;
-        } else if (avatarImg) {
-          avatarImg.src = URL.createObjectURL(file);
+          currentUser.avatar_url = finalUrl;
         }
 
         if (msgEl) msgEl.textContent = "✅ Photo uploaded.";

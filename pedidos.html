@@ -934,11 +934,47 @@
       if (!file) return;
       state.avatarFile = file;
       setAvatarFileName(file.name);
-      // preview imediato
-      const url = URL.createObjectURL(file);
-      state.me.avatar = url;
-      renderHero();
-      setText('accountMsg', '✅ Foto atualizada.');
+
+      // preview imediato enquanto faz upload
+      try {
+        const previewUrl = URL.createObjectURL(file);
+        state.me.avatar = previewUrl;
+        renderHero();
+      } catch (_) {}
+
+      setText('accountMsg', 'Uploading photo…');
+
+      const fd = new FormData();
+      fd.append("avatar", file);
+
+      try {
+        const res = await fetch(API_ROOT + "/user/me/avatar", {
+          method: "POST",
+          headers: authHeaders(),
+          body: fd
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          requireTokenOrRedirect();
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error("Error uploading");
+        }
+
+        let data = null;
+        try { data = await res.json(); } catch (_) {}
+
+        if (data && (data.avatar_url || data.avatar)) {
+          applyAvatar(data);
+        }
+
+        setText('accountMsg', '✅ Photo uploaded.');
+      } catch (err) {
+        console.error(err);
+        setText('accountMsg', '❌ Error uploading photo.');
+      }
     }
 
     // Salvar conta (demo)

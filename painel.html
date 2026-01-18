@@ -1083,11 +1083,68 @@
       if (!file) return;
       state.avatarFile = file;
       setAvatarFileName(file.name);
-      // preview imediato
-      const url = URL.createObjectURL(file);
-      state.me.avatar = url;
-      renderHero();
-      setText('accountMsg', '✅ Photo updated.');
+
+      // preview imediato enquanto faz upload
+      try {
+        const previewUrl = URL.createObjectURL(file);
+        state.me = state.me || {};
+        state.me.avatar = previewUrl;
+        renderHero();
+      } catch (_) {}
+
+      setText('accountMsg', 'Uploading photo…');
+
+      const fd = new FormData();
+      fd.append("avatar", file);
+
+      const base = (window.VW_API && window.VW_API.root) || "https://clientes-0r5d.onrender.com";
+
+      try{
+        const headers = {};
+        try{
+          const t = localStorage.getItem('vw_token');
+          if (t) headers['Authorization'] = 'Bearer ' + t;
+          const uid = localStorage.getItem('vw_user_id') || '';
+          if (uid) headers['X-User-Id'] = String(uid);
+        }catch(_){}
+
+        const res = await fetch(base + "/user/me/avatar", {
+          method: "POST",
+          headers,
+          body: fd
+        });
+
+        if (res.status === 401 || res.status === 403){
+          setText('accountMsg', 'Please log in again.');
+          window.location.href = 'cliente-login-2.html';
+          return;
+        }
+
+        if (!res.ok){
+          throw new Error("Error uploading");
+        }
+
+        let data = null;
+        try{ data = await res.json(); } catch(_){}
+
+        if (data && (data.avatar_url || data.avatar || data.avatarUrl)){
+          let finalUrl = String(data.avatar_url || data.avatar || data.avatarUrl);
+          if (!/^https?:\/\//i.test(finalUrl)){
+            let path = finalUrl;
+            if (!path.startsWith("/")) path = "/" + path;
+            finalUrl = base + path;
+          }
+          finalUrl += (finalUrl.includes("?") ? "&" : "?") + "v=" + Date.now();
+          state.me = state.me || {};
+          state.me.avatar = finalUrl;
+        }
+
+        renderHero();
+        setText('accountMsg', '✅ Photo uploaded.');
+      } catch(err){
+        console.error(err);
+        setText('accountMsg', '❌ Error uploading photo.');
+      }
     }
 
     // Salvar conta (demo)
