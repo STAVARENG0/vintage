@@ -1388,18 +1388,6 @@ async function spin(){
               expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
             };
           }
-        } else if (winner.type === 'shipping'){
-          // ativa frete grátis por 24h no back-end
-          if (typeof api.grantShipping === 'function'){
-            const r = await api.grantShipping();
-            const sh = r?.activeShipping || r?.active_shipping;
-            if (sh && typeof state !== 'undefined'){
-              state.activeShipping = {
-                id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
-                expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
-              };
-            }
-          }
         }
       }
     } catch(err){
@@ -1486,9 +1474,6 @@ async function spin(){
       scheduleResetTimers();
 
       setupWheel();
-
-      // carrega pontos / bônus do back-end (Railway)
-      try { loadRewardsStatus && loadRewardsStatus(); } catch (_) {}
 
       $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
       $('avatarFileInput')?.addEventListener('change', (e) => {
@@ -1622,7 +1607,8 @@ async function spin(){
   </script>
 <script>
 (function(){
-  const API_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // ALTERE para a URL do seu back-end no Railway
+    const API_ROOT = "https://clientes-0r5d.onrender.com"; // backend de login/conta
+    const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
   const TOKEN_KEY = "vw_token";
 
   function getToken(){
@@ -1643,8 +1629,11 @@ async function spin(){
   }
 
 
-  async function apiJson(path, opts = {}){
-    const url = API_ROOT + path;
+    async function apiJson(path, opts = {}){
+    const p = String(path || '');
+    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
+    const base = isRewards ? REWARDS_ROOT : API_ROOT;
+    const url = base + path;
     const init = {
       method: opts.method || 'GET',
       headers: {
@@ -1726,7 +1715,6 @@ async function spin(){
   window.VW_API.loadRewardsStatus = loadRewardsStatus;
   window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
   window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
-  window.VW_API.grantShipping = () => apiJson('/rewards/grant-shipping', { method:'POST', body:{} });
   window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
   window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
   window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
