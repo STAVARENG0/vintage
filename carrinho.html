@@ -2015,7 +2015,13 @@ function statusToStepIndex(status){
     const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
 
     if (!raw) {
-      img.src = defaultAvatarDataUri();
+      const def = defaultAvatarDataUri();
+      img.src = def;
+      try{
+        if (typeof state !== "undefined" && state.me){
+          state.me.avatar = def;
+        }
+      }catch(_){}
       return;
     }
 
@@ -2028,6 +2034,11 @@ function statusToStepIndex(status){
     // cache-bust so the new photo appears immediately
     url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
     img.src = url;
+    try{
+      if (typeof state !== "undefined" && state.me){
+        state.me.avatar = url;
+      }
+    }catch(_){}
   }
 
   async function loadProfile(){
