@@ -1590,11 +1590,13 @@ function statusToStepIndex(status){
       renderAddresses();
     };
 
-    window.removeCartItem = function(id){
-      state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
-      saveLocalCart();
-      renderCart();
-    };
+   window.removeCartItem = function(id){
+  state.cart = (state.cart || []).filter(it => String(it.id) !== String(id));
+  saveLocalCart();       // salva local
+  scheduleCartSync();    // manda o carrinho atualizado pro servidor
+  renderCart();          // redesenha a tela
+};
+
 
     function clearCart(){
       if (!confirm('Clear the cart?')) return;
