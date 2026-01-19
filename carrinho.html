@@ -2270,9 +2270,10 @@ function statusToStepIndex(status){
       applyAvatar(user);
       // Load rewards (points + discount + free shipping) from the backend
       loadRewardsStatus();
-      if (window.VW_CART_SYNC && typeof window.VW_CART_SYNC.syncOnLogin === 'function'){
-        window.VW_CART_SYNC.syncOnLogin();
-      }
+if (window.VW_CART_SYNC && typeof window.VW_CART_SYNC.syncOnLogin === 'function'){
+  // window.VW_CART_SYNC.syncOnLogin();
+}
+
     } catch (err) {
       console.error("Error loading /user/me", err);
     }
