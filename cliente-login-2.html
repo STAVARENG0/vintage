@@ -587,6 +587,26 @@ function setAuthed(token){
 }
 
 function redirectAfterLogin(){ window.location.href = REDIRECT_AFTER_LOGIN; }
+// --- Google OAuth callback (?token=...) ---
+(function handleGoogleCallback(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const tokenFromUrl = params.get("token");
+    if(!tokenFromUrl) return;
+
+    setAuthed(tokenFromUrl);
+
+    // limpa o ?token= da URL
+    try{
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }catch(_){}
+
+    redirectAfterLogin();
+  }catch(err){
+    console.error("Erro ao processar token do Google:", err);
+  }
+})();
 
 // ---------- Login ----------
 $("loginForm").addEventListener("submit", async (e) => {
