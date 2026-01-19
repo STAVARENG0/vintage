@@ -927,11 +927,10 @@
               }
             }
 
-           // Server is ALWAYS the source of truth
-state.cart = serverCart;
+       state.cart = serverCart;
 saveLocalCart({ skipSync:true });
 renderCart();
-return;
+
 
           }
 
