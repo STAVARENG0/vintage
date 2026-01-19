@@ -925,18 +925,41 @@ fmtEUR(n){
 }
 function sanitizeList(list){
   if(!Array.isArray(list)) return [];
-  return list.map(p => ({
-    id: p.id || (crypto.randomUUID ? crypto.randomUUID() : Math.floor(Math.random()*1e9)),
-    title: p.title || '',
-    brand: p.brand || '',
-    price: Number(p.price || 0),
-    image: p.image || 'LOGO.png',
-    description: p.description || '',
-    gallery: Array.isArray(p.gallery)? p.gallery : [],
-    category: p.category || '',
-    createdAt: p.createdAt || 0,
-    stock: typeof p.stock === 'number' ? p.stock : parseInt(p.stock || '0', 10)
-  }));
+  return list.map(p => {
+    const raw = (p && typeof p === 'object') ? p : {};
+
+    // Prefer the real product id from the backend/admin.
+    const pid = (
+      raw.id ?? raw.product_id ?? raw.productId ?? raw.productID ?? raw.pid ??
+      raw.sku ?? raw.SKU ?? raw.code ?? raw.uid
+    );
+
+    // Stable fallback if an id is missing (never use random ids).
+    const slugify = (v) => String(v ?? '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    const base = raw.slug ?? raw.handle ?? raw.title ?? raw.name ?? raw.product ?? 'product';
+    const fallback = slugify(base) || 'product';
+
+    const id = (pid !== undefined && pid !== null && String(pid).trim() !== '') ? String(pid) : fallback;
+
+    return {
+      id,
+      product_id: id,
+      title: raw.title || '',
+      brand: raw.brand || '',
+      price: Number(raw.price || 0),
+      image: raw.image || 'LOGO.png',
+      description: raw.description || '',
+      gallery: Array.isArray(raw.gallery)? raw.gallery : [],
+      category: raw.category || '',
+      createdAt: raw.createdAt || 0,
+      stock: typeof raw.stock === 'number' ? raw.stock : parseInt(raw.stock || '0', 10)
+    };
+  });
 }
 async function readPublic(){
   try{
@@ -1040,7 +1063,7 @@ function addToCart(productId){
   if(!product) return;
   const max = Number(product.stock) || 0;
   if (max <= 0){ return; }
-  const existing = cart.find(item => item.id === product.id);
+  const existing = cart.find(item => String(item.id) === String(product.id));
   if(existing){
     if (existing.qty >= max){
       try { alert('Limite de estoque atingido para este item.'); } catch(_) {}
