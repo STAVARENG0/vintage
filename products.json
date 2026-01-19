@@ -58,5 +58,17 @@
     "gallery": [],
     "createdAt": 1768700639087,
     "status": "published"
+  },
+  {
+    "id": "1768853880394",
+    "title": "BATATA FRITA",
+    "price": 25,
+    "description": "PORCAO",
+    "category": "Activewear",
+    "stock": 2,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768853880394/1768853881234_0_767e8c0a665f7ebb7eebb90fbd908c9d.jpg",
+    "gallery": [],
+    "createdAt": 1768853881995,
+    "status": "published"
   }
 ]
