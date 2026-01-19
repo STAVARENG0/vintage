@@ -1416,10 +1416,25 @@ async function spin(){
       state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:`${winner.value}% OFF (next purchase)` });
     } else if (winner.type === 'shipping'){
       state.cashbackHistory.unshift({ date: dateKey, title:'Coupon', delta:0, detail:'Free shipping (next purchase)' });
-    } else if (winner.type === 'extra_spin'){
-      state.spinsLeftToday = Number(state.spinsLeftToday||0) + 1;
-      state.cashbackHistory.unshift({ date: dateKey, title:'Bonus', delta:0, detail:'Wheel (Extra spin)' });
-    }
+            } else if (winner.type === 'extra_spin'){
+          // registra no histórico
+          state.cashbackHistory.unshift({
+            date: dateKey,
+            title:'Bonus',
+            delta:0,
+            detail:'Wheel (Extra spin)',
+          });
+
+          // avisa o backend que ganhou giro extra
+          try{
+            const rApi = window.VW_API;
+            if (rApi && typeof rApi.grantExtraSpin === 'function'){
+              await rApi.grantExtraSpin(1, 'wheel');
+            }
+          } catch(err){
+            console.warn('Erro ao creditar extra spin no backend:', err && err.message || err);
+          }
+        }
 
        // ===== Sincroniza prêmios com o banco (MySQL) via API =====
     try{
