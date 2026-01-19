@@ -58,5 +58,17 @@
     "gallery": [],
     "createdAt": 1768861280200,
     "status": "published"
+  },
+  {
+    "id": "1768861327430",
+    "title": "LARANJADA DE FEIJAO",
+    "price": 5,
+    "description": "LARANJA",
+    "category": "Coats & Outerwear",
+    "stock": 3,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768861327430/1768861329467_0_Gemini_Generated_Image_ix83tvix83tvix83.png",
+    "gallery": [],
+    "createdAt": 1768861330333,
+    "status": "published"
   }
 ]
