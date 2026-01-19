@@ -1778,16 +1778,33 @@ async function spin(){
     }
   }
 
-  window.VW_API = window.VW_API || {};
+   window.VW_API = window.VW_API || {};
   window.VW_API.root = API_ROOT;
   window.VW_API.apiJson = apiJson;
   window.VW_API.loadRewardsStatus = loadRewardsStatus;
-  window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
-  window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
-  window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
-  window.VW_API.grantShipping = () => apiJson('/rewards/grant-shipping', { method:'POST', body:{} });
-  window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
-  window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
+
+  window.VW_API.applyPoints = (points) =>
+    apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
+
+  window.VW_API.applyDiscount = () =>
+    apiJson('/rewards/apply-discount', { method:'POST', body:{} });
+
+  window.VW_API.grantDiscount = (percent) =>
+    apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
+
+  window.VW_API.grantShipping = () =>
+    apiJson('/rewards/grant-shipping', { method:'POST', body:{} });
+
+  window.VW_API.creditPoints = (points, source='wheel') =>
+    apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
+
+  // NOVO: credita EXTRA SPIN no backend
+  window.VW_API.grantExtraSpin = (count = 1, source = 'wheel') =>
+    apiJson('/rewards/grant-extra-spin', { method:'POST', body:{ count, source } });
+
+  window.VW_API.checkoutCreate = (payload) =>
+    apiJson('/checkout/create', { method:'POST', body: payload || {} });
+
 
   function defaultAvatarDataUri(){
     const svg = encodeURIComponent(`
