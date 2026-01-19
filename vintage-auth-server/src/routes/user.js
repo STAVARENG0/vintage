@@ -4,6 +4,15 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+
 const { requireAuth } = require("../middleware/auth"); // <- confere se esse caminho existe
 const { q, tx } = require("../services/db");           // <- confere se esse caminho existe
 
@@ -152,21 +161,8 @@ router.post("/me/address", requireAuth, async (req, res, next) => {
  * POST /user/me/avatar
  */
 
-// garante pasta uploads/avatars
-const uploadsRoot = process.env.UPLOAD_DIR || "uploads";
-const avatarsDir = path.join(process.cwd(), uploadsRoot, "avatars");
-if (!fs.existsSync(avatarsDir)) {
-  fs.mkdirSync(avatarsDir, { recursive: true });
-}
-
-// configuração do multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, avatarsDir),
-  filename: (req, file, cb) => {
-    const ext = (path.extname(file.originalname) || ".jpg").toLowerCase();
-    cb(null, `u${req.user.id}_${Date.now()}${ext}`);
-  },
-});
+// configuração do multer para avatar (usa memória, envia pro Cloudinary)
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
@@ -187,10 +183,19 @@ router.post(
         return res.status(400).json({ error: "No file sent" });
       }
 
-      // URL pública via /uploads (configure no src/index.js)
-      const avatarUrl = `${
-        process.env.PUBLIC_BASE_URL || ""
-      }/uploads/avatars/${req.file.filename}`;
+      const file = req.file;
+
+      // monta data URI base64 para enviar direto pro Cloudinary
+      const base64 = file.buffer.toString("base64");
+      const dataUri = `data:${file.mimetype};base64,${base64}`;
+
+      const uploadResult = await cloudinary.uploader.upload(dataUri, {
+        folder: "avatars",
+        public_id: `u${req.user.id}_${Date.now()}`,
+        overwrite: true,
+      });
+
+      const avatarUrl = uploadResult.secure_url;
 
       await q("UPDATE users SET avatar_url = ? WHERE id = ?", [
         avatarUrl,
@@ -203,5 +208,6 @@ router.post(
     }
   }
 );
+
 
 module.exports = router;
