@@ -848,42 +848,35 @@
       }, CART_SYNC_DEBOUNCE_MS);
     }
 
-   async function syncCartFromBackend(){
-  if (!isLoggedInForCart()) return;
-  if (!window.VW_API || !window.VW_API.apiJson) return;
+    async function syncCartFromBackend(){
+      if (!isLoggedInForCart()) return;
+      if (!window.VW_API || !window.VW_API.apiJson) return;
 
-  try{
-    const data = await window.VW_API.apiJson('/cart', { method:'GET' });
-    const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
-    const localCart = Array.isArray(state.cart) ? state.cart : [];
+      try{
+        const data = await window.VW_API.apiJson('/cart', { method:'GET' });
+        const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
+        const localCart = Array.isArray(state.cart) ? state.cart : [];
 
-    suppressCartSync = true;
-    try{
-      if (serverCart.length && !localCart.length){
-        // só server tem itens → puxa do server
-        state.cart = serverCart.map(normalizeCartItem);
-        saveLocalCart();
-        renderCart();
-    } else if (localCart.length && !serverCart.length){
-  // só envia pro servidor se o servidor estiver vazio
-  state.cart = localCart.map(normalizeCartItem);
-  saveLocalCart();
-  await window.VW_API.apiJson('/cart', {
-    method: 'POST',
-    body: { cart: state.cart },
-  });
-  renderCart();
-}
-
-      // se os dois estiverem vazios, não faz nada
-    } finally {
-      suppressCartSync = false;
+        suppressCartSync = true;
+        try{
+          if (serverCart.length && !localCart.length){
+            state.cart = serverCart.map(normalizeCartItem);
+            saveLocalCart();
+            renderCart();
+          } else if (!serverCart.length && localCart.length){
+            await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart } });
+          } else if (serverCart.length && localCart.length){
+            state.cart = serverCart.map(normalizeCartItem);
+            saveLocalCart();
+            renderCart();
+          }
+        } finally {
+          suppressCartSync = false;
+        }
+      }catch(err){
+        console.warn('Failed to load cart from backend', err);
+      }
     }
-  }catch(err){
-    console.warn('Failed to load cart from backend', err);
-  }
-}
-
 
     window.VW_CART_SYNC = window.VW_CART_SYNC || {};
     window.VW_CART_SYNC.syncOnLogin = syncCartFromBackend;
@@ -1597,22 +1590,11 @@ function statusToStepIndex(status){
       renderAddresses();
     };
 
-   window.removeCartItem = async function(id){
-  state.cart = (state.cart || []).filter(it => String(it.id) !== String(id));
-  saveLocalCart();
-
-  // 🔥 força salvar no backend na hora
-  if (window.VW_API && window.VW_API.apiJson) {
-    await window.VW_API.apiJson('/cart', {
-      method: 'POST',
-      body: { cart: state.cart }
-    });
-  }
-
-  renderCart();
-};
-
-
+    window.removeCartItem = function(id){
+      state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
+      saveLocalCart();
+      renderCart();
+    };
 
     function clearCart(){
       if (!confirm('Clear the cart?')) return;
@@ -1828,27 +1810,23 @@ function statusToStepIndex(status){
 
     // ====== Eventos ======
     document.addEventListener('DOMContentLoaded', () => {
-  loadDemo();
- setTimeout(() => {
-  window.VW_CART_SYNC.syncOnLogin();
-}, 300);
+      loadDemo();
 
+      $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
+      $('avatarFileInput')?.addEventListener('change', (e) => {
+        const file = e.target.files ? e.target.files[0] : null;
+        if (file) setAvatar(file);
+      });
 
-  $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
-  $('avatarFileInput')?.addEventListener('change', (e) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    if (file) setAvatar(file);
-  });
+      $('btnSaveAccount')?.addEventListener('click', saveAccount);
+      $('btnChangePass')?.addEventListener('click', changePassword);
+      $('btnAddAddress')?.addEventListener('click', addAddress);
+      $('btnClearCart')?.addEventListener('click', clearCart);
 
-  $('btnSaveAccount')?.addEventListener('click', saveAccount);
-  $('btnChangePass')?.addEventListener('click', changePassword);
-  $('btnAddAddress')?.addEventListener('click', addAddress);
-  $('btnClearCart')?.addEventListener('click', clearCart);
+      $('btnApplyBenefits')?.addEventListener('click', applySelectedBenefits);
+      $('btnLogout')?.addEventListener('click', logout);
 
-  $('btnApplyBenefits')?.addEventListener('click', applySelectedBenefits);
-  $('btnLogout')?.addEventListener('click', logout);
-
-  $('btnSpin')?.addEventListener('click', spin);
+      $('btnSpin')?.addEventListener('click', spin);
 });
 
     // ======= Campo reativo dourado =======
