@@ -848,34 +848,42 @@
       }, CART_SYNC_DEBOUNCE_MS);
     }
 
-    async function syncCartFromBackend(){
-      if (!isLoggedInForCart()) return;
-      if (!window.VW_API || !window.VW_API.apiJson) return;
+   async function syncCartFromBackend(){
+  if (!isLoggedInForCart()) return;
+  if (!window.VW_API || !window.VW_API.apiJson) return;
 
-      try{
-        const data = await window.VW_API.apiJson('/cart', { method:'GET' });
-        const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
-        const localCart = Array.isArray(state.cart) ? state.cart : [];
+  try{
+    const data = await window.VW_API.apiJson('/cart', { method:'GET' });
+    const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
+    const localCart = Array.isArray(state.cart) ? state.cart : [];
 
-        suppressCartSync = true;
-        try{
-          if (serverCart.length && !localCart.length){
-            state.cart = serverCart.map(normalizeCartItem);
-            saveLocalCart();
-            renderCart();
-          } else if (!serverCart.length && localCart.length){
-            await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart } });
-          } else if (serverCart.length && localCart.length){
-            state.cart = serverCart.map(normalizeCartItem);
-            saveLocalCart();
-            renderCart();
-          }
-        } finally {
-          suppressCartSync = false;
-        }
-      }catch(err){
-        console.warn('Failed to load cart from backend', err);
+    suppressCartSync = true;
+    try{
+      if (serverCart.length && !localCart.length){
+        // só server tem itens → puxa do server
+        state.cart = serverCart.map(normalizeCartItem);
+        saveLocalCart();
+        renderCart();
+      } else if (localCart.length){
+        // se já tem itens locais (ex: você acabou de adicionar na loja),
+        // mantém o LOCAL como verdade e envia pro servidor
+        state.cart = localCart.map(normalizeCartItem);
+        saveLocalCart();
+        await window.VW_API.apiJson('/cart', {
+          method: 'POST',
+          body: { cart: state.cart },
+        });
+        renderCart();
       }
+      // se os dois estiverem vazios, não faz nada
+    } finally {
+      suppressCartSync = false;
+    }
+  }catch(err){
+    console.warn('Failed to load cart from backend', err);
+  }
+}
+
     }
 
     window.VW_CART_SYNC = window.VW_CART_SYNC || {};
