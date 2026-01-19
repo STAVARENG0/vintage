@@ -928,13 +928,12 @@
               }
             }
 
-            // Server is source of truth ONLY if local cart is empty
-if (!localCart.length) {
-  state.cart = serverCart;
-  saveLocalCart({ skipSync:true });
-  renderCart();
-}
+          // Server is ALWAYS the source of truth
+state.cart = serverCart;
+saveLocalCart({ skipSync:true });
+renderCart();
 return;
+
 
 
           // 3) Both empty.
