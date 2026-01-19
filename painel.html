@@ -593,6 +593,7 @@
       <canvas id="wheelCanvas" width="640" height="640" aria-label="Wheel"></canvas>
     </div>
   </div>
+<div id="extra-spins" class="muted" style="margin-bottom:6px;font-weight:700;">Spins disponíveis: 1</div>
 
   <button class="btn primary" id="btnSpin" type="button">Spin now</button>
 
@@ -1764,6 +1765,10 @@ async function spin(){
   async function loadRewardsStatus(){
     try{
       const data = await apiJson('/rewards/status', { method:'GET' });
+state.extraSpins = Number(data.extraSpins || 0);
+
+document.getElementById('extra-spins').innerText =
+  `Spins disponíveis: ${state.spinsLeftToday + state.extraSpins}`;
 
       const points = Number(data?.points ?? data?.user?.points ?? 0);
       if (typeof state !== 'undefined') state.points = points;
