@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "1768861049829",
+    "title": "STOGONOFF",
+    "price": 15,
+    "description": "A",
+    "category": "Dresses & Skirts",
+    "stock": 2,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768861049829/1768861052260_0_Gemini_Generated_Image_az76g8az76g8az76.png",
+    "gallery": [],
+    "createdAt": 1768861053435,
+    "status": "published"
+  }
+]
