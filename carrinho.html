@@ -1819,23 +1819,24 @@ function statusToStepIndex(status){
 
     // ====== Eventos ======
     document.addEventListener('DOMContentLoaded', () => {
-      loadDemo();
+  loadDemo();
+  window.VW_CART_SYNC.syncOnLogin();
 
-      $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
-      $('avatarFileInput')?.addEventListener('change', (e) => {
-        const file = e.target.files ? e.target.files[0] : null;
-        if (file) setAvatar(file);
-      });
+  $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
+  $('avatarFileInput')?.addEventListener('change', (e) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (file) setAvatar(file);
+  });
 
-      $('btnSaveAccount')?.addEventListener('click', saveAccount);
-      $('btnChangePass')?.addEventListener('click', changePassword);
-      $('btnAddAddress')?.addEventListener('click', addAddress);
-      $('btnClearCart')?.addEventListener('click', clearCart);
+  $('btnSaveAccount')?.addEventListener('click', saveAccount);
+  $('btnChangePass')?.addEventListener('click', changePassword);
+  $('btnAddAddress')?.addEventListener('click', addAddress);
+  $('btnClearCart')?.addEventListener('click', clearCart);
 
-      $('btnApplyBenefits')?.addEventListener('click', applySelectedBenefits);
-      $('btnLogout')?.addEventListener('click', logout);
+  $('btnApplyBenefits')?.addEventListener('click', applySelectedBenefits);
+  $('btnLogout')?.addEventListener('click', logout);
 
-      $('btnSpin')?.addEventListener('click', spin);
+  $('btnSpin')?.addEventListener('click', spin);
 });
 
     // ======= Campo reativo dourado =======
