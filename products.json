@@ -1,14 +1,14 @@
 [
   {
-    "id": "1768855044519",
-    "title": "YAKISOBA",
-    "price": 60,
-    "description": "CHINANANA",
-    "category": "Shoes",
-    "stock": 3,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768855044519/1768855067227_0_hd-yakisoba-chinese-cuisine-pasta-chicken-noodles-png-704081694796393fmsllxnore-removebg-preview.png",
+    "id": "1768853880394",
+    "title": "BATATA FRITA",
+    "price": 25,
+    "description": "PORCAO",
+    "category": "Activewear",
+    "stock": 2,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768853880394/1768853881234_0_767e8c0a665f7ebb7eebb90fbd908c9d.jpg",
     "gallery": [],
-    "createdAt": 1768855068715,
+    "createdAt": 1768853881995,
     "status": "published"
   }
 ]
