@@ -767,27 +767,33 @@
       return candidate || CART_GUEST_KEY;
     }
 
+    function normalizeCartItem(it){
+      const obj = (it && typeof it === 'object') ? { ...it } : {};
+      const title = obj.title || obj.name || obj.product || 'Product';
+      const image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
+      const qty = Number(obj.qty ?? obj.quantity ?? 1);
+      const price = Number(obj.price ?? 0);
+      return {
+        ...obj,
+        id: obj.id ?? obj.product_id ?? obj.productId ?? title,
+        title,
+        image,
+        qty: (Number.isFinite(qty) && qty > 0) ? qty : 1,
+        price: Number.isFinite(price) ? price : 0,
+      };
+    }
+
     function loadLocalCart(){
       const key = chooseActiveCartKey();
       const arr = readCartByKey(key);
 
       // Normalize, but keep ALL original fields (stock, category, etc.) so the Store doesn't break.
-      state.cart = (Array.isArray(arr) ? arr : []).map((it) => {
-        const obj = (it && typeof it === 'object') ? { ...it } : {};
-        const title = obj.title || obj.name || obj.product || 'Product';
-        const image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
-        const qty = Number(obj.qty ?? obj.quantity ?? 1);
-        const price = Number(obj.price ?? 0);
-        return {
-          ...obj,
-          id: obj.id ?? obj.product_id ?? obj.productId ?? title,
-          title,
-          image,
-          qty: (Number.isFinite(qty) && qty > 0) ? qty : 1,
-          price: Number.isFinite(price) ? price : 0,
-        };
-      });
+      state.cart = (Array.isArray(arr) ? arr : []).map(normalizeCartItem);
     }
+
+    let suppressCartSync = false;
+    const CART_SYNC_DEBOUNCE_MS = 800;
+    let cartSyncTimer = null;
 
     function saveLocalCart(){
       const key = chooseActiveCartKey();
@@ -808,7 +814,73 @@
       if (key !== CART_GUEST_KEY){
         try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
       }
+
+      if (!suppressCartSync){
+        scheduleCartSync();
+      }
     }
+
+    function isLoggedInForCart(){
+      return !!getToken() && !!getUserId();
+    }
+
+    async function syncCartToBackend(){
+      if (!isLoggedInForCart()) return;
+      if (!window.VW_API || !window.VW_API.apiJson) return;
+
+      const cart = Array.isArray(state.cart) ? state.cart : [];
+      try{
+        await window.VW_API.apiJson('/cart', {
+          method: 'POST',
+          body: { cart },
+        });
+      }catch(err){
+        console.warn('Failed to sync cart to backend', err);
+      }
+    }
+
+    function scheduleCartSync(){
+      if (!isLoggedInForCart()) return;
+      if (cartSyncTimer) clearTimeout(cartSyncTimer);
+      cartSyncTimer = setTimeout(() => {
+        cartSyncTimer = null;
+        syncCartToBackend();
+      }, CART_SYNC_DEBOUNCE_MS);
+    }
+
+    async function syncCartFromBackend(){
+      if (!isLoggedInForCart()) return;
+      if (!window.VW_API || !window.VW_API.apiJson) return;
+
+      try{
+        const data = await window.VW_API.apiJson('/cart', { method:'GET' });
+        const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
+        const localCart = Array.isArray(state.cart) ? state.cart : [];
+
+        suppressCartSync = true;
+        try{
+          if (serverCart.length && !localCart.length){
+            state.cart = serverCart.map(normalizeCartItem);
+            saveLocalCart();
+            renderCart();
+          } else if (!serverCart.length && localCart.length){
+            await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart } });
+          } else if (serverCart.length && localCart.length){
+            state.cart = serverCart.map(normalizeCartItem);
+            saveLocalCart();
+            renderCart();
+          }
+        } finally {
+          suppressCartSync = false;
+        }
+      }catch(err){
+        console.warn('Failed to load cart from backend', err);
+      }
+    }
+
+    window.VW_CART_SYNC = window.VW_CART_SYNC || {};
+    window.VW_CART_SYNC.syncOnLogin = syncCartFromBackend;
+    window.VW_CART_SYNC.schedule = scheduleCartSync;
 
     window.addEventListener('storage', (e) => {
       // Keep the cart synced if it changes in another tab/page.
@@ -1530,6 +1602,7 @@ function statusToStepIndex(status){
       state.cart = [];
       try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
       try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
+      scheduleCartSync();
       renderCart();
     }
 
@@ -1907,7 +1980,7 @@ function statusToStepIndex(status){
 
     async function apiJson(path, opts = {}){
     const p = String(path || '');
-    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
+    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/') || p.startsWith('/cart');
     const base = isRewards ? REWARDS_ROOT : API_ROOT;
     const url = base + path;
     const init = {
@@ -2110,6 +2183,9 @@ function statusToStepIndex(status){
       applyAvatar(user);
       // Load rewards (points + discount + free shipping) from the backend
       loadRewardsStatus();
+      if (window.VW_CART_SYNC && typeof window.VW_CART_SYNC.syncOnLogin === 'function'){
+        window.VW_CART_SYNC.syncOnLogin();
+      }
     } catch (err) {
       console.error("Error loading /user/me", err);
     }
