@@ -1421,7 +1421,7 @@ async function spin(){
       state.cashbackHistory.unshift({ date: dateKey, title:'Bonus', delta:0, detail:'Wheel (Extra spin)' });
     }
 
-    // ===== Sincroniza prêmios com o banco (MySQL) via API =====
+       // ===== Sincroniza prêmios com o banco (MySQL) via API =====
     try{
       const api = window.VW_API;
       if (api && api.apiJson){
@@ -1450,6 +1450,10 @@ async function spin(){
               id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
               expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
             };
+          }
+        } else if (winner.type === 'extra_spin'){
+          if (api.grantExtraSpin){
+            await api.grantExtraSpin(1, 'wheel');
           }
         }
       }
