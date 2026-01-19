@@ -516,15 +516,12 @@
 
   <div class="wrap">
     <div class="glass">
-      <header>
+            <header>
         <div class="top-left">
-          <small>Vintage Wear Ireland</small>
-</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-          <a class="btn small" href="painel.html" title="Back to dashboard home">🏠 Dashboard Home</a>
-          <a class="btn small" href="index.html" title="Back to store">🛍️ Store</a>
+          <small></small>
         </div>
       </header>
+
 
       <div class="divider"></div>
 
@@ -534,15 +531,15 @@
           <div class="hero-center">
             <h1 class="hero-title">Customer Dashboard</h1>
 
-<!-- Nav buttons -->
+
+            <!-- Nav buttons -->
             <div class="nav" aria-label="Shortcuts">
+              <a class="btn small" href="painel.html">🏠 Dashboard</a>
+              <a class="btn small" href="index.html">🛍️ Shop</a>
               <a class="btn small" href="conta.html">👤 Account</a>
               <a class="btn small primary" href="carrinho.html">🛒 My cart</a>
               <a class="btn small" href="pedidos.html">📦 Orders</a>
-              <a class="btn small" href="cashback.html">⭐ Cashback</a>
             </div>
-
-
             <div class="avatar-wrap" aria-label="Profile photo (circular)">
               <img id="avatar" alt="User photo" />
             </div>
@@ -770,27 +767,33 @@
       return candidate || CART_GUEST_KEY;
     }
 
+    function normalizeCartItem(it){
+      const obj = (it && typeof it === 'object') ? { ...it } : {};
+      const title = obj.title || obj.name || obj.product || 'Product';
+      const image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
+      const qty = Number(obj.qty ?? obj.quantity ?? 1);
+      const price = Number(obj.price ?? 0);
+      return {
+        ...obj,
+        id: obj.id ?? obj.product_id ?? obj.productId ?? title,
+        title,
+        image,
+        qty: (Number.isFinite(qty) && qty > 0) ? qty : 1,
+        price: Number.isFinite(price) ? price : 0,
+      };
+    }
+
     function loadLocalCart(){
       const key = chooseActiveCartKey();
       const arr = readCartByKey(key);
 
       // Normalize, but keep ALL original fields (stock, category, etc.) so the Store doesn't break.
-      state.cart = (Array.isArray(arr) ? arr : []).map((it) => {
-        const obj = (it && typeof it === 'object') ? { ...it } : {};
-        const title = obj.title || obj.name || obj.product || 'Product';
-        const image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
-        const qty = Number(obj.qty ?? obj.quantity ?? 1);
-        const price = Number(obj.price ?? 0);
-        return {
-          ...obj,
-          id: obj.id ?? obj.product_id ?? obj.productId ?? title,
-          title,
-          image,
-          qty: (Number.isFinite(qty) && qty > 0) ? qty : 1,
-          price: Number.isFinite(price) ? price : 0,
-        };
-      });
+      state.cart = (Array.isArray(arr) ? arr : []).map(normalizeCartItem);
     }
+
+    let suppressCartSync = false;
+    const CART_SYNC_DEBOUNCE_MS = 800;
+    let cartSyncTimer = null;
 
     function saveLocalCart(){
       const key = chooseActiveCartKey();
@@ -811,7 +814,73 @@
       if (key !== CART_GUEST_KEY){
         try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
       }
+
+      if (!suppressCartSync){
+        scheduleCartSync();
+      }
     }
+
+    function isLoggedInForCart(){
+      return !!getToken() && !!getUserId();
+    }
+
+    async function syncCartToBackend(){
+      if (!isLoggedInForCart()) return;
+      if (!window.VW_API || !window.VW_API.apiJson) return;
+
+      const cart = Array.isArray(state.cart) ? state.cart : [];
+      try{
+        await window.VW_API.apiJson('/cart', {
+          method: 'POST',
+          body: { cart },
+        });
+      }catch(err){
+        console.warn('Failed to sync cart to backend', err);
+      }
+    }
+
+    function scheduleCartSync(){
+      if (!isLoggedInForCart()) return;
+      if (cartSyncTimer) clearTimeout(cartSyncTimer);
+      cartSyncTimer = setTimeout(() => {
+        cartSyncTimer = null;
+        syncCartToBackend();
+      }, CART_SYNC_DEBOUNCE_MS);
+    }
+
+    async function syncCartFromBackend(){
+      if (!isLoggedInForCart()) return;
+      if (!window.VW_API || !window.VW_API.apiJson) return;
+
+      try{
+        const data = await window.VW_API.apiJson('/cart', { method:'GET' });
+        const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
+        const localCart = Array.isArray(state.cart) ? state.cart : [];
+
+        suppressCartSync = true;
+        try{
+          if (serverCart.length && !localCart.length){
+            state.cart = serverCart.map(normalizeCartItem);
+            saveLocalCart();
+            renderCart();
+          } else if (!serverCart.length && localCart.length){
+            await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart } });
+          } else if (serverCart.length && localCart.length){
+            state.cart = serverCart.map(normalizeCartItem);
+            saveLocalCart();
+            renderCart();
+          }
+        } finally {
+          suppressCartSync = false;
+        }
+      }catch(err){
+        console.warn('Failed to load cart from backend', err);
+      }
+    }
+
+    window.VW_CART_SYNC = window.VW_CART_SYNC || {};
+    window.VW_CART_SYNC.syncOnLogin = syncCartFromBackend;
+    window.VW_CART_SYNC.schedule = scheduleCartSync;
 
     window.addEventListener('storage', (e) => {
       // Keep the cart synced if it changes in another tab/page.
@@ -1533,6 +1602,7 @@ function statusToStepIndex(status){
       state.cart = [];
       try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
       try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
+      scheduleCartSync();
       renderCart();
     }
 
@@ -1551,11 +1621,47 @@ function statusToStepIndex(status){
       if (!file) return;
       state.avatarFile = file;
       setAvatarFileName(file.name);
-      // preview imediato
-      const url = URL.createObjectURL(file);
-      state.me.avatar = url;
-      renderHero();
-      setText('accountMsg', '✅ Photo updated.');
+
+      // preview imediato enquanto faz upload
+      try {
+        const previewUrl = URL.createObjectURL(file);
+        state.me.avatar = previewUrl;
+        renderHero();
+      } catch (_) {}
+
+      setText('accountMsg', 'Uploading photo…');
+
+      const fd = new FormData();
+      fd.append("avatar", file);
+
+      try {
+        const res = await fetch(API_ROOT + "/user/me/avatar", {
+          method: "POST",
+          headers: authHeaders(),
+          body: fd
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          requireTokenOrRedirect();
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error("Error uploading");
+        }
+
+        let data = null;
+        try { data = await res.json(); } catch (_) {}
+
+        if (data && (data.avatar_url || data.avatar)) {
+          applyAvatar(data);
+        }
+
+        setText('accountMsg', '✅ Photo uploaded.');
+      } catch (err) {
+        console.error(err);
+        setText('accountMsg', '❌ Error uploading photo.');
+      }
     }
 
     // Salvar conta (demo)
@@ -1837,7 +1943,8 @@ function statusToStepIndex(status){
   </script>
 <script>
 (function(){
-  const API_ROOT = "https://clientes-0r5d.onrender.com";
+    const API_ROOT = "https://clientes-0r5d.onrender.com"; // backend de login/conta
+    const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
   const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
 
   function getToken(){
@@ -1859,14 +1966,23 @@ function statusToStepIndex(status){
   }
 
   function authHeaders(){
+    const h = {};
     const t = getToken();
-    return t ? { Authorization: "Bearer " + t } : {};
+    if (t) h.Authorization = "Bearer " + t;
+    try{
+      const uid = localStorage.getItem('vw_user_id') || '';
+      if (uid) h['X-User-Id'] = String(uid);
+    }catch(_){ }
+    return h;
   }
 
 
 
-  async function apiJson(path, opts = {}){
-    const url = API_ROOT + path;
+    async function apiJson(path, opts = {}){
+    const p = String(path || '');
+    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/') || p.startsWith('/cart');
+    const base = isRewards ? REWARDS_ROOT : API_ROOT;
+    const url = base + path;
     const init = {
       method: opts.method || 'GET',
       headers: {
@@ -2008,7 +2124,13 @@ function statusToStepIndex(status){
     const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
 
     if (!raw) {
-      img.src = defaultAvatarDataUri();
+      const def = defaultAvatarDataUri();
+      img.src = def;
+      try{
+        if (typeof state !== "undefined" && state.me){
+          state.me.avatar = def;
+        }
+      }catch(_){}
       return;
     }
 
@@ -2021,6 +2143,11 @@ function statusToStepIndex(status){
     // cache-bust so the new photo appears immediately
     url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
     img.src = url;
+    try{
+      if (typeof state !== "undefined" && state.me){
+        state.me.avatar = url;
+      }
+    }catch(_){}
   }
 
   async function loadProfile(){
@@ -2056,6 +2183,9 @@ function statusToStepIndex(status){
       applyAvatar(user);
       // Load rewards (points + discount + free shipping) from the backend
       loadRewardsStatus();
+      if (window.VW_CART_SYNC && typeof window.VW_CART_SYNC.syncOnLogin === 'function'){
+        window.VW_CART_SYNC.syncOnLogin();
+      }
     } catch (err) {
       console.error("Error loading /user/me", err);
     }
