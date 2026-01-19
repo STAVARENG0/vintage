@@ -70,5 +70,17 @@
     "gallery": [],
     "createdAt": 1768853881995,
     "status": "published"
+  },
+  {
+    "id": "1768855044519",
+    "title": "YAKISOBA",
+    "price": 60,
+    "description": "CHINANANA",
+    "category": "Shoes",
+    "stock": 3,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768855044519/1768855067227_0_hd-yakisoba-chinese-cuisine-pasta-chicken-noodles-png-704081694796393fmsllxnore-removebg-preview.png",
+    "gallery": [],
+    "createdAt": 1768855068715,
+    "status": "published"
   }
 ]
