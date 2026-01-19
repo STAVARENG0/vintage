@@ -843,7 +843,12 @@
    async function syncCartFromBackend(){
       if (!isLoggedInForCart()) return;
       if (!window.VW_API || !window.VW_API.apiJson) return;
-
+if (Array.isArray(state.cart) && state.cart.length > 0) {
+    await window.VW_API.apiJson('/cart', {
+      method: 'POST',
+      body: { cart: state.cart }
+    });
+  }
       const sig = (cart) => {
         const arr = Array.isArray(cart) ? cart : [];
         const slim = arr.map(it => ({
