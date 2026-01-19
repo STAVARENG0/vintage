@@ -34,5 +34,17 @@
     "gallery": [],
     "createdAt": 1768861161722,
     "status": "published"
+  },
+  {
+    "id": "1768861224114",
+    "title": "LASANHA",
+    "price": 34,
+    "description": "LASANHA DE GAY",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768861224114/1768861228084_0_Gemini_Generated_Image_hvhv6hhvhv6hhvhv.png",
+    "gallery": [],
+    "createdAt": 1768861229601,
+    "status": "published"
   }
 ]
