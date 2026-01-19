@@ -952,21 +952,17 @@ renderCart();
     window.VW_CART_SYNC.syncOnLogin = syncCartFromBackend;
     window.VW_CART_SYNC.schedule = scheduleCartSync;
 
-    window.addEventListener('storage', (e) => {
-      // Keep the cart synced if it changes in another tab/page.
-      try{
-        if (!e || !e.key) return;
-        const changed = String(e.key);
-        if (changed === CART_GUEST_KEY || changed.startsWith('vw_cart') || changed === SHARED_REWARDS_KEY || changed === CART_REWARDS_SELECTION_KEY){
-          loadLocalCart();
-          renderCart();
-          // If another page/tab updated the cart, push it to the backend too.
-          
-        }
-      }catch(_){
-        // ignore
-      }
-    });
+   window.addEventListener('storage', (e) => {
+  if (!e || !e.key) return;
+  if (suppressCartSync) return;
+
+  const k = String(e.key);
+  if (k === CART_GUEST_KEY || k.startsWith('vw_cart_u_')) {
+    loadLocalCart();
+    renderCart();
+  }
+});
+
 
     // If the token is missing (not logged in), send to login.
     // (We accept multiple keys so this matches the Store login behavior.)
