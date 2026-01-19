@@ -747,7 +747,8 @@
         const userCart = readCartByKey(userKey);
         const guestCart = readCartByKey(CART_GUEST_KEY);
         if (!userCart.length && guestCart.length){
-          try{ localStorage.setItem(userKey, JSON.stringify(guestCart)); }catch(_){ }
+          try{ localStorage.setItem(`vw_cart_migrated_from_guest_${uid}`, '1'); }catch(_){ }
+
         }
         return userKey;
       }
@@ -927,12 +928,14 @@
               }
             }
 
-            // Default: server is the source of truth.
-            state.cart = serverCart;
-            saveLocalCart({ skipSync:true });
-            renderCart();
-            return;
-          }
+            // Server is source of truth ONLY if local cart is empty
+if (!localCart.length) {
+  state.cart = serverCart;
+  saveLocalCart({ skipSync:true });
+  renderCart();
+}
+return;
+
 
           // 3) Both empty.
           state.cart = [];
