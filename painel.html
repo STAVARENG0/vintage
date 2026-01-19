@@ -2041,7 +2041,7 @@ async function spin(){
         }
       }
 
-      // ===== Sincroniza prêmio com o backend de rewards (já existia) =====
+           // ===== Sincroniza prêmio com o backend de rewards (já existia) =====
       try{
         const rApi = window.VW_API;
         if (rApi && rApi.apiJson && typeof state !== 'undefined'){
@@ -2071,11 +2071,16 @@ async function spin(){
                 expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
               };
             }
+          } else if (winner.type === 'extra_spin'){
+            if (typeof rApi.grantExtraSpin === 'function'){
+              await rApi.grantExtraSpin(1, 'wheel');
+            }
           }
         }
       } catch(err){
         console.warn('Failed to sync prize with API:', err && err.message || err);
       }
+
 
       if (typeof savePersisted === 'function') savePersisted();
       if (typeof renderAll === 'function') renderAll();
