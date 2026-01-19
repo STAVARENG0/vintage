@@ -46,5 +46,17 @@
     "gallery": [],
     "createdAt": 1768861229601,
     "status": "published"
+  },
+  {
+    "id": "1768861276868",
+    "title": "LASANHA DE CARNE",
+    "price": 15,
+    "description": "LASANHA DE HOMEM",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768861276868/1768861278768_0_Gemini_Generated_Image_wq8trzwq8trzwq8t.png",
+    "gallery": [],
+    "createdAt": 1768861280200,
+    "status": "published"
   }
 ]
