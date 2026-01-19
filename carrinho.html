@@ -736,35 +736,24 @@
     }
 
     function chooseActiveCartKey(){
-      const guest = readCartByKey(CART_GUEST_KEY);
       const tok = getToken();
       const uidRaw = getUserId();
       const uid = uidRaw ? String(uidRaw) : '';
-      const candidate = (uid && tok) ? `vw_cart_u_${uid}` : null;
-      const candCart = candidate ? readCartByKey(candidate) : [];
+      const userKey = (uid && tok) ? `vw_cart_u_${uid}` : null;
 
-      // 1) If a user cart exists with items, use it.
-      if (candidate && candCart.length) return candidate;
-
-      // 2) If guest cart has items, keep using it (so Store + Dashboard stay aligned).
-      // Also mirror into the user cart (without deleting the guest cart) when possible.
-      if (guest.length){
-        if (candidate && !candCart.length){
-          try{ localStorage.setItem(candidate, JSON.stringify(guest)); }catch(_){ }
+      // Logged-in users ALWAYS use a per-user cart key.
+      if (userKey){
+        // One-time migrate guest -> user (store pages still write to vw_cart).
+        const userCart = readCartByKey(userKey);
+        const guestCart = readCartByKey(CART_GUEST_KEY);
+        if (!userCart.length && guestCart.length){
+          try{ localStorage.setItem(userKey, JSON.stringify(guestCart)); }catch(_){ }
         }
-        return CART_GUEST_KEY;
+        return userKey;
       }
 
-      // 3) If logged in but uid differs, pick any existing vw_cart_u_* with items.
-      if (tok){
-        for (const k of listUserCartKeys()){
-          const c = readCartByKey(k);
-          if (c.length) return k;
-        }
-      }
-
-      // 4) Fall back.
-      return candidate || CART_GUEST_KEY;
+      // Not logged in: use guest cart.
+      return CART_GUEST_KEY;
     }
 
     function normalizeCartItem(it){
@@ -795,7 +784,10 @@
     const CART_SYNC_DEBOUNCE_MS = 800;
     let cartSyncTimer = null;
 
-    function saveLocalCart(){
+    function saveLocalCart(opts){
+      const o = (opts && typeof opts === 'object') ? opts : {};
+      const skipSync = !!o.skipSync;
+
       const key = chooseActiveCartKey();
       const normalized = (Array.isArray(state.cart) ? state.cart : []).map((it) => {
         const obj = (it && typeof it === 'object') ? { ...it } : {};
@@ -810,12 +802,12 @@
 
       try{ localStorage.setItem(key, JSON.stringify(normalized)); }catch(_){ }
 
-      // Mirror to guest cart too so Store and Dashboard never diverge during this phase.
+      // Mirror to guest cart too so Store and Dashboard never diverge.
       if (key !== CART_GUEST_KEY){
         try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
       }
 
-      if (!suppressCartSync){
+      if (!suppressCartSync && !skipSync){
         scheduleCartSync();
       }
     }
@@ -848,35 +840,113 @@
       }, CART_SYNC_DEBOUNCE_MS);
     }
 
-    async function syncCartFromBackend(){
+   async function syncCartFromBackend(){
       if (!isLoggedInForCart()) return;
       if (!window.VW_API || !window.VW_API.apiJson) return;
 
+      const sig = (cart) => {
+        const arr = Array.isArray(cart) ? cart : [];
+        const slim = arr.map(it => ({
+          id: String((it && (it.id ?? it.product_id ?? it.productId ?? it.title ?? it.name ?? ''))),
+          qty: Number((it && (it.qty ?? it.quantity ?? 1)) || 1),
+          price: Number((it && it.price) || 0),
+          title: (it && (it.title || it.name || it.product)) || '',
+        }));
+        slim.sort((a,b) => (a.id > b.id) - (a.id < b.id));
+        return JSON.stringify(slim);
+      };
+
+      const mergeCarts = (serverCart, localCart) => {
+        const map = new Map();
+        for (const it of (Array.isArray(serverCart) ? serverCart : [])){
+          const n = normalizeCartItem(it);
+          map.set(String(n.id), { ...n });
+        }
+        for (const it of (Array.isArray(localCart) ? localCart : [])){
+          const n = normalizeCartItem(it);
+          const id = String(n.id);
+          if (!map.has(id)){
+            map.set(id, { ...n });
+            continue;
+          }
+          const cur = map.get(id) || {};
+          const curQty = Number(cur.qty || 1);
+          const newQty = Number(n.qty || 1);
+          const qty = Math.max(curQty, newQty);
+
+          // Prefer non-empty fields.
+          const merged = { ...cur };
+          if ((!merged.title || merged.title === 'Product') && n.title) merged.title = n.title;
+          if (!merged.image && n.image) merged.image = n.image;
+          if ((!merged.price || merged.price === 0) && n.price) merged.price = n.price;
+
+          // Keep any extra fields from local (like category/stock) without overwriting good server values.
+          for (const [k,v] of Object.entries(n)){
+            if (merged[k] === undefined || merged[k] === null || merged[k] === '') merged[k] = v;
+          }
+          merged.qty = qty;
+          map.set(id, merged);
+        }
+        return Array.from(map.values());
+      };
+
       try{
+        // Always refresh local cart from storage first (store pages may have updated it).
+        loadLocalCart();
+        const localCart = Array.isArray(state.cart) ? state.cart.map(normalizeCartItem) : [];
+
         const data = await window.VW_API.apiJson('/cart', { method:'GET' });
-        const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
-        const localCart = Array.isArray(state.cart) ? state.cart : [];
+        const serverCart = Array.isArray(data && data.cart) ? data.cart.map(normalizeCartItem) : [];
+
+        const serverSig = sig(serverCart);
+        const localSig = sig(localCart);
 
         suppressCartSync = true;
         try{
-          if (serverCart.length && !localCart.length){
-            state.cart = serverCart.map(normalizeCartItem);
-            saveLocalCart();
+          // 1) If server is empty but local has items (just added in Store) => push local to server.
+          if (!serverCart.length && localCart.length){
+            state.cart = localCart;
+            saveLocalCart({ skipSync:true });
+            await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: state.cart } });
             renderCart();
-          } else if (!serverCart.length && localCart.length){
-            await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart } });
-          } else if (serverCart.length && localCart.length){
-            state.cart = serverCart.map(normalizeCartItem);
-            saveLocalCart();
-            renderCart();
+            return;
           }
+
+          // 2) If server has items:
+          if (serverCart.length){
+            // If local has extra items (store added) => merge-add and push.
+            if (localCart.length && localSig !== serverSig){
+              const merged = mergeCarts(serverCart, localCart);
+              const mergedSig = sig(merged);
+              if (mergedSig !== serverSig){
+                state.cart = merged;
+                saveLocalCart({ skipSync:true });
+                await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: state.cart } });
+                renderCart();
+                return;
+              }
+            }
+
+            // Default: server is the source of truth.
+            state.cart = serverCart;
+            saveLocalCart({ skipSync:true });
+            renderCart();
+            return;
+          }
+
+          // 3) Both empty.
+          state.cart = [];
+          saveLocalCart({ skipSync:true });
+          renderCart();
+
         } finally {
           suppressCartSync = false;
         }
       }catch(err){
-        console.warn('Failed to load cart from backend', err);
+        console.warn('Failed to sync cart with backend', err);
       }
     }
+
 
     window.VW_CART_SYNC = window.VW_CART_SYNC || {};
     window.VW_CART_SYNC.syncOnLogin = syncCartFromBackend;
@@ -890,6 +960,8 @@
         if (changed === CART_GUEST_KEY || changed.startsWith('vw_cart') || changed === SHARED_REWARDS_KEY || changed === CART_REWARDS_SELECTION_KEY){
           loadLocalCart();
           renderCart();
+          // If another page/tab updated the cart, push it to the backend too.
+          scheduleCartSync();
         }
       }catch(_){
         // ignore
@@ -1590,19 +1662,39 @@ function statusToStepIndex(status){
       renderAddresses();
     };
 
-    window.removeCartItem = function(id){
-      state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
-      saveLocalCart();
-      renderCart();
-    };
+   window.removeCartItem = async function(id){
+  state.cart = (state.cart || []).filter(it => String(it.id) !== String(id));
+  saveLocalCart({ skipSync:true });
 
-    function clearCart(){
+  // 🔥 força salvar no backend na hora
+  if (window.VW_API && window.VW_API.apiJson) {
+    await window.VW_API.apiJson('/cart', {
+      method: 'POST',
+      body: { cart: state.cart }
+    });
+  }
+
+  renderCart();
+};
+
+
+
+    async function clearCart(){
       if (!confirm('Clear the cart?')) return;
-      // Clear the SAME cart used by the Store (so they stay in sync).
       state.cart = [];
+      // Clear local storage copies.
       try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
       try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
-      scheduleCartSync();
+
+      // Push immediately to backend (so other devices update).
+      try{
+        if (window.VW_API && window.VW_API.apiJson && isLoggedInForCart()){
+          await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: [] } });
+        }
+      }catch(err){
+        console.warn('Failed to clear cart on backend', err);
+      }
+
       renderCart();
     }
 
@@ -1810,23 +1902,22 @@ function statusToStepIndex(status){
 
     // ====== Eventos ======
     document.addEventListener('DOMContentLoaded', () => {
-      loadDemo();
+  loadDemo();
+  $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
+  $('avatarFileInput')?.addEventListener('change', (e) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (file) setAvatar(file);
+  });
 
-      $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
-      $('avatarFileInput')?.addEventListener('change', (e) => {
-        const file = e.target.files ? e.target.files[0] : null;
-        if (file) setAvatar(file);
-      });
+  $('btnSaveAccount')?.addEventListener('click', saveAccount);
+  $('btnChangePass')?.addEventListener('click', changePassword);
+  $('btnAddAddress')?.addEventListener('click', addAddress);
+  $('btnClearCart')?.addEventListener('click', clearCart);
 
-      $('btnSaveAccount')?.addEventListener('click', saveAccount);
-      $('btnChangePass')?.addEventListener('click', changePassword);
-      $('btnAddAddress')?.addEventListener('click', addAddress);
-      $('btnClearCart')?.addEventListener('click', clearCart);
+  $('btnApplyBenefits')?.addEventListener('click', applySelectedBenefits);
+  $('btnLogout')?.addEventListener('click', logout);
 
-      $('btnApplyBenefits')?.addEventListener('click', applySelectedBenefits);
-      $('btnLogout')?.addEventListener('click', logout);
-
-      $('btnSpin')?.addEventListener('click', spin);
+  $('btnSpin')?.addEventListener('click', spin);
 });
 
     // ======= Campo reativo dourado =======
