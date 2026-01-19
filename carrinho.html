@@ -747,8 +747,7 @@
         const userCart = readCartByKey(userKey);
         const guestCart = readCartByKey(CART_GUEST_KEY);
         if (!userCart.length && guestCart.length){
-          try{ localStorage.setItem(`vw_cart_migrated_from_guest_${uid}`, '1'); }catch(_){ }
-
+          try{ localStorage.setItem(userKey, JSON.stringify(guestCart)); }catch(_){ }
         }
         return userKey;
       }
@@ -928,13 +927,13 @@
               }
             }
 
-          // Server is ALWAYS the source of truth
+           // Server is ALWAYS the source of truth
 state.cart = serverCart;
 saveLocalCart({ skipSync:true });
 renderCart();
 return;
 
-
+          }
 
           // 3) Both empty.
           state.cart = [];
