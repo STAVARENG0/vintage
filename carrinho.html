@@ -864,17 +864,17 @@
         state.cart = serverCart.map(normalizeCartItem);
         saveLocalCart();
         renderCart();
-      } else if (localCart.length){
-        // se já tem itens locais (ex: você acabou de adicionar na loja),
-        // mantém o LOCAL como verdade e envia pro servidor
-        state.cart = localCart.map(normalizeCartItem);
-        saveLocalCart();
-        await window.VW_API.apiJson('/cart', {
-          method: 'POST',
-          body: { cart: state.cart },
-        });
-        renderCart();
-      }
+    } else if (localCart.length && !serverCart.length){
+  // só envia pro servidor se o servidor estiver vazio
+  state.cart = localCart.map(normalizeCartItem);
+  saveLocalCart();
+  await window.VW_API.apiJson('/cart', {
+    method: 'POST',
+    body: { cart: state.cart },
+  });
+  renderCart();
+}
+
       // se os dois estiverem vazios, não faz nada
     } finally {
       suppressCartSync = false;
@@ -1820,7 +1820,10 @@ function statusToStepIndex(status){
     // ====== Eventos ======
     document.addEventListener('DOMContentLoaded', () => {
   loadDemo();
+ setTimeout(() => {
   window.VW_CART_SYNC.syncOnLogin();
+}, 300);
+
 
   $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
   $('avatarFileInput')?.addEventListener('change', (e) => {
