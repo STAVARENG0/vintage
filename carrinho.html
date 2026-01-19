@@ -1597,12 +1597,21 @@ function statusToStepIndex(status){
       renderAddresses();
     };
 
-   window.removeCartItem = function(id){
+   window.removeCartItem = async function(id){
   state.cart = (state.cart || []).filter(it => String(it.id) !== String(id));
-  saveLocalCart();       // salva local
-  scheduleCartSync();    // manda o carrinho atualizado pro servidor
-  renderCart();          // redesenha a tela
+  saveLocalCart();
+
+  // 🔥 força salvar no backend na hora
+  if (window.VW_API && window.VW_API.apiJson) {
+    await window.VW_API.apiJson('/cart', {
+      method: 'POST',
+      body: { cart: state.cart }
+    });
+  }
+
+  renderCart();
 };
+
 
 
     function clearCart(){
