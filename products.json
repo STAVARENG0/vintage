@@ -22,5 +22,17 @@
     "gallery": [],
     "createdAt": 1768861096336,
     "status": "published"
+  },
+  {
+    "id": "1768861157178",
+    "title": "ARROZ E FEIJAO",
+    "price": 23,
+    "description": "ABC",
+    "category": "Shirts & Tees",
+    "stock": 3,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768861157178/1768861160214_0_Gemini_Generated_Image_qhq7nyqhq7nyqhq7.png",
+    "gallery": [],
+    "createdAt": 1768861161722,
+    "status": "published"
   }
 ]
