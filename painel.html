@@ -622,19 +622,21 @@
   <script>
     // ====== Estado (demo) ======
     const state = {
-      me: null,
-      spentMonth: 0,
-      spentTotal: 0,
-      points: 0,
-      spinsPerDay: 1,
-      spinsLeftToday: 1,
-      lastIrelandDate: null,
-      cart: [],
-      orders: [],
-      cashbackHistory: [],
-      addresses: [],
-      avatarFile: null,
-    };
+  me: null,
+  spentMonth: 0,
+  spentTotal: 0,
+  points: 0,
+  spinsPerDay: 1,
+  spinsLeftToday: 1,
+  extraSpins: 0,      // <-- adiciona esta linha
+  lastIrelandDate: null,
+  cart: [],
+  orders: [],
+  cashbackHistory: [],
+  addresses: [],
+  avatarFile: null,
+};
+
 
     const fmtEUR = (n) => {
       const v = Number(n);
