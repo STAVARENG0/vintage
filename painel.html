@@ -1559,6 +1559,10 @@ async function spin(){
       scheduleResetTimers();
 
       setupWheel();
+setInterval(() => {
+  loadPersisted();
+  renderAll();
+}, 1000);
 
       $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
       $('avatarFileInput')?.addEventListener('change', (e) => {
