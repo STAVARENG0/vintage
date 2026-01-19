@@ -1,17 +1,5 @@
 [
   {
-    "id": "1768700617708",
-    "title": "LASANHA VEGANA",
-    "price": 1,
-    "description": "LASANHA DE GAY",
-    "category": "Activewear",
-    "stock": 2,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768700617708/1768700637813_0_Gemini_Generated_Image_hvhv6hhvhv6hhvhv.png",
-    "gallery": [],
-    "createdAt": 1768700639087,
-    "status": "published"
-  },
-  {
     "id": "1768853880394",
     "title": "BATATA FRITA",
     "price": 25,
