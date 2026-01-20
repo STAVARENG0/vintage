@@ -347,7 +347,52 @@ function commonConfig(){
 
       const shippingPref = (fulfilment === 'pickup') ? 'NO_SHIPPING' : 'GET_FROM_FILE';
 
-      // 🔥 reference_id = ID DO PRODUTO (PayPal SEMPRE DEVOLVE)
+      // Read vw_checkout_payload from localStorage and send user_id as reference_id
+      let payload = null;
+      try{
+        payload = JSON.parse(localStorage.getItem(CHECKOUT_PAYLOAD_KEY) || 'null');
+      }catch(e){
+        payload = null;
+      }
+      const userRefId = (payload && payload.user_id != null && String(payload.user_id).trim() !== '')
+        ? String(payload.user_id)
+        : String(cart[0].id);
+
+      // Build PayPal items[] (send product id separately)
+      const toCents = (v) => Math.round(Number(v || 0) * 100);
+      const items = cart.map(i => {
+        const qty = parseInt(i.qty, 10) || 1;
+        const priceCents = toCents(i.price);
+        return {
+          custom_id: String(i.id),
+          name: String(i.title || 'Product'),
+          unit_amount: { currency_code: 'EUR', value: (priceCents / 100).toFixed(2) },
+          quantity: String(qty)
+        };
+      });
+
+      // Amount breakdown required when passing items.unit_amount + quantity
+      const itemsTotalCents = items.reduce((sum, it) => {
+        return sum + (toCents(it.unit_amount.value) * (parseInt(it.quantity, 10) || 0));
+      }, 0);
+      const shippingCents = toCents(shipping);
+      const totalCents = toCents(total.toFixed(2));
+
+      // Discount is used to keep the total EXACTLY the same as current logic
+      const discountCents = Math.max(0, (itemsTotalCents + shippingCents) - totalCents);
+
+      const amount = {
+        currency_code: 'EUR',
+        value: (totalCents / 100).toFixed(2),
+        breakdown: {
+          item_total: { currency_code: 'EUR', value: (itemsTotalCents / 100).toFixed(2) },
+          shipping: { currency_code: 'EUR', value: (shippingCents / 100).toFixed(2) }
+        }
+      };
+      if(discountCents > 0){
+        amount.breakdown.discount = { currency_code: 'EUR', value: (discountCents / 100).toFixed(2) };
+      }
+
       return actions.order.create({
         intent: 'CAPTURE',
         application_context: {
@@ -355,6 +400,14 @@ function commonConfig(){
           user_action: 'PAY_NOW',
           locale: 'en-IE'
         },
+        purchase_units: [{
+          reference_id: userRefId,
+          description: cart[0].title,
+          amount: amount,
+          items: items
+        }]
+      });
+    },
         purchase_units: [{
           reference_id: String(cart[0].id),
           description: cart[0].title,
