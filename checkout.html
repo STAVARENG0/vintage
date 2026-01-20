@@ -357,9 +357,12 @@ function commonConfig(){
       }
 
       // 2) Use payload.user_id as reference_id
-      const userRefId = (payload && payload.user_id != null && String(payload.user_id).trim() !== '')
-        ? String(payload.user_id)
-        : String(cart[0].id);
+      if (!payload || !payload.user_id) {
+  throw new Error('User not identified');
+}
+
+const userRefId = String(payload.user_id);
+
 
       // 3) Build items[] with custom_id = product id
       const toCents = (v) => Math.round(Number(v || 0) * 100);
