@@ -628,7 +628,7 @@
   spentTotal: 0,
   points: 0,
   spinsPerDay: 1,
-  spinsLeftToday: 0,
+  spinsLeftToday: 1,
   extraSpins: 0,      // <-- adiciona esta linha
   lastIrelandDate: null,
   cart: [],
@@ -1530,7 +1530,7 @@ async function spin(){
       state.spentMonth = 0;
       state.points = 0;
 
-      state.spinsLeftToday = 0;
+      state.spinsLeftToday = 1;
 
       state.cart = [];
       state.orders = [];
@@ -1770,21 +1770,83 @@ async function spin(){
       const data = await apiJson('/rewards/status', { method:'GET' });
 
       // Bonus spins
-      state.extraSpins = Number(data?.extraSpins ?? data?.extra_spins ?? data?.bonusSpins ?? 0) || 0;
+      state.extraSpins = Number(
+        data?.extraSpins ?? data?.extra_spins ?? data?.bonusSpins ?? data?.bonus_spins ?? data?.extra_spin ?? 0
+      ) || 0;
 
-      // Daily spin availability (preferred: explicit spinsLeftToday; fallback: can_spin/canSpin/spinAvailable)
-      if (typeof data?.spinsLeftToday === 'number') {
-        state.spinsLeftToday = Math.max(0, Number(data.spinsLeftToday) || 0);
+      // Remaining time until next daily spin (optional fields)
+      const remainingMs = Number(
+        data?.remainingMs ?? data?.remaining_ms ??
+        data?.nextSpinMs ?? data?.next_spin_ms ??
+        data?.cooldownMs ?? data?.cooldown_ms ??
+        data?.nextDailySpinMs ?? data?.next_daily_spin_ms ??
+        0
+      ) || 0;
+
+      // Daily spins left (preferred: explicit numeric fields)
+      const numericDaily =
+        (typeof data?.spinsLeftToday === 'number' ? data.spinsLeftToday : undefined) ??
+        (typeof data?.spins_left_today === 'number' ? data.spins_left_today : undefined) ??
+        (typeof data?.spinsLeft === 'number' ? data.spinsLeft : undefined) ??
+        (typeof data?.spins_left === 'number' ? data.spins_left : undefined) ??
+        (typeof data?.dailySpinsLeft === 'number' ? data.dailySpinsLeft : undefined) ??
+        (typeof data?.daily_spins_left === 'number' ? data.daily_spins_left : undefined);
+
+      if (typeof numericDaily === 'number'){
+        state.spinsLeftToday = Math.max(0, Number(numericDaily) || 0);
       } else {
-        const raw = (data?.canSpin ?? data?.can_spin ?? data?.spinAvailable ?? data?.spin_available ?? data?.spinsAvailable ?? data?.spins_available);
+        // Boolean-ish fields
+        const raw =
+          data?.canSpin ?? data?.can_spin ??
+          data?.canSpinToday ?? data?.can_spin_today ??
+          data?.spinAvailable ?? data?.spin_available ??
+          data?.spinsAvailable ?? data?.spins_available ??
+          data?.dailySpinAvailable ?? data?.daily_spin_available ??
+          data?.dailySpin ?? data?.daily_spin;
+
         const can = (raw === true || raw === 1 || raw === '1' || raw === 'true');
-        state.spinsLeftToday = can ? 1 : 0;
+
+        // If server exposes remainingMs > 0 => not available
+        if (remainingMs > 0){
+          state.spinsLeftToday = 0;
+        } else if (raw !== undefined){
+          state.spinsLeftToday = can ? 1 : 0;
+        } else {
+          // Fallback: assume 1 (new accounts / legacy backends)
+          state.spinsLeftToday = 1;
+        }
       }
+
+      // Store remainingMs for countdown + auto-refresh (uses performance.now to ignore clock changes)
+      try{
+        if (remainingMs > 0){
+          window.__spinRemain = {
+            startPerf: (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0,
+            remainingMs,
+          };
+        } else {
+          window.__spinRemain = null;
+        }
+      }catch(_){}
 
       // Update spins UI consistently
       const totalSpins = Math.max(0, Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
       const exEl = document.getElementById('extra-spins');
       if (exEl) exEl.innerText = `Spins disponíveis: ${totalSpins}`;
+
+      // Schedule a refresh right after cooldown ends (if provided)
+      try{
+        if (remainingMs > 0){
+          if (window.__spinRefreshTimer) clearTimeout(window.__spinRefreshTimer);
+          window.__spinRefreshTimer = setTimeout(() => {
+            try{
+              if (window.VW_API && typeof window.VW_API.loadRewardsStatus === 'function'){
+                window.VW_API.loadRewardsStatus();
+              }
+            }catch(_){}
+          }, remainingMs + 1500);
+        }
+      }catch(_){}
 
       const points = Number(data?.points ?? data?.user?.points ?? 0);
       if (typeof state !== 'undefined') state.points = points;
@@ -1949,19 +2011,81 @@ async function spin(){
 
   // Sobrescreve o texto de reset para não depender do relógio do computador
   window.updateResetHint = function(){
+    // Uses performance.now so changing system clock doesn't fake the cooldown.
+    function getRemainingMs(){
+      try{
+        if (!window.__spinRemain) return 0;
+        const start = Number(window.__spinRemain.startPerf || 0);
+        const base = Number(window.__spinRemain.remainingMs || 0);
+        const now = (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0;
+        return Math.max(0, Math.floor(base - (now - start)));
+      }catch(_){ return 0; }
+    }
+
+    const rem = getRemainingMs();
+    const totalSpins = Math.max(0,
+      Number((typeof state !== 'undefined' ? state.spinsLeftToday : 0) || 0) +
+      Number((typeof state !== 'undefined' ? state.extraSpins : 0) || 0)
+    );
+
+    let msg = 'Limit: 1 spin every 24 hours (server time).';
+    if (totalSpins > 0){
+      msg = `You have ${totalSpins} spin(s) available.`;
+    } else if (rem > 0){
+      msg = `Next spin in ${formatMsToHM(rem)} (server cooldown).`;
+    }
+
     if (typeof setText === 'function'){
-      setText('resetHint', 'Limit: 1 spin every 24 hours (server time).');
+      setText('resetHint', msg);
     } else {
       const el = document.getElementById('resetHint');
-      if (el) el.textContent = 'Limit: 1 spin every 24 hours (server time).';
+      if (el) el.textContent = msg;
     }
   };
 
-  // Não usa mais timers baseados no horário local, só aplica o texto estático
+  // Update the hint periodically and auto-refresh rewards right after cooldown ends (if known)
   window.scheduleResetTimers = function(){
-    if (typeof updateResetHint === 'function'){
-      updateResetHint();
-    }
+    try{
+      if (window.__spinHintInterval) clearInterval(window.__spinHintInterval);
+      if (window.__spinHintTimeout) clearTimeout(window.__spinHintTimeout);
+    }catch(_){}
+
+    try{ if (typeof updateResetHint === 'function') updateResetHint(); }catch(_){}
+
+    window.__spinHintInterval = setInterval(() => {
+      try{ if (typeof updateResetHint === 'function') updateResetHint(); }catch(_){}
+    }, 30*1000);
+
+    // Safety: poll status occasionally so the UI flips back to 1 even if backend doesn't expose remainingMs
+    try{
+      if (window.__spinStatusPoll) clearInterval(window.__spinStatusPoll);
+      window.__spinStatusPoll = setInterval(() => {
+        try{
+          if (window.VW_API && typeof window.VW_API.loadRewardsStatus === 'function'){
+            window.VW_API.loadRewardsStatus();
+          }
+        }catch(_){}
+      }, 10*60*1000); // every 10 minutes
+    }catch(_){}
+
+    // If we know remainingMs, refresh status when it ends
+    try{
+      if (window.__spinRemain){
+        const start = Number(window.__spinRemain.startPerf || 0);
+        const base = Number(window.__spinRemain.remainingMs || 0);
+        const now = (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0;
+        const rem = Math.max(0, Math.floor(base - (now - start)));
+        if (rem > 0){
+          window.__spinHintTimeout = setTimeout(() => {
+            try{
+              if (window.VW_API && typeof window.VW_API.loadRewardsStatus === 'function'){
+                window.VW_API.loadRewardsStatus();
+              }
+            }catch(_){}
+          }, rem + 1500);
+        }
+      }
+    }catch(_){}
   };
 
   // NOVA versão da função spin() – sempre valida no servidor
@@ -1999,6 +2123,13 @@ async function spin(){
           const msg = res && (res.message || res.error) || '';
 
           if (remainingMs > 0){
+            // store cooldown for countdown without relying on system clock
+            try{
+              window.__spinRemain = {
+                startPerf: (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0,
+                remainingMs: remainingMs,
+              };
+            }catch(_){}
             const txt = `You already used your spin. Try again in ${formatMsToHM(remainingMs)}.`;
             if (typeof setText === 'function') setText('spinResultMsg', txt);
           } else {
@@ -2008,6 +2139,7 @@ async function spin(){
           try{
             if (api && typeof api.loadRewardsStatus === 'function') await api.loadRewardsStatus();
           }catch(_){}
+          try{ if (typeof scheduleResetTimers === 'function') scheduleResetTimers(); }catch(_){}
           if (typeof renderAll === 'function') renderAll();
           return;
         }
@@ -2020,6 +2152,18 @@ async function spin(){
       }
 
       if (!allowed) return;
+
+      // Optimistic UI update: consuming one spin immediately (backend already validated/consumed)
+      try{
+        if (typeof state !== 'undefined'){
+          if (Number(state.spinsLeftToday||0) > 0){
+            state.spinsLeftToday = Math.max(0, Number(state.spinsLeftToday||0) - 1);
+          } else if (Number(state.extraSpins||0) > 0){
+            state.extraSpins = Math.max(0, Number(state.extraSpins||0) - 1);
+          }
+        }
+        if (typeof renderAll === 'function') renderAll();
+      }catch(_){}
 
       // A partir daqui é o mesmo fluxo antigo da roleta: anima, sorteia e aplica prêmio
       if (typeof setText === 'function') {
@@ -2099,6 +2243,7 @@ async function spin(){
         const rApi = window.VW_API;
         if (rApi && typeof rApi.loadRewardsStatus === 'function') await rApi.loadRewardsStatus();
       }catch(_){}
+      try{ if (typeof scheduleResetTimers === 'function') scheduleResetTimers(); }catch(_){}
       if (typeof renderAll === 'function') renderAll();
       if (typeof setText === 'function') setText('spinResultMsg', `🎁 ${winner.label}`);
     } finally {
