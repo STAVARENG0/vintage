@@ -512,20 +512,6 @@
     }
 
     .hidden{ display:none !important; }
-
-    /* File input (mobile-friendly: not display:none) */
-    .file-input-hidden{
-      position:absolute;
-      width:1px;
-      height:1px;
-      padding:0;
-      margin:-1px;
-      overflow:hidden;
-      clip: rect(0,0,0,0);
-      white-space:nowrap;
-      border:0;
-      opacity:0;
-    }
   </style>
 </head>
 
@@ -615,7 +601,7 @@
               </div>
 
               <div class="row" style="margin-top:10px;">
-                <button type="button" class="btn small" id="btnPickAvatar">📷 Adicionar foto</button>
+                <button class="btn small" id="btnPickAvatar">📷 Adicionar foto</button>
                 <span class="pill" id="avatarFileName"><strong>—</strong></span>
               </div>
 
@@ -694,7 +680,7 @@
     </div>
   </div>
 
-  <input id="avatarFileInput" type="file" accept="image/*" capture="environment" class="file-input-hidden" />
+  <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
   <script src="auth-guard.js"></script>
   <script>
     const API_ROOT = "https://clientes-0r5d.onrender.com";
@@ -952,78 +938,64 @@
       }
     }
 
-async function normalizeImageForUpload(file){
-  try{
-    if (!file || !file.type || !file.type.startsWith('image/')) return file;
+    // Em alguns celulares (especialmente iPhone), fotos da galeria podem vir MUITO grandes,
+    // ou com mimetype vazio/HEIC, e isso costuma estourar limites do backend/Cloudinary.
+    // Aqui a gente tenta reduzir e converter pra JPEG antes de enviar.
+    async function prepareAvatarForUpload(file){
+      const MAX_BYTES = 2.5 * 1024 * 1024; // ~2.5MB
+      const MAX_DIM = 1600;
+      const QUALITY = 0.82;
 
-    // Mobile photos can be huge or HEIC; convert + compress to JPEG to improve compatibility.
-    const maxSide = 1400;          // px
-    const maxBytes = 2.5 * 1024 * 1024; // 2.5 MB
+      if (!file) return { blob: null, name: 'avatar.jpg' };
 
-    const okType = /image\/(jpeg|png|webp)/i.test(file.type || '');
-    if (okType && file.size <= maxBytes) return file;
+      const type = (file.type || '').toLowerCase();
+      const looksImage = type.startsWith('image/') || type === '';
+      const isHeic = type === 'image/heic' || type === 'image/heif';
 
-    let canvas = document.createElement('canvas');
-    let ctx = canvas.getContext('2d');
+      // Se ja esta pequeno e com tipo "normal", manda como veio.
+      if (looksImage && !isHeic && file.size <= MAX_BYTES && type) {
+        return { blob: file, name: file.name || 'avatar.jpg' };
+      }
 
-    // Try the fastest decode path first
-    let bitmap = null;
-    try{
-      if (window.createImageBitmap) bitmap = await createImageBitmap(file);
-    }catch(_){ bitmap = null; }
+      // Tenta desenhar num canvas e exportar JPEG (tambem resolve tipo vazio em iOS).
+      try {
+        const objectUrl = URL.createObjectURL(file);
+        const img = await new Promise((resolve, reject) => {
+          const im = new Image();
+          im.decoding = 'async';
+          im.onload = () => { try { URL.revokeObjectURL(objectUrl); } catch(_){}; resolve(im); };
+          im.onerror = (e) => { try { URL.revokeObjectURL(objectUrl); } catch(_){}; reject(e); };
+          im.src = objectUrl;
+        });
 
-    let w = 0, h = 0;
-    if (bitmap){
-      w = bitmap.width; h = bitmap.height;
-      const scale = Math.min(1, maxSide / Math.max(w, h));
-      canvas.width = Math.max(1, Math.round(w * scale));
-      canvas.height = Math.max(1, Math.round(h * scale));
-      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    } else {
-      // Fallback decode
-      const dataUrl = await new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(r.result);
-        r.onerror = () => reject(r.error);
-        r.readAsDataURL(file);
-      });
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        if (!w || !h) throw new Error('invalid image');
+        const scale = Math.min(1, MAX_DIM / Math.max(w, h));
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
 
-      const img = await new Promise((resolve, reject) => {
-        const i = new Image();
-        i.onload = () => resolve(i);
-        i.onerror = reject;
-        i.src = dataUrl;
-      });
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        ctx.drawImage(img, 0, 0, w, h);
 
-      w = img.naturalWidth || img.width;
-      h = img.naturalHeight || img.height;
-      const scale = Math.min(1, maxSide / Math.max(w, h));
-      canvas.width = Math.max(1, Math.round(w * scale));
-      canvas.height = Math.max(1, Math.round(h * scale));
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', QUALITY));
+        if (!blob) throw new Error('jpeg conversion failed');
+
+        const base = (file.name || 'avatar').replace(/\.[a-z0-9]+$/i, '');
+        return { blob, name: base + '.jpg' };
+      } catch (e) {
+        // Se falhar a conversao, envia o arquivo original mesmo.
+        return { blob: file, name: file.name || 'avatar.jpg' };
+      }
     }
-
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.86));
-    if (!blob) return file;
-
-    const baseName = (file.name || 'avatar').replace(/\.[^.]+$/, '');
-    return new File([blob], baseName + '.jpg', { type: 'image/jpeg' });
-  } catch (_err){
-    return file;
-  }
-}
 
     async function uploadAvatar(file) {
       const msgEl = document.getElementById("accountMsg");
       const avatarImg = document.getElementById("avatar");
       if (!file) return;
-
-      // show file name
-      const fnEl = document.getElementById("avatarFileName");
-      if (fnEl) fnEl.innerHTML = "<strong>" + (file.name || "photo") + "</strong>";
-
-      // normalize/compress for mobile compatibility
-      const uploadFile = await normalizeImageForUpload(file);
 
       // preview imediato enquanto faz upload
       try {
@@ -1033,8 +1005,12 @@ async function normalizeImageForUpload(file){
 
       if (msgEl) msgEl.textContent = "Uploading photo…";
 
+      const prepared = await prepareAvatarForUpload(file);
+      if (!prepared || !prepared.blob) return;
+
       const fd = new FormData();
-      fd.append("avatar", uploadFile, uploadFile.name || "avatar.jpg");
+      // Importante: usar o 3º parametro (filename) ajuda no iOS quando o tipo vem vazio.
+      fd.append("avatar", prepared.blob, prepared.name || 'avatar.jpg');
 
       try {
         const res = await fetch(API_ROOT + "/user/me/avatar", {
@@ -1048,14 +1024,17 @@ async function normalizeImageForUpload(file){
           return;
         }
 
+        const raw = await res.text();
+        let data = null;
+        try { data = raw ? JSON.parse(raw) : null; } catch (_) { data = raw; }
+
         if (!res.ok) {
-          throw new Error("Erro ao fazer upload");
+          const errMsg = (data && (data.error || data.message)) || (typeof data === 'string' ? data : '') || `HTTP ${res.status}`;
+          throw new Error(errMsg);
         }
 
-        let data = null;
-        try { data = await res.json(); } catch (_) {}
-
-        if (data && (data.avatar_url || data.avatar)) {
+        // Resposta esperada: { avatar_url: "..." } ou { avatar: "..." }
+        if (data && typeof data === 'object' && (data.avatar_url || data.avatar)) {
           let finalUrl = String(data.avatar_url || data.avatar);
           if (!/^https?:\/\//i.test(finalUrl)) {
             let path = finalUrl;
@@ -1073,7 +1052,7 @@ async function normalizeImageForUpload(file){
         if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
       } catch (err) {
         console.error(err);
-        if (msgEl) msgEl.textContent = "❌ Error uploading photo.";
+        if (msgEl) msgEl.textContent = err?.message ? ("❌ " + err.message) : "❌ Error uploading photo.";
       }
     }
 
@@ -1125,27 +1104,14 @@ async function normalizeImageForUpload(file){
 
     function attachEvents() {
       const pick = document.getElementById("btnPickAvatar");
-const openPicker = (ev) => {
-  try { ev && ev.preventDefault && ev.preventDefault(); } catch (_) {}
-  const input = document.getElementById("avatarFileInput");
-  if (input) {
-    // reset so selecting the same photo again still triggers "change"
-    input.value = "";
-    input.click();
-  }
-};
-if (pick) {
-  pick.addEventListener("click", openPicker);
-  // iOS Safari sometimes behaves better with touchend
-  pick.addEventListener("touchend", openPicker, { passive: false });
-}
-
+      if (pick) pick.addEventListener("click", () => {
+        const input = document.getElementById("avatarFileInput");
+        if (input) input.click();
+      });
 
       const input = document.getElementById("avatarFileInput");
       if (input) input.addEventListener("change", (e) => {
         const file = e.target.files && e.target.files[0];
-        const fnEl = document.getElementById("avatarFileName");
-        if (fnEl) fnEl.innerHTML = "<strong>" + (file?.name || "—") + "</strong>";
         if (file) uploadAvatar(file);
       });
 
