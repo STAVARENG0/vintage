@@ -1577,7 +1577,7 @@ async function spin(){
 
       $('btnSpin')?.addEventListener('click', (e) => {
         e.preventDefault();
-        spin();
+        (window.spin || spin)();
       });
     });
 
@@ -1723,37 +1723,44 @@ async function spin(){
   }
 
 
-  function rewardsUserId(){
-    try{
-      const raw = localStorage.getItem("vw_user_cache");
-      if (!raw) return '';
-      const obj = JSON.parse(raw);
-      const id = obj && obj.id;
-      return (id === 0 || id) ? id : '';
-    }catch(_){
-      return '';
-    }
-  }
-
-
     async function apiJson(path, opts = {}){
     const p = String(path || '');
-    const isRewards = p.startsWith('/rewards/') || p.startsWith('/cart/') || p.startsWith('/checkout/');
+    const isRewards =
+      p.startsWith('/rewards') ||
+      p.startsWith('/cart') ||
+      p.startsWith('/checkout') ||
+      p.startsWith('/vw-rewards-backend'); // safeguard, no-op unless used
+
     const base = isRewards ? REWARDS_ROOT : API_ROOT;
     const url = base + path;
+
+    // x-user-id must come from vw_user_cache
+    let xUserId = '';
+    try{
+      const cache = JSON.parse(localStorage.getItem("vw_user_cache") || "null");
+      if (cache && (cache.id !== undefined && cache.id !== null)) xUserId = String(cache.id);
+    }catch(_){}
+
+    // Rewards backend: avoid sending Authorization headers (CORS-safe) and always include x-user-id
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+      ...(isRewards ? (xUserId ? {'x-user-id': xUserId} : {}) : authHeaders()),
+    };
+
     const init = {
       method: opts.method || 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
-        ...authHeaders(),
-        ...(isRewards ? { 'x-user-id': String(rewardsUserId()) } : {}),
-      },
+      headers,
     };
-    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+
+    if (opts.body !== undefined){
+      init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+    }
 
     const res = await fetch(url, init);
-    if (res.status === 401 || res.status === 403){
+
+    // Only redirect on auth failures from the account backend
+    if (!isRewards && (res.status === 401 || res.status === 403)){
       requireTokenOrRedirect();
       throw new Error('unauthorized');
     }
@@ -1917,6 +1924,9 @@ async function spin(){
 
   window.VW_API.applyDiscount = () =>
     apiJson('/rewards/apply-discount', { method:'POST', body:{} });
+
+  window.VW_API.applyShipping = () =>
+    apiJson('/rewards/apply-shipping', { method:'POST', body:{} });
 
   window.VW_API.grantDiscount = (percent) =>
     apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
@@ -2266,6 +2276,7 @@ async function spin(){
             if (r && typeof r.points === 'number') state.points = r.points;
           } else if (winner.type === 'discount'){
             const r = await rApi.grantDiscount(Number(winner.value||0));
+            try{ if (typeof rApi.applyDiscount === 'function') await rApi.applyDiscount(); }catch(_){ }
             const ad = r && (r.activeDiscount || r.active_discount);
             if (ad){
               state.activeDiscount = {
@@ -2276,6 +2287,7 @@ async function spin(){
             }
           } else if (winner.type === 'shipping'){
             const r = await rApi.grantShipping();
+            try{ if (typeof rApi.applyShipping === 'function') await rApi.applyShipping(); }catch(_){ }
             const sh = r && (r.activeShipping || r.active_shipping);
             if (sh){
               state.activeShipping = {
