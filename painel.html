@@ -697,15 +697,29 @@
     function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
     function setHTML(id, t){ const el=$(id); if(el) el.innerHTML = t; }
 
-    function getAvailableSpins(){
-      const base = Number(state.spinsLeftToday || 0);
-      const extra = Number(state.extraSpins || 0);
-      return Math.max(0, base + extra);
+    function totalSpins(){
+      return Math.max(0, Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
+    }
+
+    function renderSpins(){
+      const t = totalSpins();
+      setText('spinsNow', String(t));
+      setText('spinStatus', `${t} spin(s)`);
+      const ex = $('extra-spins');
+      if (ex) ex.textContent = `Spins disponíveis: ${t}`;
     }
 
     // ====== Irlanda (reset diário) + persistência (demo) ======
     const IRELAND_TZ = 'Europe/Dublin';
-    const STORAGE_KEY = 'vwi_painel_v3_en';
+    const BASE_STORAGE_KEY = 'vwi_painel_v3_en';
+    function storageKey(){
+      try{
+        const uid = localStorage.getItem('vw_user_id') || '';
+        return uid ? `${BASE_STORAGE_KEY}_${uid}` : BASE_STORAGE_KEY;
+      }catch(_){
+        return BASE_STORAGE_KEY;
+      }
+    }
 
     let resetTickInterval = null;
     let resetTimeout = null;
@@ -747,19 +761,19 @@
 
     function loadPersisted(){
       try{
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(storageKey());
         if (!raw) return;
         const data = JSON.parse(raw);
         if (typeof data.points === 'number') state.points = data.points;
         if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
-        if (typeof data.spinsLeftToday === 'number' && !window.VW_SERVER_SPIN_MODE) state.spinsLeftToday = data.spinsLeftToday;
+        if (typeof data.spinsLeftToday === 'number') state.spinsLeftToday = data.spinsLeftToday;
         if (typeof data.lastIrelandDate === 'string') state.lastIrelandDate = data.lastIrelandDate;
       } catch(_){ /* ignore */ }
     }
 
     function savePersisted(){
       try{
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        localStorage.setItem(storageKey(), JSON.stringify({
           points: state.points,
           cashbackHistory: state.cashbackHistory,
           spinsLeftToday: state.spinsLeftToday,
@@ -769,11 +783,11 @@
     }
 
     function ensureDailyReset(){
-      if (window.VW_SERVER_SPIN_MODE) return;
+      // Reset is enforced by the rewards backend (server time).
+      // We keep the date key only to avoid stale local UI data between days.
       const todayKey = getIrelandDateKey();
       if (state.lastIrelandDate !== todayKey){
         state.lastIrelandDate = todayKey;
-        state.spinsLeftToday = 0; // 1 spin per day
         savePersisted();
       }
     }
@@ -866,13 +880,8 @@
         // bronze only
         $('lvlBronze')?.classList.add('on');
       }
-
-      // spins (server-aware: base + extra)
-      const availableSpins = (typeof getAvailableSpins === 'function') ? getAvailableSpins() : (Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
-      setText('spinsNow', String(availableSpins));
-      setText('spinStatus', `${availableSpins} spin(s)`);
-      const extraEl = $('extra-spins');
-      if (extraEl) extraEl.textContent = `Spins disponíveis: ${availableSpins}`;
+      // spins (server controls daily limit + bonus spins)
+      renderSpins();
       updateResetHint();
     }
 
@@ -1544,7 +1553,6 @@ async function spin(){
       state.points = 0;
 
       state.spinsLeftToday = 0;
-
       state.cart = [];
       state.orders = [];
       state.cashbackHistory = [];
@@ -1566,17 +1574,10 @@ async function spin(){
       loadPersisted();
       ensureDailyReset();
       renderAll();
+      if (typeof renderSpins === 'function') renderSpins();
       scheduleResetTimers();
 
-      // Sync rewards/spins from backend (so mobile/desktop match server)
-      try{
-        if (window.VW_API && typeof window.VW_API.loadRewardsStatus === 'function'){
-          window.VW_API.loadRewardsStatus();
-        }
-      }catch(_){ }
-
       setupWheel();
-// (removed) polling localStorage each second caused spins UI flicker
 
       $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
       $('avatarFileInput')?.addEventListener('change', (e) => {
@@ -1784,43 +1785,24 @@ async function spin(){
     try{
       const data = await apiJson('/rewards/status', { method:'GET' });
 
-      // Server spin mode: never trust client-side midnight reset/localStorage for spins
-      window.VW_SERVER_SPIN_MODE = true;
+      // Bonus spins stored in backend
+      state.extraSpins = Number(data?.extraSpins ?? data?.extra_spins ?? 0) || 0;
 
-      // Extra spins from server (bonus spins)
-
-      if (typeof state !== 'undefined') state.extraSpins = Number(data.extraSpins || data.extra_spins || 0);
-
-      // Base spin availability from server, if provided
-      const canSpin = (typeof data.canSpin === 'boolean') ? data.canSpin
-        : (typeof data.can_spin === 'boolean') ? data.can_spin
-        : (typeof data.spinAvailable === 'boolean') ? data.spinAvailable
-        : (typeof data.spin_available === 'boolean') ? data.spin_available
-        : (typeof data.spinsLeftToday === 'number') ? (data.spinsLeftToday > 0)
-        : (typeof data.spins_left_today === 'number') ? (data.spins_left_today > 0)
+      // Daily spin availability from backend (preferred)
+      const canSpin = (typeof data?.canSpin === 'boolean') ? data.canSpin
+        : (typeof data?.can_spin === 'boolean') ? data.can_spin
+        : (typeof data?.spinAvailable === 'boolean') ? data.spinAvailable
+        : (typeof data?.spin_available === 'boolean') ? data.spin_available
         : null;
 
-      if (typeof state !== 'undefined'){
-        if (canSpin !== null){
-          state.spinsLeftToday = canSpin ? 1 : 0;
-        } else if (typeof data.spinsLeftToday === 'number'){
-          state.spinsLeftToday = Number(data.spinsLeftToday || 0);
-        } else if (typeof data.spins_left_today === 'number'){
-          state.spinsLeftToday = Number(data.spins_left_today || 0);
-        }
+      if (typeof data?.spinsLeftToday === 'number') {
+        state.spinsLeftToday = Number(data.spinsLeftToday) || 0;
+      } else if (canSpin !== null) {
+        state.spinsLeftToday = canSpin ? 1 : 0;
       }
 
-      const availableSpins = (typeof getAvailableSpins === 'function') ? getAvailableSpins()
-        : (Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
-
-      const extraEl = document.getElementById('extra-spins');
-      if (extraEl) extraEl.innerText = `Spins disponíveis: ${availableSpins}`;
-      if (typeof setText === 'function'){
-        setText('spinsNow', String(availableSpins));
-        setText('spinStatus', `${availableSpins} spin(s)`);
-      }
-
-      try{ if (typeof savePersisted === 'function') savePersisted(); }catch(_){ }
+      // Update spins UI
+      if (typeof renderSpins === 'function') renderSpins();
 
       const points = Number(data?.points ?? data?.user?.points ?? 0);
       if (typeof state !== 'undefined') state.points = points;
@@ -2040,19 +2022,7 @@ async function spin(){
           } else {
             if (typeof setText === 'function') setText('spinResultMsg', msg || 'Spin not available right now.');
           }
-
-          // Servidor bloqueou: força 0 spins na UI
-          if (typeof state !== 'undefined'){
-            state.spinsLeftToday = 0;
-          }
-          if (typeof setText === 'function'){
-            // will be updated again after status refresh
-            setText('spinsNow', '0');
-            setText('spinStatus', '0 spin(s)');
-          }
-
-          // Persist + refresh status so UI never bounces back to 1
-          try{ if (typeof savePersisted === 'function') savePersisted(); }catch(_){ }
+          // Servidor bloqueou: atualiza UI com o status real do backend
           try{ if (api && typeof api.loadRewardsStatus === 'function') await api.loadRewardsStatus(); }catch(_){ }
           if (typeof renderAll === 'function') renderAll();
           return;
@@ -2081,11 +2051,12 @@ async function spin(){
       const dateKey = (typeof getIrelandDateKey === 'function')
         ? getIrelandDateKey()
         : (new Date()).toISOString().slice(0,10);
-
       if (typeof state !== 'undefined'){
-        // NÃO é mais usado pra segurança, só pra UI
-        state.spinsLeftToday = 0;
+        // UI only: backend already debited the spin
+        if (state.extraSpins > 0) state.extraSpins = Math.max(0, Number(state.extraSpins) - 1);
+        else state.spinsLeftToday = 0;
       }
+      if (typeof renderSpins === 'function') renderSpins();
 
       // ===== Atualiza histórico/points em memória (como antes) =====
       if (typeof state !== 'undefined'){
@@ -2149,15 +2120,13 @@ async function spin(){
 
       if (typeof savePersisted === 'function') savePersisted();
       if (typeof renderAll === 'function') renderAll();
-
-      // Refresh status so extra spins (bonus) show immediately
-      try{ if (api && typeof api.loadRewardsStatus === 'function') await api.loadRewardsStatus(); }catch(_){ }
-
+      // Refresh spins/points from backend (authoritative), then show result
+      try{
+        const api2 = window.VW_API;
+        if (api2 && typeof api2.loadRewardsStatus === 'function') await api2.loadRewardsStatus();
+      }catch(_){ }
+      if (typeof renderAll === 'function') renderAll();
       if (typeof setText === 'function'){
-        const availableSpins = (typeof getAvailableSpins === 'function') ? getAvailableSpins()
-          : (Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
-        setText('spinsNow', String(availableSpins));
-        setText('spinStatus', `${availableSpins} spin(s)`);
         setText('spinResultMsg', `🎁 ${winner.label}`);
       }
     } finally {
