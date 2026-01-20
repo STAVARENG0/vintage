@@ -283,9 +283,16 @@
       .grid{ grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 640px){
-      .address-grid{ grid-template-columns: 1fr !important; }
+    /* Form grid (used inside cards) */
+    .form-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
+    @media (max-width: 640px){
+      .form-grid{ grid-template-columns: 1fr; }
+    }
+
 
     .card{
       border: 1px solid rgba(224,213,194,.9);
@@ -448,7 +455,6 @@
       display:grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      margin-top: 10px;
       align-items:center;
     }
     .step{
@@ -481,7 +487,6 @@
     }
     .stepper-line{
       height: 10px;
-      margin-top: 10px;
       background: rgba(0,0,0,.06);
       border: 1px solid rgba(0,0,0,.06);
       border-radius: 999px;
@@ -497,7 +502,6 @@
 
     /* Lista simples */
     .list{
-      margin-top: 10px;
       display:flex;
       flex-direction:column;
       gap: 10px;
@@ -526,6 +530,7 @@
         </div>
       </header>
 
+
       <div class="divider"></div>
 
       <div class="page">
@@ -533,6 +538,7 @@
         <div class="hero glass">
           <div class="hero-center">
             <h1 class="hero-title">Customer Dashboard</h1>
+
 
             <!-- Nav buttons -->
             <div class="nav" aria-label="Shortcuts">
@@ -567,6 +573,7 @@
               </div>
               <div class="muted" style="margin-top:8px; font-weight:700;" id="levelHint">Fill the bar to level up.</div>
             </div>
+
 
           </div>
         </div>
@@ -607,18 +614,17 @@
                 <button class="btn danger" id="btnLogout">Log out</button>
               </div>
               <div class="muted" style="margin-top:10px; font-weight:700;" id="accountMsg">—</div>
+
+
             </div>
 
-            
-          </div>
+            <div class="card">
+              <div class="row">
+                <strong>Address</strong>
+                <span class="pill">Ireland</span>
+              </div>
 
-          <div class="card" style="margin-top:12px;">
-            <div class="row">
-              <strong>Address</strong>
-              <span class="pill">Ireland</span>
-            </div>
-
-            <div class="grid address-grid" style="grid-template-columns: 1fr 1fr; gap:12px; margin-top:10px;">
+            <div class="form-grid" style="margin-top:10px;">
               <div class="field">
                 <label>Eircode</label>
                 <input id="addrEircode" placeholder="D02 X285" />
@@ -629,7 +635,7 @@
               </div>
             </div>
 
-            <div class="grid address-grid" style="grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="form-grid">
               <div class="field">
                 <label>City</label>
                 <input id="addrCity" placeholder="Dublin" />
@@ -647,6 +653,8 @@
 
             <div class="muted" style="margin-top:10px; font-weight:700;" id="addrMsg">—</div>
           </div>
+          </div>
+
         </section>
 
         <footer>© <span id="year"></span> Vintage Wear Ireland</footer>
@@ -658,10 +666,24 @@
   <script src="auth-guard.js"></script>
   <script>
     const API_ROOT = "https://clientes-0r5d.onrender.com";
-    const TOKEN_KEY = "vw_token";
+    const TOKEN_KEYS = ["vw_token", "token", "jwt", "access_token", "auth_token"];
 
     function getToken() {
-      try { return localStorage.getItem(TOKEN_KEY); } catch (_) { return null; }
+      try {
+        for (const k of TOKEN_KEYS) {
+          const t = localStorage.getItem(k);
+          if (t) {
+            // normalize to vw_token so the rest of the site stays consistent
+            if (k !== 'vw_token') {
+              try { localStorage.setItem('vw_token', t); } catch (_) {}
+            }
+            return t;
+          }
+        }
+        return null;
+      } catch (_) {
+        return null;
+      }
     }
 
     function requireTokenOrRedirect() {
@@ -734,6 +756,7 @@
     window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
     window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
 
+
     function defaultAvatarDataUri() {
       const svg = encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
@@ -756,38 +779,80 @@
 
     function $(id) { return document.getElementById(id); }
 
+
+    const USER_CACHE_KEY = 'vw_user_cache';
+    const ADDR_CACHE_KEY = 'vw_address_cache';
+
+    function readCache(key){
+      try{
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+      }catch(_){ return null; }
+    }
+
+    function writeCache(key, value){
+      try{ localStorage.setItem(key, JSON.stringify(value || {})); }catch(_){ }
+    }
+
+    function normalizeUser(raw){
+      if (!raw) return {};
+      return raw.user || raw.data || raw.profile || raw.account || raw;
+    }
+
+    function pickName(u){
+      return u.name || u.fullName || u.fullname || u.username || u.userName || '';
+    }
+
+    function pickEmail(u){
+      return u.email || u.mail || u.userEmail || '';
+    }
+
+    function pickPhone(u){
+      return u.phone || u.telefone || u.mobile || u.cellphone || '';
+    }
+
+    function pickAvatar(u){
+      return u.avatar_url || u.avatarUrl || u.avatar || u.photo_url || u.photo || '';
+    }
+
    function fillProfileUI() {
-  const u = currentUser || {};
+  const u = normalizeUser(currentUser) || {};
+  const name = pickName(u) || 'Your Name';
+  const email = pickEmail(u) || 'email@example.com';
+  const phone = pickPhone(u) || '';
+  const avatarUrl = pickAvatar(u) || '';
 
-  if (document.getElementById("userName"))
-    document.getElementById("userName").textContent = u.name || "Your Name";
+  if (document.getElementById('userName'))
+    document.getElementById('userName').textContent = name;
 
-  if (document.getElementById("userEmail"))
-    document.getElementById("userEmail").textContent = u.email || "email@example.com";
+  if (document.getElementById('userEmail'))
+    document.getElementById('userEmail').textContent = email;
 
-  if (document.getElementById("accName"))
-    document.getElementById("accName").value = u.name || "";
+  if (document.getElementById('accName'))
+    document.getElementById('accName').value = name === 'Your Name' ? '' : name;
 
-  if (document.getElementById("accEmail"))
-    document.getElementById("accEmail").value = u.email || "";
+  if (document.getElementById('accEmail'))
+    document.getElementById('accEmail').value = email === 'email@example.com' ? '' : email;
 
-  if (document.getElementById("accPhone"))
-    document.getElementById("accPhone").value = u.phone || "";
+  if (document.getElementById('accPhone'))
+    document.getElementById('accPhone').value = phone;
 
-  const avatar = document.getElementById("avatar");
-
+  const avatar = document.getElementById('avatar');
   if (avatar) {
-    if (u.avatar_url && u.avatar_url.length > 0) {
-      if (u.avatar_url.startsWith("http")) {
-        avatar.src = u.avatar_url;
+    if (avatarUrl && avatarUrl.length > 0) {
+      if (avatarUrl.startsWith('http')) {
+        avatar.src = avatarUrl;
       } else {
-        avatar.src = API_ROOT + u.avatar_url;
+        avatar.src = API_ROOT + avatarUrl;
       }
     } else {
       avatar.src = defaultAvatarDataUri();
     }
   }
 }
+
+
+
 
   
     function fillAddressUI() {
@@ -804,14 +869,19 @@
           headers: authHeaders()
         });
         if (!res.ok) {
-          console.warn("Falha ao carregar /user/me:", res.status);
+          console.warn('Falha ao carregar /user/me:', res.status);
+          const cached = readCache(USER_CACHE_KEY);
+          if (cached) { currentUser = cached; fillProfileUI(); }
           return;
         }
         const data = await res.json();
         currentUser = data || {};
+        writeCache(USER_CACHE_KEY, currentUser);
         fillProfileUI();
       } catch (err) {
-        console.error("Erro carregando /user/me", err);
+        console.error('Erro carregando /user/me', err);
+        const cached = readCache(USER_CACHE_KEY);
+        if (cached) { currentUser = cached; fillProfileUI(); }
       }
     }
 
@@ -821,7 +891,9 @@
           headers: authHeaders()
         });
         if (!res.ok) {
-          console.warn("Falha ao carregar /user/settings:", res.status);
+          console.warn('Falha ao carregar /user/settings:', res.status);
+          const cached = readCache(ADDR_CACHE_KEY);
+          if (cached) { currentAddress = cached; fillAddressUI(); }
           return;
         }
         const data = await res.json();
@@ -833,9 +905,12 @@
           street: addr.street || "",
           country: addr.country || "Ireland"
         };
+        writeCache(ADDR_CACHE_KEY, currentAddress);
         fillAddressUI();
       } catch (err) {
-        console.error("Erro carregando /user/settings", err);
+        console.error('Erro carregando /user/settings', err);
+        const cached = readCache(ADDR_CACHE_KEY);
+        if (cached) { currentAddress = cached; fillAddressUI(); }
       }
     }
 
@@ -862,7 +937,13 @@
           throw new Error("Erro ao salvar");
         }
 
-        currentUser = Object.assign({}, currentUser || {}, { name, email, phone });
+        currentUser = currentUser || {};
+        if (currentUser.user && typeof currentUser.user === 'object') {
+          currentUser.user = Object.assign({}, currentUser.user, { name, email, phone });
+        } else {
+          currentUser = Object.assign({}, currentUser, { name, email, phone });
+        }
+        writeCache(USER_CACHE_KEY, currentUser);
         fillProfileUI();
         if (msgEl) msgEl.textContent = "✅ Changes saved.";
       } catch (err) {
@@ -1015,7 +1096,12 @@
 
           if (avatarImg) avatarImg.src = finalUrl;
           currentUser = currentUser || {};
-          currentUser.avatar_url = finalUrl;
+          if (currentUser.user && typeof currentUser.user === 'object') {
+            currentUser.user.avatar_url = finalUrl;
+          } else {
+            currentUser.avatar_url = finalUrl;
+          }
+          writeCache(USER_CACHE_KEY, currentUser);
         }
 
         if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
@@ -1025,35 +1111,12 @@
       }
     }
 
-      if (!p1 || p1.length < 6) {
-        if (msgEl) msgEl.textContent = "Use at least 6 characters.";
-        return;
-      }
-      if (p1 !== p2) {
-        if (msgEl) msgEl.textContent = "Confirmation doesn't match.";
-        return;
-      }
-
-      if (msgEl) msgEl.textContent = "Saving new password…";
-
-      try {
-        await apiJson(PASSWORD_ENDPOINT, {
-          method: "POST",
-          body: {
-            currentPassword: current,
-            newPassword: p1
-          }
-        });
-        if (msgEl) msgEl.textContent = "✅ Password updated.";
-      } catch (err) {
-        console.error(err);
-        if (msgEl) msgEl.textContent = err?.message ? `❌ ${err.message}` : "❌ Error changing password.";
-      } finally {
-      }
-    }
-
     function logout() {
-      try { localStorage.removeItem(TOKEN_KEY); } catch (_) {}
+      try {
+        for (const k of TOKEN_KEYS) {
+          try { localStorage.removeItem(k); } catch (_) {}
+        }
+      } catch (_) {}
       window.location.href = "cliente-login-2.html";
     }
 
@@ -1091,7 +1154,12 @@
 
     async function initPage() {
       requireTokenOrRedirect();
-      if (document.getElementById("year")) document.getElementById("year").textContent = new Date().getFullYear();
+      // paint cached data immediately (helps on GitHub Pages / slow networks)
+      const cachedU = readCache(USER_CACHE_KEY);
+      if (cachedU) { currentUser = cachedU; fillProfileUI(); }
+      const cachedA = readCache(ADDR_CACHE_KEY);
+      if (cachedA) { currentAddress = cachedA; fillAddressUI(); }
+      if (document.getElementById('year')) document.getElementById('year').textContent = new Date().getFullYear();
       attachEvents();
       await loadProfile();
       await loadSettings();
