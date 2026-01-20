@@ -1783,6 +1783,17 @@ async function spin(){
         0
       ) || 0;
 
+      // Client-side cooldown (set right after a successful spin) using performance.now
+      const clientRemainingMs = (() => {
+        try{
+          if (!window.__spinRemain) return 0;
+          const start = Number(window.__spinRemain.startPerf || 0);
+          const base = Number(window.__spinRemain.remainingMs || 0);
+          const now = (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0;
+          return Math.max(0, Math.floor(base - (now - start)));
+        }catch(_){ return 0; }
+      })();
+
       // Daily spins left (preferred: explicit numeric fields)
       const numericDaily =
         (typeof data?.spinsLeftToday === 'number' ? data.spinsLeftToday : undefined) ??
@@ -1812,8 +1823,8 @@ async function spin(){
         } else if (raw !== undefined){
           state.spinsLeftToday = can ? 1 : 0;
         } else {
-          // Fallback: assume 1 (new accounts / legacy backends)
-          state.spinsLeftToday = 1;
+          // Fallback: if we have an active server cooldown, keep locked (0); otherwise assume 1
+          state.spinsLeftToday = clientRemainingMs > 0 ? 0 : 1;
         }
       }
 
@@ -2111,10 +2122,12 @@ async function spin(){
 
       let allowed = false;
       let remainingMs = 0;
+      let spinRes = null;
 
       // *** AQUI a checagem real: /rewards/spin no backend ***
       try{
-        const res = await api.apiJson('/rewards/spin', { method:'POST' });
+        spinRes = await api.apiJson('/rewards/spin', { method:'POST' });
+        const res = spinRes;
 
         if (res && res.ok !== false && res.canSpin !== false){
           allowed = true;
@@ -2156,12 +2169,39 @@ async function spin(){
       // Optimistic UI update: consuming one spin immediately (backend already validated/consumed)
       try{
         if (typeof state !== 'undefined'){
-          if (Number(state.spinsLeftToday||0) > 0){
+          const hadDaily = Number(state.spinsLeftToday||0) > 0;
+          const hadExtra = Number(state.extraSpins||0) > 0;
+
+          if (hadDaily){
             state.spinsLeftToday = Math.max(0, Number(state.spinsLeftToday||0) - 1);
-          } else if (Number(state.extraSpins||0) > 0){
+          } else if (hadExtra){
             state.extraSpins = Math.max(0, Number(state.extraSpins||0) - 1);
           }
+
+          // Keep the counter at 0 until backend cooldown finishes
+          const totalAfter = Math.max(0, Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
+          const cooldownAfterMs = Number(
+            spinRes?.remainingMsAfter ?? spinRes?.remaining_ms_after ??
+            spinRes?.cooldownMs ?? spinRes?.cooldown_ms ??
+            spinRes?.nextSpinMs ?? spinRes?.next_spin_ms ??
+            spinRes?.nextDailySpinMs ?? spinRes?.next_daily_spin_ms ??
+            spinRes?.remainingMs ?? spinRes?.remaining_ms ??
+            0
+          ) || 0;
+
+          // Only lock when there are no spins left (daily/extra)
+          if (totalAfter <= 0 && (hadDaily || cooldownAfterMs > 0)){
+            const ms = cooldownAfterMs > 0 ? cooldownAfterMs : 24*60*60*1000;
+            try{
+              window.__spinRemain = {
+                startPerf: (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0,
+                remainingMs: ms,
+              };
+            }catch(_){ }
+          }
         }
+
+        try{ if (typeof scheduleResetTimers === 'function') scheduleResetTimers(); }catch(_){ }
         if (typeof renderAll === 'function') renderAll();
       }catch(_){}
 
