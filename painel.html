@@ -1722,6 +1722,20 @@ async function spin(){
     return h;
   }
 
+  function getRewardsUserId(){
+    try{
+      const raw = localStorage.getItem("vw_user_cache");
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      const id = obj && obj.id;
+      if (id === undefined || id === null || id === '') return null;
+      return id;
+    }catch(_){
+      return null;
+    }
+  }
+
+
 
     async function apiJson(path, opts = {}){
     const p = String(path || '');
@@ -1734,6 +1748,10 @@ async function spin(){
         'Content-Type': 'application/json',
         ...(opts.headers || {}),
         ...authHeaders(),
+        ...(isRewards ? (function(){
+          const uid = getRewardsUserId();
+          return uid !== null ? { 'x-user-id': String(uid) } : {};
+        })() : {}),
       },
     };
     if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
@@ -1970,6 +1988,7 @@ async function spin(){
       }
     }catch(_){}
   }
+
   async function loadProfile(){
     requireTokenOrRedirect();
 
@@ -2166,11 +2185,11 @@ async function spin(){
 
       if (!allowed) return;
 
-      // Optimistic UI update: consuming one spin immediately (backend already validated/consumed)
+      // Consome 1 spin no estado local (para feedback imediato)
       try{
         if (typeof state !== 'undefined'){
-          const hadDaily = Number(state.spinsLeftToday||0) > 0;
-          const hadExtra = Number(state.extraSpins||0) > 0;
+          const hadDaily = Number(state.spinsLeftToday || 0) > 0;
+          const hadExtra = Number(state.extraSpins || 0) > 0;
 
           if (hadDaily){
             state.spinsLeftToday = Math.max(0, Number(state.spinsLeftToday||0) - 1);
