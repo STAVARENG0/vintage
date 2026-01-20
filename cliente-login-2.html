@@ -182,49 +182,7 @@
     .msg.ok{border-color: rgba(68,163,111,.35); background: rgba(68,163,111,.10)}
     .msg.bad{border-color: rgba(185,48,48,.35); background: rgba(185,48,48,.10)}
 
-    
-
-
-    .loading-indicator{
-      display:none;
-      text-align:center;
-      margin-top:10px;
-      font-size:.9rem;
-      color:var(--muted);
-    }
-
-    .loading-indicator .loading-text{
-      margin-right:4px;
-    }
-
-    .loading-dots span{
-      display:inline-block;
-      width:7px;
-      height:7px;
-      border-radius:50%;
-      margin:0 2px;
-      background:#2ecc71;
-      animation: loading-bounce .8s infinite alternate;
-    }
-
-    .loading-dots span:nth-child(2){
-      animation-delay:.15s;
-    }
-    .loading-dots span:nth-child(3){
-      animation-delay:.3s;
-    }
-
-    @keyframes loading-bounce{
-      0%{
-        transform:translateY(0);
-        opacity:.6;
-      }
-      100%{
-        transform:translateY(-4px);
-        opacity:1;
-      }
-    }
-/* Modal (Create account) */
+    /* Modal (Create account) */
     .modal{
       position:fixed; inset:0;
       background: rgba(0,0,0,.45);
@@ -360,13 +318,6 @@
         </div>
 
         <button class="btn" type="submit" id="loginBtn">LOG IN</button>
-
-        <div id="loadingPanel" class="loading-indicator" aria-live="polite">
-          <span class="loading-text">Loading panel</span>
-          <span class="loading-dots">
-            <span></span><span></span><span></span>
-          </span>
-        </div>
 
         <button class="btn google" type="button" id="googleLoginBtn" aria-label="Continue with Google">
           <span class="gBadge">G</span>
@@ -662,15 +613,8 @@ $("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   hideMsg($("loginMsg"));
 
-  const loginBtn = $("loginBtn");
-  const loadingPanel = $("loadingPanel");
-  if(loginBtn) loginBtn.disabled = true;
-  if(loadingPanel) loadingPanel.style.display = "block";
-
   const user = $("loginUser").value.trim();
   const password = $("loginPassword").value;
-
-  let loginOk = false;
 
   try{
     const isEmail = looksLikeEmail(user);
@@ -678,23 +622,6 @@ $("loginForm").addEventListener("submit", async (e) => {
 
     const data = await api(isEmail ? "/auth/login" : "/auth/login/phone", { method:"POST", body: payload });
     const token = pickToken(data);
-    if(!token) throw new Error("Login OK, mas não veio token do servidor.");
-    setAuthed(token);
-    loginOk = true;
-    showMsg($("loginMsg"), "✅ Logged in successfully!", "ok");
-    setTimeout(redirectAfterLogin, 600);
-  }catch(err){
-    showMsg($("loginMsg"), "❌ " + err.message, "bad");
-  }finally{
-    if(!loginOk){
-      if(loginBtn) loginBtn.disabled = false;
-      if(loadingPanel) loadingPanel.style.display = "none";
-    }
-  }
-});
-
-
-const token = pickToken(data);
     if(!token) throw new Error("Login OK, mas não veio token do servidor.");
     setAuthed(token);
     showMsg($("loginMsg"), "✅ Logged in successfully!", "ok");
