@@ -628,7 +628,7 @@
   spentTotal: 0,
   points: 0,
   spinsPerDay: 1,
-  spinsLeftToday: 1,
+  spinsLeftToday: 0,
   extraSpins: 0,      // <-- adiciona esta linha
   lastIrelandDate: null,
   cart: [],
@@ -746,8 +746,6 @@
         const data = JSON.parse(raw);
         if (typeof data.points === 'number') state.points = data.points;
         if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
-        if (typeof data.spinsLeftToday === 'number') state.spinsLeftToday = data.spinsLeftToday;
-        if (typeof data.lastIrelandDate === 'string') state.lastIrelandDate = data.lastIrelandDate;
       } catch(_){ /* ignore */ }
     }
 
@@ -756,8 +754,6 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           points: state.points,
           cashbackHistory: state.cashbackHistory,
-          spinsLeftToday: state.spinsLeftToday,
-          lastIrelandDate: state.lastIrelandDate,
         }));
       } catch(_){ /* ignore */ }
     }
@@ -766,8 +762,7 @@
       const todayKey = getIrelandDateKey();
       if (state.lastIrelandDate !== todayKey){
         state.lastIrelandDate = todayKey;
-        state.spinsLeftToday = 1; // 1 spin per day
-        savePersisted();
+        // Server controls spins availability; do not overwrite it here.
       }
     }
 
@@ -859,13 +854,12 @@
         // bronze only
         $('lvlBronze')?.classList.add('on');
       }
-
-      // spins (server controls daily limit + bonus spins)
-      const spinsTotal = Math.max(0, Number(state.spinsLeftToday || 0) + Number(state.extraSpins || 0));
-      setText('spinsNow', String(spinsTotal));
-      setText('spinStatus', `${spinsTotal} spin(s)`);
-      const ex = $('extra-spins');
-      if (ex) ex.textContent = `Spins disponíveis: ${spinsTotal}`;
+      // spins (server authoritative: daily + bonus)
+      const totalSpins = Math.max(0, Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
+      setText('spinsNow', String(totalSpins));
+      setText('spinStatus', `${totalSpins} spin(s)`);
+      const exEl = $('extra-spins');
+      if (exEl) exEl.textContent = `Spins disponíveis: ${totalSpins}`;
       updateResetHint();
     }
 
@@ -1536,7 +1530,7 @@ async function spin(){
       state.spentMonth = 0;
       state.points = 0;
 
-      state.spinsLeftToday = 1;
+      state.spinsLeftToday = 0;
 
       state.cart = [];
       state.orders = [];
@@ -1562,11 +1556,13 @@ async function spin(){
       scheduleResetTimers();
 
       setupWheel();
-setInterval(() => {
-  loadPersisted();
-  renderAll();
-}, 1000);
 
+      // Load authoritative rewards/spins from backend
+      try{
+        if (window.VW_API && typeof window.VW_API.loadRewardsStatus === 'function') {
+          window.VW_API.loadRewardsStatus();
+        }
+      }catch(_){ }
       $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
       $('avatarFileInput')?.addEventListener('change', (e) => {
         const file = e.target.files ? e.target.files[0] : null;
@@ -1773,42 +1769,23 @@ setInterval(() => {
     try{
       const data = await apiJson('/rewards/status', { method:'GET' });
 
-      // Helpers: tolerate boolean/number/string from backend
-      const toNum = (v) => {
-        const n = Number(v);
-        return Number.isFinite(n) ? n : null;
-      };
-      const toBool = (v) => {
-        if (typeof v === 'boolean') return v;
-        if (typeof v === 'number') return v > 0;
-        if (typeof v === 'string'){
-          const s = v.trim().toLowerCase();
-          if (['true','1','yes','y','on'].includes(s)) return true;
-          if (['false','0','no','n','off'].includes(s)) return false;
-        }
-        return null;
-      };
+      // Bonus spins
+      state.extraSpins = Number(data?.extraSpins ?? data?.extra_spins ?? data?.bonusSpins ?? 0) || 0;
 
-      // Bonus spins stored in backend
-      const rawExtra = (data?.extraSpins ?? data?.extra_spins ?? data?.bonusSpins ?? data?.bonus_spins ?? 0);
-      state.extraSpins = Math.max(0, Math.floor(toNum(rawExtra) ?? 0));
-
-      // Daily spin availability from backend
-      const rawLeft = (data?.spinsLeftToday ?? data?.spins_left_today ?? data?.dailySpinsLeft ?? data?.daily_spins_left ?? data?.spinsToday ?? data?.spins_today ?? null);
-      const leftNum = toNum(rawLeft);
-
-      const canSpin = toBool(
-        (data?.canSpin ?? data?.can_spin ?? data?.spinAvailable ?? data?.spin_available ?? data?.available ?? data?.allowed ?? null)
-      );
-
-      // Set daily spins (only daily, bonuses handled separately)
-      if (leftNum !== null){
-        state.spinsLeftToday = Math.max(0, Math.floor(leftNum));
-      } else if (canSpin !== null){
-        state.spinsLeftToday = canSpin ? 1 : 0;
+      // Daily spin availability (preferred: explicit spinsLeftToday; fallback: can_spin/canSpin/spinAvailable)
+      if (typeof data?.spinsLeftToday === 'number') {
+        state.spinsLeftToday = Math.max(0, Number(data.spinsLeftToday) || 0);
+      } else {
+        const raw = (data?.canSpin ?? data?.can_spin ?? data?.spinAvailable ?? data?.spin_available ?? data?.spinsAvailable ?? data?.spins_available);
+        const can = (raw === true || raw === 1 || raw === '1' || raw === 'true');
+        state.spinsLeftToday = can ? 1 : 0;
       }
 
-      // Points / discounts
+      // Update spins UI consistently
+      const totalSpins = Math.max(0, Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
+      const exEl = document.getElementById('extra-spins');
+      if (exEl) exEl.innerText = `Spins disponíveis: ${totalSpins}`;
+
       const points = Number(data?.points ?? data?.user?.points ?? 0);
       if (typeof state !== 'undefined') state.points = points;
 
@@ -2027,9 +2004,10 @@ setInterval(() => {
           } else {
             if (typeof setText === 'function') setText('spinResultMsg', msg || 'Spin not available right now.');
           }
-
-          // Servidor bloqueou: sincroniza a UI com o status real do backend
-          try{ if (api && typeof api.loadRewardsStatus === 'function') await api.loadRewardsStatus(); }catch(_){ }
+          // Servidor bloqueou: atualiza status no backend e mantém UI consistente
+          try{
+            if (api && typeof api.loadRewardsStatus === 'function') await api.loadRewardsStatus();
+          }catch(_){}
           if (typeof renderAll === 'function') renderAll();
           return;
         }
@@ -2057,12 +2035,6 @@ setInterval(() => {
       const dateKey = (typeof getIrelandDateKey === 'function')
         ? getIrelandDateKey()
         : (new Date()).toISOString().slice(0,10);
-
-      if (typeof state !== 'undefined'){
-        // UI only: backend already debited the spin (daily or bonus)
-        if (Number(state.extraSpins || 0) > 0) state.extraSpins = Math.max(0, Number(state.extraSpins) - 1);
-        else state.spinsLeftToday = 0;
-      }
 
       // ===== Atualiza histórico/points em memória (como antes) =====
       if (typeof state !== 'undefined'){
@@ -2122,17 +2094,13 @@ setInterval(() => {
       } catch(err){
         console.warn('Failed to sync prize with API:', err && err.message || err);
       }
-
-
-      if (typeof savePersisted === 'function') savePersisted();
-
-      // Refresh spins/points from backend (authoritative)
-      try{ if (api && typeof api.loadRewardsStatus === 'function') await api.loadRewardsStatus(); }catch(_){ }
+      // Refresh spins/points from backend (authoritative), then render
+      try{
+        const rApi = window.VW_API;
+        if (rApi && typeof rApi.loadRewardsStatus === 'function') await rApi.loadRewardsStatus();
+      }catch(_){}
       if (typeof renderAll === 'function') renderAll();
-
-      if (typeof setText === 'function'){
-        setText('spinResultMsg', `🎁 ${winner.label}`);
-      }
+      if (typeof setText === 'function') setText('spinResultMsg', `🎁 ${winner.label}`);
     } finally {
       if (typeof spinning !== 'undefined') spinning = false;
       if (btn) btn.disabled = false;
