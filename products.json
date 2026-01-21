@@ -82,5 +82,17 @@
     "gallery": [],
     "createdAt": 1768941837401,
     "status": "published"
+  },
+  {
+    "id": "1768983626346",
+    "title": "PROMOCAO 2",
+    "price": 1,
+    "description": "come tudo",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768983626346/1768983630123_0_Gemini_Generated_Image_wq8trzwq8trzwq8t.png",
+    "gallery": [],
+    "createdAt": 1768983633175,
+    "status": "published"
   }
 ]
