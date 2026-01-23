@@ -1109,17 +1109,14 @@ function escAttr(v){
       const base = (window.VW_API && window.VW_API.root) || "https://clientes-0r5d.onrender.com";
 
       try{
-        const headers = (window.VintageAuth && typeof window.VintageAuth.authHeaders==='function') ? window.VintageAuth.authHeaders() : {};
-
         const res = await fetch(base + "/user/me/avatar", {
           method: "POST",
-          headers,
+          credentials: "include",
           body: fd
         });
 
         if (res.status === 401 || res.status === 403){
-          setText('accountMsg', 'Please log in again.');
-          window.location.href = 'cliente-login-2.html';
+          setText('accountMsg', 'Session expired. Please sign in again.');
           return;
         }
 
@@ -1509,13 +1506,7 @@ async function spin(){
     function logout(){
   if (window.VintageAuth && typeof window.VintageAuth.logout === 'function'){
     window.VintageAuth.logout();
-    return;
   }
-  // Fallback
-  ['vw_token','token','authToken','auth_token','access_token'].forEach((k)=>{ try{ sessionStorage.removeItem(k); }catch(_){} });
-  try{ sessionStorage.removeItem('vw_token'); }catch(_){}
-  try{ document.cookie = 'vw_token=; Path=/; Max-Age=0; SameSite=Lax'; }catch(_){}
-  window.location.href = 'cliente-login-2.html?back=painel.html';
 }
 
 
@@ -1752,47 +1743,116 @@ async function spin(){
   </script>
 <script>
 (function(){
-    const API_ROOT = "https://clientes-0r5d.onrender.com"; // backend de login/conta
-    const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
-  function getToken(){
-      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
-    }
-}
+  const API_ROOT = "https://clientes-0r5d.onrender.com"; // backend (cookie auth)
+  const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // rewards backend (cookie auth)
 
-
-
-    async function apiJson(path, opts = {}){
-    const p = String(path || '');
-    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
-    const base = isRewards ? REWARDS_ROOT : API_ROOT;
-    const url = base + path;
+  // =========================
+  // AUTH (cookie + GET /me)
+  // =========================
+  async function authFetch(path, opts = {}){
+    const url = API_ROOT + path;
     const init = {
       method: opts.method || 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
-        ...authHeaders(),
-        },
+      credentials: 'include',
+      headers: { ...(opts.headers || {}) },
     };
-    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
-
-    const res = await fetch(url, init);
-    if (res.status === 401 || res.status === 403){
-      requireTokenOrRedirect();
-      throw new Error('unauthorized');
+    if (opts.body !== undefined){
+      if (!init.headers['Content-Type']) init.headers['Content-Type'] = 'application/json';
+      init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
     }
-
-    const text = await res.text();
+    const res = await fetch(url, init);
+    const raw = await res.text();
     let data = null;
-    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
+    try{ data = raw ? JSON.parse(raw) : null; }catch(_){ data = raw; }
 
     if (!res.ok){
-      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-      throw new Error(msg);
+      const err = new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.data = data;
+      throw err;
     }
     return data;
   }
 
+  async function loadMe(){
+    // Primary route: /me (new system)
+    try{
+      const me = await authFetch('/me');
+      applyMe(me);
+      return me;
+    }catch(err){
+      // Back-compat fallback (older route)
+      if (err && err.status === 404){
+        try{
+          const me = await authFetch('/user/me');
+          applyMe(me);
+          return me;
+        }catch(e2){
+          console.warn('Failed to load user profile.', e2);
+          return null;
+        }
+      }
+      // No redirect here; auth-guard.js owns navigation/guarding
+      console.warn('Failed to load user profile.', err);
+      return null;
+    }
+  }
+
+  function applyMe(me){
+    try{ if (typeof state !== 'undefined') state.me = me; }catch(_){}
+
+    try{
+      const id = me && (me.id ?? me.user_id ?? me.userId);
+      if (id !== undefined && id !== null) sessionStorage.setItem('vw_user_id', String(id));
+    }catch(_){}
+
+    try{
+      const nameEl = document.getElementById('userName');
+      const emailEl = document.getElementById('userEmail');
+      if (nameEl) nameEl.textContent = (me && me.name) ? me.name : 'Your Name';
+      if (emailEl) emailEl.textContent = (me && me.email) ? me.email : 'email@example.com';
+    }catch(_){}
+
+    try{ if (typeof applyAvatar === 'function') applyAvatar(me || {}); }catch(_){}
+    try{ if (typeof renderHero === 'function') renderHero(); }catch(_){}
+  }
+
+  // =========================
+  // REWARDS (no login decisions in front)
+  // =========================
+  async function rewardsFetch(path, opts = {}){
+    const url = REWARDS_ROOT + path;
+    const init = {
+      method: opts.method || 'GET',
+      credentials: 'include',
+      headers: { ...(opts.headers || {}) },
+    };
+    if (opts.body !== undefined){
+      if (!init.headers['Content-Type']) init.headers['Content-Type'] = 'application/json';
+      init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+    }
+    const res = await fetch(url, init);
+    const raw = await res.text();
+    let data = null;
+    try{ data = raw ? JSON.parse(raw) : null; }catch(_){ data = raw; }
+
+    if (!res.ok){
+      const err = new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
+  // Back-compat helper (existing code calls apiJson)
+  async function apiJson(path, opts = {}){
+    const p = String(path || '');
+    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
+    return isRewards ? rewardsFetch(p, opts) : authFetch(p, opts);
+  }
+
+  // Helpers used by the UI
   function syncPointsUI(points){
     const p = document.getElementById('pointsNow');
     if (p) p.textContent = String(points ?? 0);
@@ -1805,14 +1865,21 @@ async function spin(){
 
   async function loadRewardsStatus(){
     try{
-      const data = await apiJson('/rewards/status', { method:'GET' });
+      const data = await rewardsFetch('/rewards/status', { method:'GET' });
 
-      // Bonus spins
-      state.extraSpins = Number(
-        data?.extraSpins ?? data?.extra_spins ?? data?.bonusSpins ?? data?.bonus_spins ?? data?.extra_spin ?? 0
-      ) || 0;
+      // points
+      const points = Number(data?.points ?? data?.user?.points ?? 0);
+      try{ if (typeof state !== 'undefined') state.points = points; }catch(_){}
+      try{ syncPointsUI(points); }catch(_){}
 
-      // Remaining time until next daily spin (optional fields)
+      // bonus spins + cooldown (optional fields)
+      try{
+        const extra = Number(
+          data?.extraSpins ?? data?.extra_spins ?? data?.bonusSpins ?? data?.bonus_spins ?? data?.extra_spin ?? 0
+        ) || 0;
+        if (typeof state !== 'undefined') state.extraSpins = extra;
+      }catch(_){}
+
       const remainingMs = Number(
         data?.remainingMs ?? data?.remaining_ms ??
         data?.nextSpinMs ?? data?.next_spin_ms ??
@@ -1821,232 +1888,61 @@ async function spin(){
         0
       ) || 0;
 
-      // Client-side cooldown (set right after a successful spin) using performance.now
-      const clientRemainingMs = (() => {
+      if (remainingMs > 0){
         try{
-          if (!window.__spinRemain) return 0;
-          const start = Number(window.__spinRemain.startPerf || 0);
-          const base = Number(window.__spinRemain.remainingMs || 0);
-          const now = (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0;
-          return Math.max(0, Math.floor(base - (now - start)));
-        }catch(_){ return 0; }
-      })();
-
-      // Daily spins left (preferred: explicit numeric fields)
-      const numericDaily =
-        (typeof data?.spinsLeftToday === 'number' ? data.spinsLeftToday : undefined) ??
-        (typeof data?.spins_left_today === 'number' ? data.spins_left_today : undefined) ??
-        (typeof data?.spinsLeft === 'number' ? data.spinsLeft : undefined) ??
-        (typeof data?.spins_left === 'number' ? data.spins_left : undefined) ??
-        (typeof data?.dailySpinsLeft === 'number' ? data.dailySpinsLeft : undefined) ??
-        (typeof data?.daily_spins_left === 'number' ? data.daily_spins_left : undefined);
-
-      if (typeof numericDaily === 'number'){
-        state.spinsLeftToday = Math.max(0, Number(numericDaily) || 0);
-      } else {
-        // Boolean-ish fields
-        const raw =
-          data?.canSpin ?? data?.can_spin ??
-          data?.canSpinToday ?? data?.can_spin_today ??
-          data?.spinAvailable ?? data?.spin_available ??
-          data?.spinsAvailable ?? data?.spins_available ??
-          data?.dailySpinAvailable ?? data?.daily_spin_available ??
-          data?.dailySpin ?? data?.daily_spin;
-
-        const can = (raw === true || raw === 1 || raw === '1' || raw === 'true');
-
-        // If server exposes remainingMs > 0 => not available
-        if (remainingMs > 0){
-          state.spinsLeftToday = 0;
-        } else if (raw !== undefined){
-          state.spinsLeftToday = can ? 1 : 0;
-        } else {
-          // Fallback: if we have an active server cooldown, keep locked (0); otherwise assume 1
-          state.spinsLeftToday = clientRemainingMs > 0 ? 0 : 1;
-        }
-      }
-
-      // Store remainingMs for countdown + auto-refresh (uses performance.now to ignore clock changes)
-      try{
-        if (remainingMs > 0){
           window.__spinRemain = {
             startPerf: (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0,
-            remainingMs,
+            remainingMs: remainingMs,
           };
-        } else {
-          window.__spinRemain = null;
-        }
-      }catch(_){}
+        }catch(_){}
+      }
 
-      // Update spins UI consistently
-      const totalSpins = Math.max(0, Number(state.spinsLeftToday||0) + Number(state.extraSpins||0));
-      const exEl = document.getElementById('extra-spins');
-      if (exEl) exEl.innerText = `Spins disponíveis: ${totalSpins}`;
-
-      // Schedule a refresh right after cooldown ends (if provided)
+      // discount + shipping (optional)
       try{
-        if (remainingMs > 0){
-          if (window.__spinRefreshTimer) clearTimeout(window.__spinRefreshTimer);
-          window.__spinRefreshTimer = setTimeout(() => {
-            try{
-              if (window.VW_API && typeof window.VW_API.loadRewardsStatus === 'function'){
-                window.VW_API.loadRewardsStatus();
-              }
-            }catch(_){}
-          }, remainingMs + 1500);
+        const ad = data?.activeDiscount || data?.active_discount || null;
+        if (typeof state !== 'undefined'){
+          state.activeDiscount = ad ? {
+            id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
+            percent: Number(ad.percent ?? ad.value ?? 0),
+            expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+          } : null;
+        }
+
+        const sh = data?.activeShipping || data?.active_shipping || null;
+        if (typeof state !== 'undefined'){
+          state.activeShipping = sh ? {
+            id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
+            expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
+          } : null;
         }
       }catch(_){}
 
-      const points = Number(data?.points ?? data?.user?.points ?? 0);
-      if (typeof state !== 'undefined') state.points = points;
-
-      const ad = data?.activeDiscount || data?.active_discount || null;
-      if (typeof state !== 'undefined'){
-        state.activeDiscount = ad ? {
-          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
-          percent: Number(ad.percent ?? ad.value ?? 0),
-          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
-        } : null;
-      }
-
-      const ar = data?.appliedReward || data?.applied_redemption || data?.redemption || null;
-      if (typeof state !== 'undefined' && ar){
-        state.appliedReward = {
-          id: ar.id ?? ar.redemption_id ?? ar.redemptionId ?? null,
-          type: ar.type || null,
-          amountEUR: Number(ar.amountEUR ?? ar.amount_eur ?? 0),
-          pointsUsed: Number(ar.pointsUsed ?? ar.points_used ?? 0),
-          percent: Number(ar.percent ?? 0),
-        };
-      }
-
-      syncPointsUI(points);
-      if (typeof renderAll === 'function') renderAll();
-      if (typeof renderCart === 'function') renderCart();
-
-      return data;
-    } catch(err){
-      console.warn('Rewards status not loaded:', err?.message || err);
-      return null;
+      // Refresh UI if the page has those renderers
+      try{ if (typeof renderAll === 'function') renderAll(); }catch(_){}
+      try{ if (typeof updateResetHint === 'function') updateResetHint(); }catch(_){}
+    }catch(err){
+      // No redirect here; just keep UI running
+      console.warn('Rewards status unavailable.', err);
     }
   }
 
-   window.VW_API = window.VW_API || {};
+  // Expose for other scripts (spin override expects window.VW_API.*)
+  window.VW_API = window.VW_API || {};
   window.VW_API.root = API_ROOT;
+  window.VW_API.rewardsRoot = REWARDS_ROOT;
   window.VW_API.apiJson = apiJson;
+  window.VW_API.authFetch = authFetch;
+  window.VW_API.rewardsFetch = rewardsFetch;
+  window.VW_API.loadMe = loadMe;
   window.VW_API.loadRewardsStatus = loadRewardsStatus;
 
-  window.VW_API.applyPoints = (points) =>
-    apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
-
-  window.VW_API.applyDiscount = () =>
-    apiJson('/rewards/apply-discount', { method:'POST', body:{} });
-
-  window.VW_API.grantDiscount = (percent) =>
-    apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
-
-  window.VW_API.grantShipping = () =>
-    apiJson('/rewards/grant-shipping', { method:'POST', body:{} });
-
-  window.VW_API.creditPoints = (points, source='wheel') =>
-    apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
-
-  // NOVO: credita EXTRA SPIN no backend
-  window.VW_API.grantExtraSpin = (count = 1, source = 'wheel') =>
-    apiJson('/rewards/grant-extra-spin', { method:'POST', body:{ count, source } });
-
-  window.VW_API.checkoutCreate = (payload) =>
-    apiJson('/checkout/create', { method:'POST', body: payload || {} });
-
-
-  function defaultAvatarDataUri(){
-    const svg = encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
-        <defs>
-          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-            <stop stop-color="#D4AF37" stop-opacity="0.35"/>
-            <stop stop-color="#f0b43b" stop-opacity="0.18" offset="1"/>
-          </linearGradient>
-        </defs>
-        <rect width="240" height="240" rx="120" fill="url(#g)"/>
-        <circle cx="120" cy="92" r="44" fill="rgba(43,39,35,0.16)"/>
-        <path d="M48 212c14-46 50-68 72-68s58 22 72 68" fill="rgba(43,39,35,0.14)"/>
-      </svg>
-    `);
-    return `data:image/svg+xml;charset=utf-8,${svg}`;
-  }
-
-  function applyAvatar(user){
-    const img = document.getElementById("avatar");
-    if (!img) return;
-
-    const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
-
-    if (!raw) {
-      const def = defaultAvatarDataUri();
-      img.src = def;
-      try{
-        if (typeof state !== "undefined" && state.me){
-          state.me.avatar = def;
-        }
-      }catch(_){}
-      return;
-    }
-
-    let url = String(raw);
-    if (!/^https?:\/\//i.test(url)) {
-      if (!url.startsWith("/")) url = "/" + url;
-      url = API_ROOT + url;
-    }
-
-    // cache-bust so the new photo appears immediately
-    url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
-    img.src = url;
-    try{
-      if (typeof state !== "undefined" && state.me){
-        state.me.avatar = url;
-      }
-    }catch(_){}
-  }
-
-  async function loadProfile(){
-    requireTokenOrRedirect();
-
-    try {
-      const res = await fetch(API_ROOT + "/user/me", { headers: authHeaders() });
-
-      if (res.status === 401 || res.status === 403) {
-        requireTokenOrRedirect();
-        return;
-      }
-
-      if (!res.ok) {
-        console.warn("Falha ao carregar /user/me:", res.status);
-        return;
-      }
-
-      const user = await res.json();
-
-      try{ if (typeof state !== 'undefined') state.me = user; }catch(_){ }
-      try{ sessionStorage.setItem('vw_user_cache', JSON.stringify(user)); }catch(_){ }
-      try{ if (user && (user.id ?? user.user_id ?? user.userId)) sessionStorage.setItem('vw_user_id', String(user.id ?? user.user_id ?? user.userId)); }catch(_){ }
-
-      const nameEl = document.getElementById("userName");
-      const emailEl = document.getElementById("userEmail");
-
-      if (nameEl) nameEl.textContent = user.name || "Your Name";
-      if (emailEl) emailEl.textContent = user.email || "email@example.com";
-
-      applyAvatar(user);
-
-      // carrega pontos + desconto (DB)
+  // Page boot: only loads /me and rewards; auth-guard.js handles guard/redirects
+  document.addEventListener('DOMContentLoaded', () => {
+    loadMe().then(() => {
+      // After /me, we can safely load rewards (if session exists)
       loadRewardsStatus();
-    } catch (err) {
-      console.error("Erro carregando /user/me", err);
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", loadProfile);
+    });
+  });
 })();
 </script>
 <script>
