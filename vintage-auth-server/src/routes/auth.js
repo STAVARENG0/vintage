@@ -427,10 +427,13 @@ router.get(
   (req, res) => {
     const { token } = req.user;
 
-    res.redirect(
-      `${process.env.FRONTEND_URL}/cliente-login-2.html?token=${token}`
-    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.redirect(`${process.env.FRONTEND_URL}/painel.html`);
   }
 );
-
 module.exports = router;
