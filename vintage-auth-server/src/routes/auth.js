@@ -38,21 +38,16 @@ function toDate(v) {
   return Number.isNaN(d2.getTime()) ? null : d2;
 }
 
-function isExpired(row) {
-  const exp = toDate(row.expires_at);
-  if (!exp) return true;
-  return exp.getTime() < Date.now();
-}
-
 function setAuthCookie(res, token) {
-  res.cookie("token", token, {
+  res.cookie("vw_token", token, {
     httpOnly: true,
     secure: true,
-    sameSite: "none",
+    sameSite: "None",
     domain: ".vintage-clothes.ie",
     path: "/",
   });
 }
+
 
 
 
