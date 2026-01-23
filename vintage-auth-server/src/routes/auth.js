@@ -45,14 +45,14 @@ function isExpired(row) {
 }
 
 function setAuthCookie(res, token) {
-  // Mesmo comportamento do /login e do Google:
-  // cria cookie httpOnly com token, para permitir acesso às rotas protegidas.
   res.cookie("token", token, {
     httpOnly: true,
     secure: true,
     sameSite: "none",
+    domain: ".vintage-clothes.ie",
   });
 }
+
 
 async function upsertOtp({ purpose, channel, contact, code, payload }) {
   const salt = genSalt();
