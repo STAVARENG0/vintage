@@ -583,7 +583,22 @@ $("loginForm").addEventListener("submit", async (e) => {
     const isEmail = looksLikeEmail(user);
     const payload = isEmail ? { email: user, password } : { phone: normalizePhone(user), password };
 
-    await api(isEmail ? "/auth/login" : "/auth/login/phone", { method:"POST", body: payload });
+    const loginPath = isEmail ? "/auth/login" : "/auth/login/phone";
+    const r = await fetch(API_BASE + loginPath, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    let data = null;
+    try { data = await r.json(); } catch(_) {}
+
+    if(!r.ok){
+      const err = (data && (data.message || data.error)) ? (data.message || data.error) : `Error ${r.status}`;
+      throw new Error(err);
+    }
+
     showMsg($("loginMsg"), "✅ Logged in successfully!", "ok");
     setTimeout(redirectAfterLogin, 600);
   }catch(err){
