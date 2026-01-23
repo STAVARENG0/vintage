@@ -292,6 +292,11 @@ router.post("/login", async (req, res) => {
     if(!ok) return res.status(401).json({ message: "Invalid credentials." });
 
     const token = signToken(user);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
     return res.json({ token });
   }catch(err){
     return res.status(400).json({ message: err.message || "Bad request" });
@@ -314,6 +319,11 @@ router.post("/login/phone", async (req, res) => {
     if(!ok) return res.status(401).json({ message: "Invalid credentials." });
 
     const token = signToken(user);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
     return res.json({ token });
   }catch(err){
     return res.status(400).json({ message: err.message || "Bad request" });
