@@ -12,36 +12,49 @@ const { signToken } = require("../utils/jwt");
 
 const router = express.Router();
 
-const pwSchema = z.string().min(8).max(72)
+const pwSchema = z
+  .string()
+  .min(8)
+  .max(72)
   .refine((v) => !/\s/.test(v), "Password cannot contain spaces.")
   .refine((v) => /[a-z]/.test(v), "Add at least 1 lowercase letter.")
   .refine((v) => /[A-Z]/.test(v), "Add at least 1 UPPERCASE letter.")
   .refine((v) => /\d/.test(v), "Add at least 1 number.");
 
-function nowPlusMinutes(m){
+function nowPlusMinutes(m) {
   return new Date(Date.now() + m * 60 * 1000);
 }
 
-function toDate(v){
-  if(!v) return null;
-  if(v instanceof Date) return v;
+function toDate(v) {
+  if (!v) return null;
+  if (v instanceof Date) return v;
   const s = String(v);
   // "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SS"
   const iso = s.includes("T") ? s : s.replace(" ", "T");
   const d = new Date(iso);
-  if(!Number.isNaN(d.getTime())) return d;
+  if (!Number.isNaN(d.getTime())) return d;
   // fallback
   const d2 = new Date(iso + "Z");
   return Number.isNaN(d2.getTime()) ? null : d2;
 }
 
-function isExpired(row){
+function isExpired(row) {
   const exp = toDate(row.expires_at);
-  if(!exp) return true;
+  if (!exp) return true;
   return exp.getTime() < Date.now();
 }
 
-async function upsertOtp({ purpose, channel, contact, code, payload }){
+function setAuthCookie(res, token) {
+  // Mesmo comportamento do /login e do Google:
+  // cria cookie httpOnly com token, para permitir acesso às rotas protegidas.
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+}
+
+async function upsertOtp({ purpose, channel, contact, code, payload }) {
   const salt = genSalt();
   const codeHash = hashCode(String(code), salt);
   const expiresAt = nowPlusMinutes(cfg.otpTtlMinutes);
@@ -64,17 +77,17 @@ async function upsertOtp({ purpose, channel, contact, code, payload }){
   return { expiresAt };
 }
 
-async function getOtpRow(purpose, contact){
-  const [rows] = await pool.execute(
-    `SELECT * FROM auth_otps WHERE purpose=? AND contact=? LIMIT 1`,
-    [purpose, contact]
-  );
+async function getOtpRow(purpose, contact) {
+  const [rows] = await pool.execute(`SELECT * FROM auth_otps WHERE purpose=? AND contact=? LIMIT 1`, [
+    purpose,
+    contact,
+  ]);
   return rows[0] || null;
 }
 
-async function bumpAttemptsOrDelete(row){
+async function bumpAttemptsOrDelete(row) {
   const attempts = Number(row.attempts || 0) + 1;
-  if(attempts >= cfg.otpMaxAttempts){
+  if (attempts >= cfg.otpMaxAttempts) {
     await pool.execute(`DELETE FROM auth_otps WHERE id=?`, [row.id]);
     return { deleted: true, attempts };
   }
@@ -82,11 +95,11 @@ async function bumpAttemptsOrDelete(row){
   return { deleted: false, attempts };
 }
 
-async function verifyOtp({ purpose, contact, code }){
+async function verifyOtp({ purpose, contact, code }) {
   const row = await getOtpRow(purpose, contact);
-  if(!row) return { ok: false, message: "Invalid or expired code." };
+  if (!row) return { ok: false, message: "Invalid or expired code." };
 
-  if(isExpired(row)){
+  if (isExpired(row)) {
     await pool.execute(`DELETE FROM auth_otps WHERE id=?`, [row.id]);
     return { ok: false, message: "Code expired. Please request a new one." };
   }
@@ -94,9 +107,12 @@ async function verifyOtp({ purpose, contact, code }){
   const expected = String(row.code_hash);
   const got = hashCode(String(code), String(row.code_salt));
 
-  if(got !== expected){
+  if (got !== expected) {
     const res = await bumpAttemptsOrDelete(row);
-    return { ok: false, message: res.deleted ? "Too many attempts. Request a new code." : "Invalid code." };
+    return {
+      ok: false,
+      message: res.deleted ? "Too many attempts. Request a new code." : "Invalid code.",
+    };
   }
 
   return { ok: true, row };
@@ -104,17 +120,19 @@ async function verifyOtp({ purpose, contact, code }){
 
 // ---- REGISTER (start) ----
 router.post("/register/email", async (req, res) => {
-  try{
-    const body = z.object({
-      name: z.string().min(2).max(120),
-      email: z.string().email(),
-      password: pwSchema,
-    }).parse(req.body);
+  try {
+    const body = z
+      .object({
+        name: z.string().min(2).max(120),
+        email: z.string().email(),
+        password: pwSchema,
+      })
+      .parse(req.body);
 
     const email = normalizeEmail(body.email);
 
     const [uRows] = await pool.execute(`SELECT id FROM users WHERE email=? LIMIT 1`, [email]);
-    if(uRows.length) return res.status(409).json({ message: "This email is already registered." });
+    if (uRows.length) return res.status(409).json({ message: "This email is already registered." });
 
     const passwordHash = await bcrypt.hash(body.password, 12);
     const code = genCode();
@@ -124,30 +142,32 @@ router.post("/register/email", async (req, res) => {
       channel: "email",
       contact: email,
       code,
-      payload: { name: body.name, email, password_hash: passwordHash }
+      payload: { name: body.name, email, password_hash: passwordHash },
     });
 
     await sendOtpEmail({ to: email, code, purpose: "register" });
 
     return res.json({ ok: true });
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
 
 router.post("/register/phone", async (req, res) => {
-  try{
-    const body = z.object({
-      name: z.string().min(2).max(120),
-      phone: z.string().min(6).max(40),
-      password: pwSchema,
-    }).parse(req.body);
+  try {
+    const body = z
+      .object({
+        name: z.string().min(2).max(120),
+        phone: z.string().min(6).max(40),
+        password: pwSchema,
+      })
+      .parse(req.body);
 
     const phone = normalizePhone(body.phone);
 
     // ✅ TABELA CERTA: users (minúsculo)
     const [uRows] = await pool.execute(`SELECT id FROM users WHERE phone=? LIMIT 1`, [phone]);
-    if(uRows.length) return res.status(409).json({ message: "This phone is already registered." });
+    if (uRows.length) return res.status(409).json({ message: "This phone is already registered." });
 
     const passwordHash = await bcrypt.hash(body.password, 12);
     const code = genCode();
@@ -157,44 +177,46 @@ router.post("/register/phone", async (req, res) => {
       channel: "sms",
       contact: phone,
       code,
-      payload: { name: body.name, phone, password_hash: passwordHash }
+      payload: { name: body.name, phone, password_hash: passwordHash },
     });
 
     await sendOtpSms({ to: phone, code, purpose: "register" });
 
     return res.json({ ok: true });
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
 
-// ---- REGISTER (verify -> create user) ----
+// ---- REGISTER (verify -> create user + login cookie) ----
 router.post("/verify/email", async (req, res) => {
-  try{
-    const body = z.object({
-      email: z.string().email(),
-      code: z.string().min(4).max(12),
-    }).parse(req.body);
+  try {
+    const body = z
+      .object({
+        email: z.string().email(),
+        code: z.string().min(4).max(12),
+      })
+      .parse(req.body);
 
     const email = normalizeEmail(body.email);
 
     const v = await verifyOtp({ purpose: "register", contact: email, code: body.code });
-    if(!v.ok) return res.status(400).json({ message: v.message });
+    if (!v.ok) return res.status(400).json({ message: v.message });
 
     const payloadRaw = v.row.payload_json;
     const payload = payloadRaw ? (typeof payloadRaw === "string" ? JSON.parse(payloadRaw) : payloadRaw) : null;
 
-    if(!payload?.email || !payload?.password_hash || !payload?.name){
+    if (!payload?.email || !payload?.password_hash || !payload?.name) {
       await pool.execute(`DELETE FROM auth_otps WHERE id=?`, [v.row.id]);
       return res.status(400).json({ message: "Invalid registration payload. Please register again." });
     }
 
     const conn = await pool.getConnection();
-    try{
+    try {
       await conn.beginTransaction();
 
       const [existing] = await conn.execute(`SELECT id FROM users WHERE email=? LIMIT 1`, [email]);
-      if(existing.length){
+      if (existing.length) {
         await conn.execute(`DELETE FROM auth_otps WHERE id=?`, [v.row.id]);
         await conn.commit();
         return res.status(409).json({ message: "This email is already registered." });
@@ -210,44 +232,48 @@ router.post("/verify/email", async (req, res) => {
 
       const user = { id: ins.insertId, name: payload.name, email: payload.email, phone: null };
       const token = signToken(user);
+
+      setAuthCookie(res, token);
       return res.json({ token });
-    }catch(e){
+    } catch (e) {
       await conn.rollback();
       throw e;
-    }finally{
+    } finally {
       conn.release();
     }
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
 
 router.post("/verify/phone", async (req, res) => {
-  try{
-    const body = z.object({
-      phone: z.string().min(6).max(40),
-      code: z.string().min(4).max(12),
-    }).parse(req.body);
+  try {
+    const body = z
+      .object({
+        phone: z.string().min(6).max(40),
+        code: z.string().min(4).max(12),
+      })
+      .parse(req.body);
 
     const phone = normalizePhone(body.phone);
 
     const v = await verifyOtp({ purpose: "register", contact: phone, code: body.code });
-    if(!v.ok) return res.status(400).json({ message: v.message });
+    if (!v.ok) return res.status(400).json({ message: v.message });
 
     const payloadRaw = v.row.payload_json;
     const payload = payloadRaw ? (typeof payloadRaw === "string" ? JSON.parse(payloadRaw) : payloadRaw) : null;
 
-    if(!payload?.phone || !payload?.password_hash || !payload?.name){
+    if (!payload?.phone || !payload?.password_hash || !payload?.name) {
       await pool.execute(`DELETE FROM auth_otps WHERE id=?`, [v.row.id]);
       return res.status(400).json({ message: "Invalid registration payload. Please register again." });
     }
 
     const conn = await pool.getConnection();
-    try{
+    try {
       await conn.beginTransaction();
 
       const [existing] = await conn.execute(`SELECT id FROM users WHERE phone=? LIMIT 1`, [phone]);
-      if(existing.length){
+      if (existing.length) {
         await conn.execute(`DELETE FROM auth_otps WHERE id=?`, [v.row.id]);
         await conn.commit();
         return res.status(409).json({ message: "This phone is already registered." });
@@ -263,76 +289,74 @@ router.post("/verify/phone", async (req, res) => {
 
       const user = { id: ins.insertId, name: payload.name, email: null, phone: payload.phone };
       const token = signToken(user);
+
+      setAuthCookie(res, token);
       return res.json({ token });
-    }catch(e){
+    } catch (e) {
       await conn.rollback();
       throw e;
-    }finally{
+    } finally {
       conn.release();
     }
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
 
 // ---- LOGIN ----
 router.post("/login", async (req, res) => {
-  try{
-    const body = z.object({
-      email: z.string().email(),
-      password: z.string().min(1).max(72),
-    }).parse(req.body);
+  try {
+    const body = z
+      .object({
+        email: z.string().email(),
+        password: z.string().min(1).max(72),
+      })
+      .parse(req.body);
 
     const email = normalizeEmail(body.email);
     const [rows] = await pool.execute(`SELECT * FROM users WHERE email=? LIMIT 1`, [email]);
     const user = rows[0];
-    if(!user) return res.status(401).json({ message: "Invalid credentials." });
+    if (!user) return res.status(401).json({ message: "Invalid credentials." });
 
     const ok = await bcrypt.compare(body.password, user.password_hash);
-    if(!ok) return res.status(401).json({ message: "Invalid credentials." });
+    if (!ok) return res.status(401).json({ message: "Invalid credentials." });
 
     const token = signToken(user);
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
+    setAuthCookie(res, token);
     return res.json({ token });
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
 
 router.post("/login/phone", async (req, res) => {
-  try{
-    const body = z.object({
-      phone: z.string().min(6).max(40),
-      password: z.string().min(1).max(72),
-    }).parse(req.body);
+  try {
+    const body = z
+      .object({
+        phone: z.string().min(6).max(40),
+        password: z.string().min(1).max(72),
+      })
+      .parse(req.body);
 
     const phone = normalizePhone(body.phone);
     const [rows] = await pool.execute(`SELECT * FROM users WHERE phone=? LIMIT 1`, [phone]);
     const user = rows[0];
-    if(!user) return res.status(401).json({ message: "Invalid credentials." });
+    if (!user) return res.status(401).json({ message: "Invalid credentials." });
 
     const ok = await bcrypt.compare(body.password, user.password_hash);
-    if(!ok) return res.status(401).json({ message: "Invalid credentials." });
+    if (!ok) return res.status(401).json({ message: "Invalid credentials." });
 
     const token = signToken(user);
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
+    setAuthCookie(res, token);
     return res.json({ token });
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
 
 // ---- PASSWORD RESET ----
 router.post("/password/reset/start", async (req, res) => {
-  try{
+  try {
     const body = z.object({ contact: z.string().min(3).max(190) }).parse(req.body);
 
     const raw = body.contact.trim();
@@ -344,39 +368,41 @@ router.post("/password/reset/start", async (req, res) => {
       [contact]
     );
 
-    if(!rows.length) return res.json({ ok: true });
+    if (!rows.length) return res.json({ ok: true });
 
     const code = genCode();
     await upsertOtp({ purpose: "reset", channel: isEmail ? "email" : "sms", contact, code, payload: null });
 
-    if(isEmail) await sendOtpEmail({ to: contact, code, purpose: "reset" });
+    if (isEmail) await sendOtpEmail({ to: contact, code, purpose: "reset" });
     else await sendOtpSms({ to: contact, code, purpose: "reset" });
 
     return res.json({ ok: true });
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
 
 router.post("/password/reset/finish", async (req, res) => {
-  try{
-    const body = z.object({
-      contact: z.string().min(3).max(190),
-      code: z.string().min(4).max(12),
-      newPassword: pwSchema,
-    }).parse(req.body);
+  try {
+    const body = z
+      .object({
+        contact: z.string().min(3).max(190),
+        code: z.string().min(4).max(12),
+        newPassword: pwSchema,
+      })
+      .parse(req.body);
 
     const raw = body.contact.trim();
     const isEmail = looksLikeEmail(raw);
     const contact = isEmail ? normalizeEmail(raw) : normalizePhone(raw);
 
     const v = await verifyOtp({ purpose: "reset", contact, code: body.code });
-    if(!v.ok) return res.status(400).json({ message: v.message });
+    if (!v.ok) return res.status(400).json({ message: v.message });
 
     const passwordHash = await bcrypt.hash(body.newPassword, 12);
 
     const conn = await pool.getConnection();
-    try{
+    try {
       await conn.beginTransaction();
 
       const [rows] = await conn.execute(
@@ -384,7 +410,7 @@ router.post("/password/reset/finish", async (req, res) => {
         [contact]
       );
 
-      if(!rows.length){
+      if (!rows.length) {
         await conn.execute(`DELETE FROM auth_otps WHERE id=?`, [v.row.id]);
         await conn.commit();
         return res.status(400).json({ message: "Account not found." });
@@ -396,16 +422,17 @@ router.post("/password/reset/finish", async (req, res) => {
 
       await conn.commit();
       return res.json({ ok: true });
-    }catch(e){
+    } catch (e) {
       await conn.rollback();
       throw e;
-    }finally{
+    } finally {
       conn.release();
     }
-  }catch(err){
+  } catch (err) {
     return res.status(400).json({ message: err.message || "Bad request" });
   }
 });
+
 // ---- GOOGLE LOGIN ----
 
 // INICIAR LOGIN COM GOOGLE
@@ -427,13 +454,9 @@ router.get(
   (req, res) => {
     const { token } = req.user;
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
-
+    setAuthCookie(res, token);
     res.redirect(`${process.env.FRONTEND_URL}/painel.html`);
   }
 );
+
 module.exports = router;
