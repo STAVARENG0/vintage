@@ -1775,23 +1775,16 @@ async function spin(){
   }
 
   async function loadMe(){
-    // Primary route: /me (new system)
-    try{
-      const me = await authFetch('/me');
-      applyMe(me);
-      return me;
-    }catch(err){
-      // Back-compat fallback (older route)
-      if (err && err.status === 404){
-        try{
-          const me = await authFetch('/user/me');
-          applyMe(me);
-          return me;
-        }catch(e2){
-          console.warn('Failed to load user profile.', e2);
-          return null;
-        }
-      }
+  try {
+    const me = await authFetch('/user/me');
+    applyMe(me);
+    return me;
+  } catch (err) {
+    console.warn('Not logged');
+    return null;
+  }
+}
+
       // No redirect here; auth-guard.js owns navigation/guarding
       console.warn('Failed to load user profile.', err);
       return null;
