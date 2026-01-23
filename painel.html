@@ -1785,12 +1785,6 @@ async function spin(){
   }
 }
 
-      // No redirect here; auth-guard.js owns navigation/guarding
-      console.warn('Failed to load user profile.', err);
-      return null;
-    }
-  }
-
   function applyMe(me){
     try{ if (typeof state !== 'undefined') state.me = me; }catch(_){}
 
