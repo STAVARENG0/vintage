@@ -658,6 +658,7 @@
   </div>
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
+  <script src="vintage-auth.js"></script>
   <script src="auth-guard.js"></script>
 
 
@@ -682,35 +683,20 @@
     };
 
     // ====== Access token (accepts multiple keys to match the Store) ======
-    const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
-
     function getToken(){
-      for (const k of TOKEN_KEYS){
-        try{
-          const t = localStorage.getItem(k);
-          if (t) return t;
-        }catch(_){ }
-      }
-      return null;
+      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
-
-    // ====== Local cart (shared with store/menu pages) ======
+// ====== Local cart (shared with store/menu pages) ======
     const USER_ID_KEY = "vw_user_id";
     const CART_GUEST_KEY = "vw_cart";
 
     function getUserId(){
       try{
-        return (
-          (state?.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)) ||
-          localStorage.getItem(USER_ID_KEY) ||
-          localStorage.getItem('user_id') ||
-          localStorage.getItem('uid') ||
-          localStorage.getItem('userId') ||
-          ''
-        );
-      }catch(_){
-        return '';
-      }
+        const u = (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function') ? window.VintageAuth.getLoggedUser().user : null;
+        const id = u && (u.id ?? u.user_id ?? u.userId ?? u.uid);
+        return (id === undefined || id === null) ? '' : String(id);
+      }catch(_){ return ''; }
+    }
     }
 
     function readCartByKey(key){
@@ -1155,8 +1141,8 @@
               <div class="muted" style="margin-top:6px; line-height:1.6">${a.line1 || ''}<br/>${a.line2 || ''}<br/>${a.country || ''}</div>
             </div>
             <div class="row" style="gap:8px;">
-              <button class="btn small" onclick="editAddress('${a.id}')">Edit</button>
-              <button class="btn small danger" onclick="deleteAddress('${a.id}')">Delete</button>
+              <button class="btn small js-address-action" type="button" data-action="edit" data-address-id="${escAttr(String(a.id))}">Edit</button>
+              <button class="btn small danger js-address-action" type="button" data-action="delete" data-address-id="${escAttr(String(a.id))}">Delete</button>
             </div>
           </div>
         </div>
@@ -1200,9 +1186,6 @@
 
     function persistCheckoutPayload(t){
       try{
-        const uid = (
-          state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)
-        ) || localStorage.getItem('vw_user_id') || '';
 
         const compact = (Array.isArray(t.cart) ? t.cart : []).map(it => ({
           id: String(it.id),
@@ -1212,8 +1195,7 @@
         }));
 
         localStorage.setItem(CHECKOUT_PAYLOAD_KEY, JSON.stringify({
-          user_id: uid ? String(uid) : null,
-          cart: compact,
+cart: compact,
           pay_subtotal: Number(t.total || 0),
           free_shipping: !!t.freeShipping,
           points_used: Number(t.pointsUsed || 0),
@@ -1287,7 +1269,7 @@
                   <div class="muted">${fmtEUR(price)} • qty: <strong>${qty}</strong> • <strong>${fmtEUR(lineTotal)}</strong></div>
                 </div>
               </div>
-              <button class="btn small danger" onclick="removeCartItem('${String(it.id)}')">Remove</button>
+              <button class="btn small danger js-cart-action" type="button" data-action="remove" data-item-id="${escAttr(String(it.id))}">Remove</button>
             </div>
           </div>
         `;
@@ -1375,30 +1357,52 @@
         if (pts <= 0) chkPts.checked = false;
         chkPts.disabled = pts <= 0;
       }
-
       // Mutual exclusion: points vs discount
-      if (chkPts){
-        chkPts.onchange = () => {
-          if (chkPts.checked && chkDis) chkDis.checked = false;
-          saveCartRewardSelection({ usePoints: chkPts.checked, useDiscount: !!(chkDis && chkDis.checked), useShipping: !!(chkShip && chkShip.checked) });
+      if (chkPts && !chkPts.dataset.boundChange){
+        chkPts.dataset.boundChange = '1';
+        chkPts.addEventListener('change', () => {
+          const ptsEl = $('benefitPoints');
+          const disEl = $('benefitDiscount');
+          const shipEl = $('benefitShipping');
+          if (ptsEl && ptsEl.checked && disEl) disEl.checked = false;
+          saveCartRewardSelection({
+            usePoints: !!(ptsEl && ptsEl.checked),
+            useDiscount: !!(disEl && disEl.checked),
+            useShipping: !!(shipEl && shipEl.checked)
+          });
           renderCart();
-        };
+        });
       }
-      if (chkDis){
-        chkDis.onchange = () => {
-          if (chkDis.checked && chkPts) chkPts.checked = false;
-          saveCartRewardSelection({ usePoints: !!(chkPts && chkPts.checked), useDiscount: chkDis.checked, useShipping: !!(chkShip && chkShip.checked) });
+      if (chkDis && !chkDis.dataset.boundChange){
+        chkDis.dataset.boundChange = '1';
+        chkDis.addEventListener('change', () => {
+          const ptsEl = $('benefitPoints');
+          const disEl = $('benefitDiscount');
+          const shipEl = $('benefitShipping');
+          if (disEl && disEl.checked && ptsEl) ptsEl.checked = false;
+          saveCartRewardSelection({
+            usePoints: !!(ptsEl && ptsEl.checked),
+            useDiscount: !!(disEl && disEl.checked),
+            useShipping: !!(shipEl && shipEl.checked)
+          });
           renderCart();
-        };
+        });
       }
-      if (chkShip){
-        chkShip.onchange = () => {
-          saveCartRewardSelection({ usePoints: !!(chkPts && chkPts.checked), useDiscount: !!(chkDis && chkDis.checked), useShipping: chkShip.checked });
+      if (chkShip && !chkShip.dataset.boundChange){
+        chkShip.dataset.boundChange = '1';
+        chkShip.addEventListener('change', () => {
+          const ptsEl = $('benefitPoints');
+          const disEl = $('benefitDiscount');
+          const shipEl = $('benefitShipping');
+          saveCartRewardSelection({
+            usePoints: !!(ptsEl && ptsEl.checked),
+            useDiscount: !!(disEl && disEl.checked),
+            useShipping: !!(shipEl && shipEl.checked)
+          });
           renderCart();
-        };
+        });
       }
-
-      // Message (selection summary)
+// Message (selection summary)
       const msg = $('rewardAppliedMsg');
       if (msg){
         const parts = [];
@@ -1420,10 +1424,6 @@
           const compact = cartArr.map(it => ({ id:String(it.id), title: it.title || 'Product', price:Number(it.price||0), qty:Number(it.qty||1) }));
           qs.push(`cart=${encodeURIComponent(JSON.stringify(compact))}`);
         }
-
-        // user
-        const uid = (state.me && (state.me.id ?? state.me.user_id ?? state.me.uid ?? state.me.userId)) || localStorage.getItem('vw_user_id') || '';
-        if (uid) qs.push(`user_id=${encodeURIComponent(String(uid))}`);
 
         // totals
         qs.push(`pay_subtotal=${encodeURIComponent(Number(t.total||0).toFixed(2))}`);
@@ -1773,7 +1773,7 @@ function statusToStepIndex(status){
     window.VintageAuth.logout();
     return;
   }
-  localStorage.removeItem('vw_token');
+  sessionStorage.removeItem('vw_token');
   window.location.href = 'cliente-login-2.html';
 }
 
@@ -1827,6 +1827,60 @@ function statusToStepIndex(status){
       $('btnLogout')?.addEventListener('click', logout);
 
       $('btnSpin')?.addEventListener('click', spin);
+
+      // Delegated events (no inline handlers)
+      const cartList = $('cartList');
+      if (cartList && !cartList.dataset.boundClick){
+        cartList.dataset.boundClick = '1';
+        cartList.addEventListener('click', (ev) => {
+          const btn = ev.target && ev.target.closest ? ev.target.closest('button[data-action="remove"][data-item-id]') : null;
+          if (!btn) return;
+          const id = btn.getAttribute('data-item-id') || '';
+          removeCartItem(id);
+        });
+      }
+
+      const addrList = $('addrList');
+      if (addrList && !addrList.dataset.boundClick){
+        addrList.dataset.boundClick = '1';
+        addrList.addEventListener('click', (ev) => {
+          const btn = ev.target && ev.target.closest ? ev.target.closest('button[data-action][data-address-id]') : null;
+          if (!btn) return;
+          const id = btn.getAttribute('data-address-id') || '';
+          const act = btn.getAttribute('data-action') || '';
+          if (act === 'edit') editAddress(id);
+          if (act === 'delete') deleteAddress(id);
+        });
+      }
+
+
+      // Global delegated actions (safety net for dynamic content)
+      const root = document.body;
+      if (root && !root.dataset.boundGlobalClick){
+        root.dataset.boundGlobalClick = '1';
+        root.addEventListener('click', (ev) => {
+          const t = ev && ev.target && ev.target.closest ? ev.target.closest('button[data-action]') : null;
+          if (!t) return;
+
+          // Cart actions
+          const itemId = t.getAttribute('data-item-id');
+          const addrId = t.getAttribute('data-address-id');
+          const act = (t.getAttribute('data-action') || '').toLowerCase();
+
+          if (itemId && act === 'remove' && typeof removeCartItem === 'function'){
+            removeCartItem(itemId);
+            return;
+          }
+
+          // Address actions
+          if (addrId && (act === 'edit' || act === 'delete')){
+            if (act === 'edit' && typeof editAddress === 'function') editAddress(addrId);
+            if (act === 'delete' && typeof deleteAddress === 'function') deleteAddress(addrId);
+            return;
+          }
+        }, { passive: true });
+      }
+
 });
 
     // ======= Campo reativo dourado =======
@@ -1945,35 +1999,17 @@ function statusToStepIndex(status){
 (function(){
     const API_ROOT = "https://clientes-0r5d.onrender.com"; // backend de login/conta
     const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
-  const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
-
   function getToken(){
-    for (const k of TOKEN_KEYS){
-      try {
-        const t = localStorage.getItem(k);
-        if (t) return t;
-      } catch (_) {}
+      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
-    return null;
-  }
-
-  function requireTokenOrRedirect(){
-    const t = getToken();
-    if (!t) {
-      window.location.href = "cliente-login-2.html";
+function requireTokenOrRedirect(){
+      return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect==='function') ? window.VintageAuth.requireTokenOrRedirect() : null;
     }
     return t;
   }
 
   function authHeaders(){
-    const h = {};
-    const t = getToken();
-    if (t) h.Authorization = "Bearer " + t;
-    try{
-      const uid = localStorage.getItem('vw_user_id') || '';
-      if (uid) h['X-User-Id'] = String(uid);
-    }catch(_){ }
-    return h;
+    return (window.VintageAuth && typeof window.VintageAuth.authHeaders==='function') ? window.VintageAuth.authHeaders() : {};
   }
 
 
@@ -2169,7 +2205,7 @@ function statusToStepIndex(status){
       const user = await res.json();
 
       try{ state.me = user; }catch(_){ }
-      try{ if (user && (user.id ?? user.user_id ?? user.userId)) localStorage.setItem('vw_user_id', String(user.id ?? user.user_id ?? user.userId)); }catch(_){ }
+      try{ if (user && (user.id ?? user.user_id ?? user.userId)) sessionStorage.setItem('vw_user_id', String(user.id ?? user.user_id ?? user.userId)); }catch(_){ }
       // Re-load cart using the logged-in user id (so it maps to vw_cart_u_<id>)
       loadLocalCart();
       renderCart();

@@ -590,6 +590,7 @@
   </div>
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
+  <script src="vintage-auth.js"></script>
   <script src="auth-guard.js"></script>
 
 
@@ -608,14 +609,10 @@
       addresses: [],
       avatarFile: null,
     };
-    // ====== Simple access guard (prototype) ======
-    const TOKEN_KEY = "vw_token";
+    // ====== Simple access guard (standard) ======
     try{
-      if(!localStorage.getItem(TOKEN_KEY)){
-        window.location.href = "cliente-login-2.html";
-      }
-    }catch(_){}
-
+      if (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect==='function') window.VintageAuth.requireTokenOrRedirect();
+    }catch(_){ }
 
     const fmtEUR = (n) => {
       const v = Number(n);
@@ -1086,7 +1083,7 @@
     window.VintageAuth.logout();
     return;
   }
-  localStorage.removeItem('vw_token');
+  sessionStorage.removeItem('vw_token');
   window.location.href = 'cliente-login-2.html';
 }
 
@@ -1253,102 +1250,10 @@
 <script>
 (function(){
   const API_ROOT = "https://clientes-0r5d.onrender.com";
-  const TOKEN_KEY = "vw_token";
-
   function getToken(){
-    try { return localStorage.getItem(TOKEN_KEY); } catch (_) { return null; }
-  }
-
-  function requireTokenOrRedirect(){
-    const t = getToken();
-    if (!t) {
-      window.location.href = "cliente-login-2.html";
+      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
-    return t;
-  }
-
-  function authHeaders(){
-    const t = getToken();
-    return t ? { Authorization: "Bearer " + t } : {};
-  }
-
-
-  async function apiJson(path, opts = {}){
-    const url = API_ROOT + path;
-    const init = {
-      method: opts.method || 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
-        ...authHeaders(),
-      },
-    };
-    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
-
-    const res = await fetch(url, init);
-    if (res.status === 401 || res.status === 403){
-      requireTokenOrRedirect();
-      throw new Error('unauthorized');
-    }
-
-    const text = await res.text();
-    let data = null;
-    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
-
-    if (!res.ok){
-      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-      throw new Error(msg);
-    }
-    return data;
-  }
-
-  function syncPointsUI(points){
-    const p = document.getElementById('pointsNow');
-    if (p) p.textContent = String(points ?? 0);
-    const cash = document.getElementById('cashValue');
-    if (cash){
-      const eur = (Number(points||0) * 0.5);
-      cash.textContent = '= € ' + eur.toFixed(2);
-    }
-  }
-
-  async function loadRewardsStatus(){
-    try{
-      const data = await apiJson('/rewards/status', { method:'GET' });
-
-      const points = Number(data?.points ?? data?.user?.points ?? 0);
-      if (typeof state !== 'undefined') state.points = points;
-
-      const ad = data?.activeDiscount || data?.active_discount || null;
-      if (typeof state !== 'undefined'){
-        state.activeDiscount = ad ? {
-          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
-          percent: Number(ad.percent ?? ad.value ?? 0),
-          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
-        } : null;
-      }
-
-      const ar = data?.appliedReward || data?.applied_redemption || data?.redemption || null;
-      if (typeof state !== 'undefined' && ar){
-        state.appliedReward = {
-          id: ar.id ?? ar.redemption_id ?? ar.redemptionId ?? null,
-          type: ar.type || null,
-          amountEUR: Number(ar.amountEUR ?? ar.amount_eur ?? 0),
-          pointsUsed: Number(ar.pointsUsed ?? ar.points_used ?? 0),
-          percent: Number(ar.percent ?? 0),
-        };
-      }
-
-      syncPointsUI(points);
-      if (typeof renderAll === 'function') renderAll();
-      if (typeof renderCart === 'function') renderCart();
-
-      return data;
-    } catch(err){
-      console.warn('Rewards status not loaded:', err?.message || err);
-      return null;
-    }
-  }
+}
 
   window.VW_API = window.VW_API || {};
   window.VW_API.root = API_ROOT;

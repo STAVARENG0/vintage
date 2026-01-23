@@ -663,41 +663,26 @@
   </div>
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
+  <script src="vintage-auth.js"></script>
   <script src="auth-guard.js"></script>
   <script>
     const API_ROOT = "https://clientes-0r5d.onrender.com";
-    const TOKEN_KEYS = ["vw_token", "token", "jwt", "access_token", "auth_token"];
-
-    function getToken() {
-      try {
-        for (const k of TOKEN_KEYS) {
-          const t = localStorage.getItem(k);
-          if (t) {
-            // normalize to vw_token so the rest of the site stays consistent
-            if (k !== 'vw_token') {
-              try { localStorage.setItem('vw_token', t); } catch (_) {}
-            }
-            return t;
-          }
-        }
-        return null;
-      } catch (_) {
+    function getToken(){
+      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
+    }
+catch (_) {
         return null;
       }
     }
 
-    function requireTokenOrRedirect() {
-      const t = getToken();
-      if (!t) {
-        window.location.href = "cliente-login-2.html";
-      }
+    function requireTokenOrRedirect(){
+      return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect==='function') ? window.VintageAuth.requireTokenOrRedirect() : null;
+    }
       return t;
     }
 
-    function authHeaders(extra) {
-      const t = getToken();
-      const base = t ? { "Authorization": "Bearer " + t } : {};
-      return Object.assign(base, extra || {});
+    function authHeaders(extra){
+      return (window.VintageAuth && typeof window.VintageAuth.authHeaders==='function') ? window.VintageAuth.authHeaders(extra) : (extra||{});
     }
 
     async function apiJson(path, opts = {}){
@@ -785,16 +770,23 @@
 
     function readCache(key){
       try{
-        const raw = localStorage.getItem(key);
+        if (key === USER_CACHE_KEY){
+          return (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function') ? (window.VintageAuth.getLoggedUser().user || null) : null;
+        }
+        const store = localStorage;
+        const raw = store.getItem(key);
         return raw ? JSON.parse(raw) : null;
       }catch(_){ return null; }
     }
 
     function writeCache(key, value){
-      try{ localStorage.setItem(key, JSON.stringify(value || {})); }catch(_){ }
+      try{
+        const store = (key === USER_CACHE_KEY) ? sessionStorage : localStorage;
+        store.setItem(key, JSON.stringify(value || {}));
+      }catch(_){ }
     }
 
-    function normalizeUser(raw){
+function normalizeUser(raw){
       if (!raw) return {};
       return raw.user || raw.data || raw.profile || raw.account || raw;
     }
@@ -1112,11 +1104,7 @@
     }
 
     function logout() {
-      try {
-        for (const k of TOKEN_KEYS) {
-          try { localStorage.removeItem(k); } catch (_) {}
-        }
-      } catch (_) {}
+      try { for (const k of TOKEN_KEYS) { try { sessionStorage.removeItem(k); } catch (_) {} } } catch (_) {}
       window.location.href = "cliente-login-2.html";
     }
 

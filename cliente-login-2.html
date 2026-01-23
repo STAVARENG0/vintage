@@ -453,11 +453,8 @@
 // Backend URL (kept as-is)
 const API_BASE = "https://clientes-0r5d.onrender.com";
 
-// Same key used in /auth/callback
-const TOKEN_KEY = "vw_token";
-
-// We store the token in a few common keys so other pages/scripts can find it.
-const TOKEN_KEYS = [TOKEN_KEY, "token", "authToken", "auth_token", "access_token"];
+// Auth is handled via HttpOnly cookie (set by the backend).
+// Frontend must NOT read or store the auth token in JS.
 
 // Redirect after login / account verification (supports ?back=...)
 const DEFAULT_REDIRECT_AFTER_LOGIN = "painel.html";
@@ -559,7 +556,7 @@ function validatePassword(pw){
 function pwScore(pw){ return validatePassword(pw).points; }
 
 async function api(path, { method="GET", body } = {}){
-  const opts = { method, headers: { "Content-Type": "application/json" } };
+  const opts = { method, credentials: "include", headers: { "Content-Type": "application/json" } };
   if(body) opts.body = JSON.stringify(body);
   const r = await fetch(API_BASE + path, opts);
   let data = null;
@@ -571,42 +568,8 @@ async function api(path, { method="GET", body } = {}){
   return data;
 }
 
-function pickToken(data){
-  if(!data || typeof data !== "object") return null;
-  return data.token || data.accessToken || data.access_token || data.jwt || data.idToken || data.id_token || null;
-}
-
-function setAuthed(token){
-  if(!token || typeof token !== "string") throw new Error("Token inválido retornado pelo servidor.");
-  TOKEN_KEYS.forEach((k)=>{ try{ localStorage.setItem(k, token); }catch(_){} });
-  try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(_){}
-  // Cookie fallback (30 days)
-  try{
-    document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; Path=/; Max-Age=${60*60*24*30}; SameSite=Lax`;
-  }catch(_){}
-}
 
 function redirectAfterLogin(){ window.location.href = REDIRECT_AFTER_LOGIN; }
-// --- Google OAuth callback (?token=...) ---
-(function handleGoogleCallback(){
-  try{
-    const params = new URLSearchParams(window.location.search);
-    const tokenFromUrl = params.get("token");
-    if(!tokenFromUrl) return;
-
-    setAuthed(tokenFromUrl);
-
-    // limpa o ?token= da URL
-    try{
-      const cleanUrl = window.location.origin + window.location.pathname;
-      window.history.replaceState({}, document.title, cleanUrl);
-    }catch(_){}
-
-    redirectAfterLogin();
-  }catch(err){
-    console.error("Erro ao processar token do Google:", err);
-  }
-})();
 
 // ---------- Login ----------
 $("loginForm").addEventListener("submit", async (e) => {
@@ -620,10 +583,7 @@ $("loginForm").addEventListener("submit", async (e) => {
     const isEmail = looksLikeEmail(user);
     const payload = isEmail ? { email: user, password } : { phone: normalizePhone(user), password };
 
-    const data = await api(isEmail ? "/auth/login" : "/auth/login/phone", { method:"POST", body: payload });
-    const token = pickToken(data);
-    if(!token) throw new Error("Login OK, mas não veio token do servidor.");
-    setAuthed(token);
+    await api(isEmail ? "/auth/login" : "/auth/login/phone", { method:"POST", body: payload });
     showMsg($("loginMsg"), "✅ Logged in successfully!", "ok");
     setTimeout(redirectAfterLogin, 600);
   }catch(err){
@@ -761,10 +721,7 @@ $("verifyForm").addEventListener("submit", async (e) => {
       ? { email: lastRegister.contact, code }
       : { phone: lastRegister.contact, code };
 
-    const data = await api(lastRegister.mode === "email" ? "/auth/verify/email" : "/auth/verify/phone", { method:"POST", body });
-    const token = pickToken(data);
-    if(!token) throw new Error("Login OK, mas não veio token do servidor.");
-    setAuthed(token);
+    await api(lastRegister.mode === "email" ? "/auth/verify/email" : "/auth/verify/phone", { method:"POST", body });
 
     showMsg($("verifyMsg"), "✅ Account created successfully!", "ok");
     setTimeout(() => { closeModal(); redirectAfterLogin(); }, 700);
