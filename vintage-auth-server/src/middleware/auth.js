@@ -11,9 +11,9 @@ function extractToken(req) {
     return h.slice(7).trim();
   }
 
-  if (req.cookies && req.cookies.token) {
-    return req.cookies.token;
-  }
+  if (req.cookies && req.cookies.vw_token) {
+  return req.cookies.vw_token;
+}
 
   if (req.query && req.query.token) {
     return req.query.token;
