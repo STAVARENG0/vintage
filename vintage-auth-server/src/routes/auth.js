@@ -50,8 +50,10 @@ function setAuthCookie(res, token) {
     secure: true,
     sameSite: "none",
     domain: ".vintage-clothes.ie",
+    path: "/",
   });
 }
+
 
 
 async function upsertOtp({ purpose, channel, contact, code, payload }) {
