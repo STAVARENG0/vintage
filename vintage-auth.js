@@ -102,7 +102,7 @@
    */
   function me() {
     return withTimeout(
-      apiFetch('/me', { method: 'GET' })
+      apiFetch('/user/me', { method: 'GET' })
         .then(function (res) {
           if (res.ok) {
             // pode ser JSON ou vazio
@@ -178,6 +178,7 @@
   window.VintageAuth = window.VintageAuth || {};
   window.VintageAuth._apiBase = window.VintageAuth._apiBase || '';
   window.VintageAuth.setApiBase = setApiBase;
+  window.VintageAuth.setApiBase("https://clientes.vintage-clothes.ie");
 
   window.VintageAuth.apiFetch = apiFetch;
   window.VintageAuth.me = me;
