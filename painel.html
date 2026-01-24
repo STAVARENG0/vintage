@@ -1754,11 +1754,17 @@ async function spin(){
     const API_ROOT = "https://clientes.vintage-clothes.ie"; // backend de login/conta
     const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
   function getToken(){
-      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
-    }
-function getToken(){
-  return (window.VintageAuth && typeof window.VintageAuth.getToken==="function") ? window.VintageAuth.getToken() : null;
+  try{
+    var t = null;
+    try { t = sessionStorage.getItem('vw_token') || sessionStorage.getItem('token') || sessionStorage.getItem('jwt'); } catch(_){}
+    if (!t) { try { t = localStorage.getItem('vw_token') || localStorage.getItem('token') || localStorage.getItem('jwt'); } catch(_){} }
+    if (!t && window.VintageAuth && typeof window.VintageAuth.getToken === 'function') t = window.VintageAuth.getToken();
+    // fallback: if cookie is readable on this domain
+    if (!t) { try { t = getCookie('vw_token') || getCookie('token'); } catch(_){} }
+    return t || null;
+  } catch(_) { return null; }
 }
+
 
 function requireTokenOrRedirect(){
   return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect === "function")
@@ -1778,13 +1784,40 @@ function authHeaders(extra){
 
 
 
-    async function apiJson(path, opts = {}){
-    const token = getCookie("vw_token");
-    const p = String(path || '');
+    
+async function ensureBearerToken(){
+  // If backend provides an endpoint that returns a JWT for the current cookie session,
+  // capture it once so we can call cross-domain services (Railway rewards).
+  try{
+    var existing = getToken();
+    if (existing) return existing;
+    var candidates = ['/auth/token', '/auth/session-token', '/user/token'];
+    for (var i=0;i<candidates.length;i++){
+      try{
+        var res = await fetch(API_ROOT + candidates[i], { method:'GET', credentials:'include', headers:{ 'Accept':'application/json' } });
+        if (!res.ok) continue;
+        var txt = await res.text();
+        var data = null;
+        try{ data = txt ? JSON.parse(txt) : null; }catch(_){ data = null; }
+        var t = (data && (data.token || data.vw_token || data.jwt)) ? (data.token || data.vw_token || data.jwt) : null;
+        if (t){
+          try{ sessionStorage.setItem('vw_token', t); }catch(_){}
+          return t;
+        }
+      }catch(_){}
+    }
+  }catch(_){}
+  return null;
+}
+
+async function apiJson(path, opts = {}){
+    const token = (await ensureBearerToken()) || getToken();
+const p = String(path || '');
     const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
     const base = isRewards ? REWARDS_ROOT : API_ROOT;
     const url = base + path;
    const init = {
+      credentials: 'include',
   method: opts.method || 'GET',
   headers: {
     'Content-Type': 'application/json',
