@@ -2013,7 +2013,7 @@ async function spin(){
     requireTokenOrRedirect();
 
     try {
-      const res = await fetch(API_ROOT + "/user/me", { headers: authHeaders() });
+      const res = await fetch(API_ROOT + "/user/me", { credentials: "include" });
 
       if (res.status === 401 || res.status === 403) {
         requireTokenOrRedirect();
