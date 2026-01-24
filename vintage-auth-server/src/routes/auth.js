@@ -39,13 +39,14 @@ function toDate(v) {
 }
 
 function setAuthCookie(res, token) {
- res.cookie("vw_token", token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: "None",
-  path: "/",
-  domain: ".vintage-clothes.ie",
-});
+  res.cookie("vw_token", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    path: "/",
+    domain: ".vintage-clothes.ie",
+  });
+}
 
 
 
