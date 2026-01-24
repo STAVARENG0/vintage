@@ -562,6 +562,13 @@ async function api(path, { method="GET", body } = {}){
 
 
 function redirectAfterLogin(){ window.location.href = REDIRECT_AFTER_LOGIN; }
+// Se já estiver logado (ex: voltou do Google), entra direto no painel
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const r = await fetch(API_BASE + "/user/me", { credentials: "include" });
+    if (r.ok) redirectAfterLogin();
+  } catch (_) {}
+});
 
 // ---------- Login ----------
 $("loginForm").addEventListener("submit", async (e) => {
