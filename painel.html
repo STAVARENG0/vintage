@@ -1756,6 +1756,21 @@ async function spin(){
   function getToken(){
       return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
+function getToken(){
+  return (window.VintageAuth && typeof window.VintageAuth.getToken==="function") ? window.VintageAuth.getToken() : null;
+}
+
+function requireTokenOrRedirect(){
+  return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect === "function")
+    ? window.VintageAuth.requireTokenOrRedirect()
+    : null;
+}
+
+function authHeaders(extra){
+  return (window.VintageAuth && typeof window.VintageAuth.authHeaders === "function")
+    ? window.VintageAuth.authHeaders(extra)
+    : (extra || {});
+}
 
 
 
