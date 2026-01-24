@@ -2185,8 +2185,7 @@ function authHeaders(extra){
 
       // *** AQUI a checagem real: /rewards/spin no backend ***
       try{
-        spinRes = await api.apiJson('/rewards/spin', { method:'POST' });
-        const res = spinRes;
+       const res = await api.apiJson('/rewards/spin', { method:'POST' });
 
         if (res && res.ok !== false && res.canSpin !== false){
           allowed = true;
