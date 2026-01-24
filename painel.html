@@ -1779,14 +1779,16 @@ function authHeaders(extra){
     const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
     const base = isRewards ? REWARDS_ROOT : API_ROOT;
     const url = base + path;
-    const init = {
-      method: opts.method || 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
-        ...authHeaders(),
-        },
-    };
+   const init = {
+  method: opts.method || 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+    ...(opts.headers || {}),
+    ...(token ? { Authorization: 'Bearer ' + token } : {}),
+  },
+};
+
+
     if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
 
     const res = await fetch(url, init);
