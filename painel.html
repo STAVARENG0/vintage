@@ -1751,13 +1751,11 @@ async function spin(){
     })();
   </script>
 <script>
-(function(){
     const API_ROOT = "https://clientes.vintage-clothes.ie"; // backend de login/conta
     const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
   function getToken(){
       return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
-}
 
 
 
