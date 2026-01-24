@@ -4,6 +4,7 @@ const cors = require("cors");
 const path = require("path");
 const rateLimit = require("express-rate-limit");
 const passport = require("passport");
+const cookieParser = require("cookie-parser");
 
 require("./auth/google.strategy");
 const { cfg } = require("./config");
@@ -27,6 +28,7 @@ app.use(
 );
 
 app.use(express.json({ limit: "200kb" }));
+app.use(cookieParser());
 app.use(passport.initialize());
 
 const limiter = rateLimit({
