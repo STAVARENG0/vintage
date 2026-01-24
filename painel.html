@@ -1765,6 +1765,10 @@ function requireTokenOrRedirect(){
     ? window.VintageAuth.requireTokenOrRedirect()
     : null;
 }
+function getCookie(name){
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
 
 function authHeaders(extra){
   return (window.VintageAuth && typeof window.VintageAuth.authHeaders === "function")
