@@ -658,65 +658,11 @@
   </div>
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
-<script>
-const __MEM_STORE = {
-  _m: Object.create(null),
-  getItem(k){ return Object.prototype.hasOwnProperty.call(this._m, String(k)) ? this._m[String(k)] : null; },
-  setItem(k, v){ this._m[String(k)] = String(v); },
-  removeItem(k){ delete this._m[String(k)]; },
-  key(i){ return Object.keys(this._m)[Number(i) || 0] || null; },
-  get length(){ return Object.keys(this._m).length; },
-};
+  <script src="vintage-auth.js"></script>
+  <script src="auth-guard.js"></script>
 
-/* === Cookie Auth Helper (sem storage) === */
-(function(){
-  const AUTH_ROOT = "https://clientes-0r5d.onrender.com";
-  const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app";
 
-  function isAbsolute(u){ return /^https?:\/\//i.test(String(u||"")); }
-  function isRewardsPath(p){
-    const s = String(p||"");
-    return s.startsWith("/rewards/") || s.startsWith("/checkout/") || s.startsWith("/cart");
-  }
-  function buildUrl(input){
-    const s = String(input||"");
-    if (isAbsolute(s)) return s;
-    return (isRewardsPath(s) ? REWARDS_ROOT : AUTH_ROOT) + s;
-  }
-
-  function authFetch(input, opts){
-    const o = opts ? { ...opts } : {};
-    o.credentials = "include";
-    o.headers = { ...(o.headers || {}) };
-    return fetch(buildUrl(input), o);
-  }
-
-  function redirectToLogin(){
-    const back = encodeURIComponent(location.pathname.split("/").pop() || "");
-    location.href = `cliente-login-2.html?back=${back}`;
-  }
-
-  async function requireAuth(){
-    const res = await authFetch("/user/me", { method:"GET", headers:{ "Accept":"application/json" } });
-    if (res.status === 401 || res.status === 403){
-      redirectToLogin();
-      return null;
-    }
-    if (!res.ok){
-      throw new Error("Auth check failed: " + res.status);
-    }
-    let me = {};
-    try{ me = await res.json(); }catch(_){}
-    window.__VW_ME = me;
-    return me;
-  }
-
-  async function logout(){ window.VW_AUTH.logout(); }
-
-  window.VW_AUTH = { AUTH_ROOT, REWARDS_ROOT, authFetch, requireAuth, logout, redirectToLogin };
-})();
-</script>
-<script>
+  <script>
     // ====== Estado (demo) ======
     const state = {
       me: null,
@@ -755,7 +701,7 @@ const __MEM_STORE = {
 
     function readCartByKey(key){
       try{
-        const raw = __MEM_STORE.getItem(key);
+        const raw = localStorage.getItem(key);
         if (!raw) return [];
         const v = JSON.parse(raw);
         return Array.isArray(v) ? v : [];
@@ -767,8 +713,8 @@ const __MEM_STORE = {
     function listUserCartKeys(){
       const out = [];
       try{
-        for (let i=0;i<__MEM_STORE.length;i++){
-          const k = __MEM_STORE.key(i);
+        for (let i=0;i<localStorage.length;i++){
+          const k = localStorage.key(i);
           if (k && String(k).startsWith('vw_cart_u_')) out.push(String(k));
         }
       }catch(_){ }
@@ -790,7 +736,7 @@ const __MEM_STORE = {
       // Also mirror into the user cart (without deleting the guest cart) when possible.
       if (guest.length){
         if (candidate && !candCart.length){
-          try{ __MEM_STORE.setItem(candidate, JSON.stringify(guest)); }catch(_){ }
+          try{ localStorage.setItem(candidate, JSON.stringify(guest)); }catch(_){ }
         }
         return CART_GUEST_KEY;
       }
@@ -823,13 +769,42 @@ const __MEM_STORE = {
       };
     }
 
-    function loadLocalCart(){ state.cart = Array.isArray(state.cart) ? state.cart : []; }
+    function loadLocalCart(){
+      const key = chooseActiveCartKey();
+      const arr = readCartByKey(key);
+
+      // Normalize, but keep ALL original fields (stock, category, etc.) so the Store doesn't break.
+      state.cart = (Array.isArray(arr) ? arr : []).map(normalizeCartItem);
+    }
 
     let suppressCartSync = false;
     const CART_SYNC_DEBOUNCE_MS = 800;
     let cartSyncTimer = null;
 
-    function saveLocalCart(){ /* no-op: sem storage */ }
+    function saveLocalCart(){
+      const key = chooseActiveCartKey();
+      const normalized = (Array.isArray(state.cart) ? state.cart : []).map((it) => {
+        const obj = (it && typeof it === 'object') ? { ...it } : {};
+        obj.title = obj.title || obj.name || obj.product || 'Product';
+        obj.image = obj.image || obj.img || obj.photo || obj.photo_url || obj.photoUrl || null;
+        obj.qty = Number(obj.qty ?? obj.quantity ?? 1);
+        if (!Number.isFinite(obj.qty) || obj.qty <= 0) obj.qty = 1;
+        obj.price = Number(obj.price ?? 0);
+        if (!Number.isFinite(obj.price)) obj.price = 0;
+        return obj;
+      });
+
+      try{ localStorage.setItem(key, JSON.stringify(normalized)); }catch(_){ }
+
+      // Mirror to guest cart too so Store and Dashboard never diverge during this phase.
+      if (key !== CART_GUEST_KEY){
+        try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
+      }
+
+      if (!suppressCartSync){
+        scheduleCartSync();
+      }
+    }
 
     function isLoggedInForCart(){
       return !!getToken() && !!getUserId();
@@ -941,13 +916,33 @@ const __MEM_STORE = {
       if (state.activeShipping && !isValidReward(state.activeShipping)) state.activeShipping = null;
     }
 
-    function loadSharedRewards(){ /* no-op: sem storage */ }
+    function loadSharedRewards(){
+      try{
+        const raw = localStorage.getItem(SHARED_REWARDS_KEY);
+        if (!raw) { cleanExpiredRewards(); return; }
+        const data = JSON.parse(raw);
+        if (typeof data.points === 'number') state.points = data.points;
+        if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
+        if (data.activeDiscount) state.activeDiscount = data.activeDiscount;
+        if (data.activeShipping) state.activeShipping = data.activeShipping;
+      }catch(_){ }
+      cleanExpiredRewards();
+    }
 
-    function saveSharedRewards(){ /* no-op: sem storage */ }
+    function saveSharedRewards(){
+      try{
+        localStorage.setItem(SHARED_REWARDS_KEY, JSON.stringify({
+          points: state.points,
+          cashbackHistory: state.cashbackHistory,
+          activeDiscount: state.activeDiscount,
+          activeShipping: state.activeShipping,
+        }));
+      }catch(_){ }
+    }
 
     function loadCartRewardSelection(){
       try{
-        const raw = __MEM_STORE.getItem(CART_REWARDS_SELECTION_KEY);
+        const raw = localStorage.getItem(CART_REWARDS_SELECTION_KEY);
         if (!raw) return { usePoints:false, useDiscount:false, useShipping:false };
         const s = JSON.parse(raw) || {};
         return {
@@ -962,7 +957,7 @@ const __MEM_STORE = {
 
     function saveCartRewardSelection(sel){
       try{
-        __MEM_STORE.setItem(CART_REWARDS_SELECTION_KEY, JSON.stringify({
+        localStorage.setItem(CART_REWARDS_SELECTION_KEY, JSON.stringify({
           usePoints: !!sel.usePoints,
           useDiscount: !!sel.useDiscount,
           useShipping: !!sel.useShipping,
@@ -1189,7 +1184,26 @@ const __MEM_STORE = {
       };
     }
 
-    function persistCheckoutPayload(){ /* no-op: sem storage */ }
+    function persistCheckoutPayload(t){
+      try{
+
+        const compact = (Array.isArray(t.cart) ? t.cart : []).map(it => ({
+          id: String(it.id),
+          title: it.title || 'Product',
+          price: Number(it.price || 0),
+          qty: Number(it.qty || 1),
+        }));
+
+        localStorage.setItem(CHECKOUT_PAYLOAD_KEY, JSON.stringify({
+cart: compact,
+          pay_subtotal: Number(t.total || 0),
+          free_shipping: !!t.freeShipping,
+          points_used: Number(t.pointsUsed || 0),
+          discount_percent: Number(t.discountPercent || 0),
+          updatedAt: new Date().toISOString(),
+        }));
+      }catch(_){ }
+    }
 
     function renderCart(){
       const cart = Array.isArray(state.cart) ? state.cart : [];
@@ -1586,8 +1600,8 @@ function statusToStepIndex(status){
       if (!confirm('Clear the cart?')) return;
       // Clear the SAME cart used by the Store (so they stay in sync).
       state.cart = [];
-      try{ __MEM_STORE.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
-      try{ __MEM_STORE.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
+      try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
+      try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
       scheduleCartSync();
       renderCart();
     }
@@ -1621,7 +1635,7 @@ function statusToStepIndex(status){
       fd.append("avatar", file);
 
       try {
-        const res = await window.VW_AUTH.authFetch("/user/me/avatar", {
+        const res = await fetch(API_ROOT + "/user/me/avatar", {
           method: "POST",
           headers: authHeaders(),
           body: fd
@@ -1759,7 +1773,7 @@ function statusToStepIndex(status){
     window.VintageAuth.logout();
     return;
   }
-  __MEM_STORE.removeItem('vw_token');
+  sessionStorage.removeItem('vw_token');
   window.location.href = 'cliente-login-2.html';
 }
 
@@ -1779,7 +1793,7 @@ function statusToStepIndex(status){
       // Load shared rewards (points + wheel rewards)
       loadSharedRewards();
 
-      // Cart comes from the Store __MEM_STORE (it must transit between pages).
+      // Cart comes from the Store localStorage (it must transit between pages).
       loadLocalCart();
 
       state.orders = state.orders || [];
@@ -1795,7 +1809,7 @@ function statusToStepIndex(status){
     }
 
     // ====== Eventos ======
-    window.afterAuthBoot = async (me) => {
+    document.addEventListener('DOMContentLoaded', () => {
       loadDemo();
 
       $('btnPickAvatar')?.addEventListener('click', openAvatarPicker);
@@ -1867,7 +1881,7 @@ function statusToStepIndex(status){
         }, { passive: true });
       }
 
-};
+});
 
     // ======= Campo reativo dourado =======
     (() => {
@@ -1983,78 +1997,130 @@ function statusToStepIndex(status){
   </script>
 <script>
 (function(){
-  const API_ROOT = (window.VW_AUTH && window.VW_AUTH.AUTH_ROOT) || "https://clientes-0r5d.onrender.com";
-  const REWARDS_ROOT = (window.VW_AUTH && window.VW_AUTH.REWARDS_ROOT) || "https://vw-rewards-backend-production.up.railway.app";
-
-  function isAbsolute(u){ return /^https?:\/\//i.test(String(u||"")); }
-  function pickBase(path){
-    const p = String(path||"");
-    if (p.startsWith("/rewards/") || p.startsWith("/checkout/") || p.startsWith("/cart")) return REWARDS_ROOT;
-    return API_ROOT;
-  }
-
-  function authFetch(path, opts){
-    const p = String(path||"");
-    const url = isAbsolute(p) ? p : (pickBase(p) + p);
-    const o = opts ? { ...opts } : {};
-    o.credentials = "include";
-    o.headers = { ...(o.headers || {}) };
-    return fetch(url, o);
-  }
-
-  async function apiJson(path, opts = {}){
-    const init = { method: opts.method || "GET", headers: { ...(opts.headers || {}) } };
-    if (opts.body !== undefined){
-      if (opts.body instanceof FormData){
-        init.body = opts.body;
-      } else {
-        init.headers["Content-Type"] = init.headers["Content-Type"] || "application/json";
-        init.body = (typeof opts.body === "string") ? opts.body : JSON.stringify(opts.body);
-      }
+    const API_ROOT = "https://clientes-0r5d.onrender.com"; // backend de login/conta
+    const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
+  function getToken(){
+      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
-    const res = await authFetch(path, init);
+function requireTokenOrRedirect(){
+      return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect==='function') ? window.VintageAuth.requireTokenOrRedirect() : null;
+    }
+    return t;
+  }
+
+  function authHeaders(){
+    return (window.VintageAuth && typeof window.VintageAuth.authHeaders==='function') ? window.VintageAuth.authHeaders() : {};
+  }
+
+
+
+    async function apiJson(path, opts = {}){
+    const p = String(path || '');
+    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/') || p.startsWith('/cart');
+    const base = isRewards ? REWARDS_ROOT : API_ROOT;
+    const url = base + path;
+    const init = {
+      method: opts.method || 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(opts.headers || {}),
+        ...authHeaders(),
+      },
+    };
+    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+
+    const res = await fetch(url, init);
     if (res.status === 401 || res.status === 403){
-      window.VW_AUTH && window.VW_AUTH.redirectToLogin && window.VW_AUTH.redirectToLogin();
-      throw new Error("unauthorized");
+      requireTokenOrRedirect();
+      throw new Error('unauthorized');
     }
-    const txt = await res.text();
+
+    const text = await res.text();
     let data = null;
-    try{ data = txt ? JSON.parse(txt) : null; }catch(_){ data = txt; }
+    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
+
     if (!res.ok){
-      const msg = (data && (data.error || data.message)) ? (data.error || data.message) : ("HTTP " + res.status);
+      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
       throw new Error(msg);
     }
     return data;
   }
 
-  function applyAvatar(user){
-    const img = document.getElementById("avatar");
-    if (!img) return;
-
-    const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
-    if (!raw){
-      if (typeof defaultAvatarDataUri === "function") img.src = defaultAvatarDataUri();
-      return;
+  function syncPointsUI(points){
+    const p = document.getElementById('pointsNow');
+    if (p) p.textContent = String(points ?? 0);
+    const cash = document.getElementById('cashValue');
+    if (cash){
+      const eur = (Number(points||0) * 0.5);
+      cash.textContent = '= € ' + eur.toFixed(2);
     }
-
-    let url = String(raw);
-    if (!/^https?:\/\//i.test(url)){
-      if (!url.startsWith("/")) url = "/" + url;
-      url = API_ROOT + url;
-    }
-    url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
-    img.src = url;
   }
 
   async function loadRewardsStatus(){
     try{
-      const data = await apiJson("/rewards/status", { method:"GET" });
-      if (typeof syncPointsUI === "function"){
-        const pts = Number(data?.points ?? data?.user?.points ?? 0);
-        syncPointsUI(pts);
+      const data = await apiJson('/rewards/status', { method:'GET' });
+
+      const points = Number(data?.points ?? data?.user?.points ?? 0);
+      if (typeof state !== 'undefined') state.points = points;
+
+      const ad = data?.activeDiscount || data?.active_discount || null;
+      if (typeof state !== 'undefined'){
+        state.activeDiscount = ad ? {
+          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
+          percent: Number(ad.percent ?? ad.value ?? 0),
+          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+        } : null;
       }
+
+      const sh = data?.activeShipping || data?.active_shipping || null;
+      if (typeof state !== 'undefined'){
+        state.activeShipping = sh ? {
+          id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
+          expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
+        } : null;
+      }
+
+      // aplicados (opcional; depende do teu backend)
+      let main = data?.appliedValueReward || data?.appliedReward || data?.applied_redemption || data?.redemption || null;
+      let shipRed = data?.appliedShipping || data?.applied_shipping || data?.shippingRedemption || data?.shipping_redemption || null;
+
+      const arr = data?.appliedRewards || data?.applied_rewards || data?.redemptions || null;
+      if (Array.isArray(arr)){
+        for (const r of arr){
+          const t = String(r?.type || '');
+          if (!main && (t === 'points' || t === 'discount')) main = r;
+          if (!shipRed && (t === 'shipping' || t === 'free_shipping')) shipRed = r;
+        }
+      }
+
+      if (typeof state !== 'undefined'){
+        state.appliedValueReward = null;
+        if (main && (main.type === 'points' || main.type === 'discount')){
+          state.appliedValueReward = {
+            id: main.id ?? main.redemption_id ?? main.redemptionId ?? null,
+            type: main.type || null,
+            amountEUR: Number(main.amountEUR ?? main.amount_eur ?? 0),
+            pointsUsed: Number(main.pointsUsed ?? main.points_used ?? 0),
+            percent: Number(main.percent ?? main.discount_percent ?? 0),
+          };
+        }
+
+        state.appliedShippingReward = null;
+        if (shipRed){
+          state.appliedShippingReward = {
+            id: shipRed.id ?? shipRed.redemption_id ?? shipRed.redemptionId ?? shipRed.shipping_id ?? shipRed.shippingId ?? null,
+            type: 'shipping',
+          };
+        }
+      }
+
+      syncPointsUI(points);
+      if (typeof renderAll === 'function') renderAll();
+      if (typeof renderCart === 'function') renderCart();
+
       return data;
-    }catch(_){
+    } catch(err){
+      console.warn('Rewards status not loaded:', err?.message || err);
       return null;
     }
   }
@@ -2063,33 +2129,105 @@ function statusToStepIndex(status){
   window.VW_API.root = API_ROOT;
   window.VW_API.apiJson = apiJson;
   window.VW_API.loadRewardsStatus = loadRewardsStatus;
-  window.VW_API.applyPoints = (points) => apiJson("/rewards/apply-points", { method:"POST", body:{ points } });
-  window.VW_API.applyDiscount = () => apiJson("/rewards/apply-discount", { method:"POST", body:{} });
-  window.VW_API.applyShipping = () => apiJson("/rewards/apply-shipping", { method:"POST", body:{} });
-  window.VW_API.grantDiscount = (percent) => apiJson("/rewards/grant-discount", { method:"POST", body:{ percent } });
-  window.VW_API.creditPoints = (points, source="wheel") => apiJson("/rewards/credit-points", { method:"POST", body:{ points, source } });
-  window.VW_API.checkoutCreate = (payload) => apiJson("/checkout/create", { method:"POST", body: payload || {} });
-  window.VW_API.grantShipping = () => apiJson("/rewards/grant-shipping", { method:"POST", body:{} });
-  window.VW_API.grantExtraSpin = (qty=1, source="wheel") => apiJson("/rewards/grant-extra-spin", { method:"POST", body:{ qty, source } });
+  window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
+  window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
+  window.VW_API.applyShipping = () => apiJson('/rewards/apply-shipping', { method:'POST', body:{} });
+  window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
+  window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
+  window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
 
-  async function boot(){
-    const me = await (window.VW_AUTH && window.VW_AUTH.requireAuth ? window.VW_AUTH.requireAuth() : null);
-    if (!me) return;
+  function defaultAvatarDataUri(){
+    const svg = encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+        <defs>
+          <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+            <stop stop-color="#D4AF37" stop-opacity="0.35"/>
+            <stop stop-color="#f0b43b" stop-opacity="0.18" offset="1"/>
+          </linearGradient>
+        </defs>
+        <rect width="240" height="240" rx="120" fill="url(#g)"/>
+        <circle cx="120" cy="92" r="44" fill="rgba(43,39,35,0.16)"/>
+        <path d="M48 212c14-46 50-68 72-68s58 22 72 68" fill="rgba(43,39,35,0.14)"/>
+      </svg>
+    `);
+    return `data:image/svg+xml;charset=utf-8,${svg}`;
+  }
 
-    const nameEl = document.getElementById("userName");
-    const emailEl = document.getElementById("userEmail");
-    if (nameEl) nameEl.textContent = me.name || "Your Name";
-    if (emailEl) emailEl.textContent = me.email || "email@example.com";
-    applyAvatar(me);
+  function applyAvatar(user){
+    const img = document.getElementById("avatar");
+    if (!img) return;
 
-    try{ await loadRewardsStatus(); }catch(_){}
+    const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
 
-    if (typeof window.afterAuthBoot === "function"){
-      await window.afterAuthBoot(me);
+    if (!raw) {
+      const def = defaultAvatarDataUri();
+      img.src = def;
+      try{
+        if (typeof state !== "undefined" && state.me){
+          state.me.avatar = def;
+        }
+      }catch(_){}
+      return;
+    }
+
+    let url = String(raw);
+    if (!/^https?:\/\//i.test(url)) {
+      if (!url.startsWith("/")) url = "/" + url;
+      url = API_ROOT + url;
+    }
+
+    // cache-bust so the new photo appears immediately
+    url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
+    img.src = url;
+    try{
+      if (typeof state !== "undefined" && state.me){
+        state.me.avatar = url;
+      }
+    }catch(_){}
+  }
+
+  async function loadProfile(){
+    requireTokenOrRedirect();
+
+    try {
+      const res = await fetch(API_ROOT + "/user/me", { headers: authHeaders() });
+
+      if (res.status === 401 || res.status === 403) {
+        requireTokenOrRedirect();
+        return;
+      }
+
+      if (!res.ok) {
+        console.warn("Failed to load /user/me:", res.status);
+        return;
+      }
+
+      const user = await res.json();
+
+      try{ state.me = user; }catch(_){ }
+      try{ if (user && (user.id ?? user.user_id ?? user.userId)) sessionStorage.setItem('vw_user_id', String(user.id ?? user.user_id ?? user.userId)); }catch(_){ }
+      // Re-load cart using the logged-in user id (so it maps to vw_cart_u_<id>)
+      loadLocalCart();
+      renderCart();
+
+      const nameEl = document.getElementById("userName");
+      const emailEl = document.getElementById("userEmail");
+
+      if (nameEl) nameEl.textContent = user.name || "Your Name";
+      if (emailEl) emailEl.textContent = user.email || "email@example.com";
+
+      applyAvatar(user);
+      // Load rewards (points + discount + free shipping) from the backend
+      loadRewardsStatus();
+      if (window.VW_CART_SYNC && typeof window.VW_CART_SYNC.syncOnLogin === 'function'){
+        window.VW_CART_SYNC.syncOnLogin();
+      }
+    } catch (err) {
+      console.error("Error loading /user/me", err);
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => { boot(); });
+  document.addEventListener("DOMContentLoaded", loadProfile);
 })();
 </script>
 

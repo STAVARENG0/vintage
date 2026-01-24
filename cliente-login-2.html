@@ -451,7 +451,7 @@
 
 <script>
 // Backend URL (kept as-is)
-const API_BASE = "https://clientes.vintage-clothes.ie";
+const API_BASE = "https://clientes-0r5d.onrender.com";
 
 // Auth is handled via HttpOnly cookie (set by the backend).
 // Frontend must NOT read or store the auth token in JS.
@@ -583,7 +583,7 @@ $("loginForm").addEventListener("submit", async (e) => {
     const isEmail = looksLikeEmail(user);
     const payload = isEmail ? { email: user, password } : { phone: normalizePhone(user), password };
 
-    const loginPath = isEmail ? "/login" : "/login/phone";
+    const loginPath = isEmail ? "/auth/login" : "/auth/login/phone";
     const r = await fetch(API_BASE + loginPath, {
       method: "POST",
       credentials: "include",
