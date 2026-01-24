@@ -433,12 +433,15 @@ router.post("/password/reset/finish", async (req, res) => {
 
 // ---- GOOGLE LOGIN ----
 
+const GOOGLE_CALLBACK_URL = "https://clientes.vintage-clothes.ie/auth/google/callback";
+
 // INICIAR LOGIN COM GOOGLE
 router.get(
   "/google",
   passport.authenticate("google", {
     scope: ["profile", "email"],
     session: false,
+    callbackURL: GOOGLE_CALLBACK_URL,
   })
 );
 
@@ -448,6 +451,7 @@ router.get(
   passport.authenticate("google", {
     session: false,
     failureRedirect: "/login",
+    callbackURL: GOOGLE_CALLBACK_URL,
   }),
   (req, res) => {
     const { token } = req.user;
