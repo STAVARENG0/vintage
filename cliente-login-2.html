@@ -547,21 +547,27 @@ function validatePassword(pw){
 
 function pwScore(pw){ return validatePassword(pw).points; }
 
-const token = localStorage.getItem("token");
-const headers = { "Content-Type": "application/json" };
-if (token) headers.Authorization = `Bearer ${token}`;
-const opts = { method, credentials: "include", headers };
 
-  if(body) opts.body = JSON.stringify(body);
+  async function api(path, { method="GET", body } = {}) {
+  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const opts = { method, credentials: "include", headers };
+  if (body) opts.body = JSON.stringify(body);
+
   const r = await fetch(API_BASE + path, opts);
   let data = null;
   try { data = await r.json(); } catch(_) {}
-  if(!r.ok){
+
+  if (!r.ok) {
     const err = (data && (data.message || data.error)) ? (data.message || data.error) : `Error ${r.status}`;
     throw new Error(err);
   }
   return data;
 }
+
+
 
 
 function redirectAfterLogin(){ window.location.href = REDIRECT_AFTER_LOGIN; }
