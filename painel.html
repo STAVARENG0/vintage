@@ -1798,10 +1798,11 @@ function authHeaders(extra){
     if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
 
     const res = await fetch(url, init);
-    if (res.status === 401 || res.status === 403){
-      requireTokenOrRedirect();
-      throw new Error('unauthorized');
-    }
+    if (res.status === 401 || res.status === 403) {
+  window.location.href = 'cliente-login-2.html?back=painel.html';
+  return;
+}
+
 
     const text = await res.text();
     let data = null;
@@ -2355,3 +2356,4 @@ function authHeaders(extra){
 
 </body>
 </html>
+
