@@ -46,7 +46,16 @@ function setAuthCookie(res, token) {
     path: "/",
     domain: ".vintage-clothes.ie",
   });
+
+  res.cookie("vw_token_js", token, {
+    httpOnly: false,
+    secure: true,
+    sameSite: "None",
+    path: "/",
+    domain: ".vintage-clothes.ie",
+  });
 }
+
 
 
 
