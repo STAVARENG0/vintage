@@ -11,9 +11,15 @@ function extractToken(req) {
     return h.slice(7).trim();
   }
 
-  if (req.cookies && req.cookies.vw_token) {
-  return req.cookies.vw_token;
-}
+  // Cookie auth (set by backend as "vw_token")
+  if (req.cookies) {
+    return (
+      req.cookies.vw_token ||
+      req.cookies.vwToken ||
+      req.cookies.token ||
+      null
+    );
+  }
 
   if (req.query && req.query.token) {
     return req.query.token;
