@@ -1775,6 +1775,7 @@ function authHeaders(extra){
 
 
     async function apiJson(path, opts = {}){
+    const token = getCookie("vw_token");
     const p = String(path || '');
     const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
     const base = isRewards ? REWARDS_ROOT : API_ROOT;
