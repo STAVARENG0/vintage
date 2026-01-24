@@ -663,450 +663,51 @@
   </div>
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
-  <script src="vintage-auth.js"></script>
-  <script src="auth-guard.js"></script>
-  <script>
-    const API_ROOT = "https://clientes-0r5d.onrender.com";
-    function getToken(){
-      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
-    }
-catch (_) {
-        return null;
-      }
-    }
+<script>
+/* === Cookie Auth Helper (sem storage) === */
+(function(){
+  const AUTH_ROOT = "https://clientes-0r5d.onrender.com";
+  const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app";
 
-    function requireTokenOrRedirect(){
-      return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect==='function') ? window.VintageAuth.requireTokenOrRedirect() : null;
-    }
-      return t;
-    }
-
-    function authHeaders(extra){
-      return (window.VintageAuth && typeof window.VintageAuth.authHeaders==='function') ? window.VintageAuth.authHeaders(extra) : (extra||{});
-    }
-
-    async function apiJson(path, opts = {}){
-      const url = API_ROOT + path;
-      const init = {
-        method: opts.method || 'GET',
-        headers: authHeaders({ 'Content-Type': 'application/json', ...(opts.headers||{}) }),
-      };
-      if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
-
-      const res = await fetch(url, init);
-      if (res.status === 401 || res.status === 403){
-        requireTokenOrRedirect();
-        throw new Error('unauthorized');
-      }
-
-      const text = await res.text();
-      let data = null;
-      try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
-      if (!res.ok){
-        const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-        throw new Error(msg);
-      }
-      return data;
-    }
-
-    function syncPointsUI(points){
-      const p = document.getElementById('pointsNow');
-      if (p) p.textContent = String(points ?? 0);
-      const cash = document.getElementById('cashValue');
-      if (cash){
-        const eur = (Number(points||0) * 0.5);
-        cash.textContent = '= € ' + eur.toFixed(2);
-      }
-    }
-
-    async function loadRewardsStatus(){
-      try{
-        const data = await apiJson('/rewards/status', { method:'GET' });
-        const points = Number(data?.points ?? data?.user?.points ?? 0);
-        syncPointsUI(points);
-        return data;
-      } catch(err){
-        console.warn('Rewards status not loaded:', err?.message || err);
-        return null;
-      }
-    }
-
-    window.VW_API = window.VW_API || {};
-    window.VW_API.root = API_ROOT;
-    window.VW_API.apiJson = apiJson;
-    window.VW_API.loadRewardsStatus = loadRewardsStatus;
-    window.VW_API.applyPoints = (points) => apiJson('/rewards/apply-points', { method:'POST', body:{ points } });
-    window.VW_API.applyDiscount = () => apiJson('/rewards/apply-discount', { method:'POST', body:{} });
-    window.VW_API.grantDiscount = (percent) => apiJson('/rewards/grant-discount', { method:'POST', body:{ percent } });
-    window.VW_API.creditPoints = (points, source='wheel') => apiJson('/rewards/credit-points', { method:'POST', body:{ points, source } });
-    window.VW_API.checkoutCreate = (payload) => apiJson('/checkout/create', { method:'POST', body: payload || {} });
-
-
-    function defaultAvatarDataUri() {
-      const svg = encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
-          <defs>
-            <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-              <stop stop-color="#D4AF37" stop-opacity="0.35"/>
-              <stop stop-color="#f0b43b" stop-opacity="0.18" offset="1"/>
-            </linearGradient>
-          </defs>
-          <rect width="240" height="240" rx="120" fill="url(#g)"/>
-          <circle cx="120" cy="92" r="44" fill="rgba(43,39,35,0.16)"/>
-          <path d="M48 212c14-46 50-68 72-68s58 22 72 68" fill="rgba(43,39,35,0.14)"/>
-        </svg>
-      `);
-      return `data:image/svg+xml;charset=utf-8,${svg}`;
-    }
-
-    let currentUser = null;
-    let currentAddress = null;
-
-    function $(id) { return document.getElementById(id); }
-
-
-    const USER_CACHE_KEY = 'vw_user_cache';
-    const ADDR_CACHE_KEY = 'vw_address_cache';
-
-    function readCache(key){
-      try{
-        if (key === USER_CACHE_KEY){
-          return (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function') ? (window.VintageAuth.getLoggedUser().user || null) : null;
-        }
-        const store = localStorage;
-        const raw = store.getItem(key);
-        return raw ? JSON.parse(raw) : null;
-      }catch(_){ return null; }
-    }
-
-    function writeCache(key, value){
-      try{
-        const store = (key === USER_CACHE_KEY) ? sessionStorage : localStorage;
-        store.setItem(key, JSON.stringify(value || {}));
-      }catch(_){ }
-    }
-
-function normalizeUser(raw){
-      if (!raw) return {};
-      return raw.user || raw.data || raw.profile || raw.account || raw;
-    }
-
-    function pickName(u){
-      return u.name || u.fullName || u.fullname || u.username || u.userName || '';
-    }
-
-    function pickEmail(u){
-      return u.email || u.mail || u.userEmail || '';
-    }
-
-    function pickPhone(u){
-      return u.phone || u.telefone || u.mobile || u.cellphone || '';
-    }
-
-    function pickAvatar(u){
-      return u.avatar_url || u.avatarUrl || u.avatar || u.photo_url || u.photo || '';
-    }
-
-   function fillProfileUI() {
-  const u = normalizeUser(currentUser) || {};
-  const name = pickName(u) || 'Your Name';
-  const email = pickEmail(u) || 'email@example.com';
-  const phone = pickPhone(u) || '';
-  const avatarUrl = pickAvatar(u) || '';
-
-  if (document.getElementById('userName'))
-    document.getElementById('userName').textContent = name;
-
-  if (document.getElementById('userEmail'))
-    document.getElementById('userEmail').textContent = email;
-
-  if (document.getElementById('accName'))
-    document.getElementById('accName').value = name === 'Your Name' ? '' : name;
-
-  if (document.getElementById('accEmail'))
-    document.getElementById('accEmail').value = email === 'email@example.com' ? '' : email;
-
-  if (document.getElementById('accPhone'))
-    document.getElementById('accPhone').value = phone;
-
-  const avatar = document.getElementById('avatar');
-  if (avatar) {
-    if (avatarUrl && avatarUrl.length > 0) {
-      if (avatarUrl.startsWith('http')) {
-        avatar.src = avatarUrl;
-      } else {
-        avatar.src = API_ROOT + avatarUrl;
-      }
-    } else {
-      avatar.src = defaultAvatarDataUri();
-    }
+  function isAbsolute(u){ return /^https?:\/\//i.test(String(u||"")); }
+  function isRewardsPath(p){
+    const s = String(p||"");
+    return s.startsWith("/rewards/") || s.startsWith("/checkout/") || s.startsWith("/cart");
   }
-}
+  function buildUrl(input){
+    const s = String(input||"");
+    if (isAbsolute(s)) return s;
+    return (isRewardsPath(s) ? REWARDS_ROOT : AUTH_ROOT) + s;
+  }
 
+  function authFetch(input, opts){
+    const o = opts ? { ...opts } : {};
+    o.credentials = "include";
+    o.headers = { ...(o.headers || {}) };
+    return fetch(buildUrl(input), o);
+  }
 
+  function redirectToLogin(){
+    const back = encodeURIComponent(location.pathname.split("/").pop() || "");
+    location.href = `cliente-login-2.html?back=${back}`;
+  }
 
-
-  
-    function fillAddressUI() {
-      const a = currentAddress || {};
-      if (document.getElementById("addrEircode")) document.getElementById("addrEircode").value = a.eircode || "";
-      if (document.getElementById("addrCounty")) document.getElementById("addrCounty").value = a.county || "";
-      if (document.getElementById("addrCity")) document.getElementById("addrCity").value = a.city || "";
-      if (document.getElementById("addrStreet")) document.getElementById("addrStreet").value = a.street || "";
+  async function requireAuth(){
+    const res = await authFetch("/user/me", { method:"GET", headers:{ "Accept":"application/json" } });
+    if (res.status === 401 || res.status === 403){
+      redirectToLogin();
+      return null;
     }
-
-    async function loadProfile() {
-      try {
-        const res = await fetch(API_ROOT + "/user/me", {
-          headers: authHeaders()
-        });
-        if (!res.ok) {
-          console.warn('Falha ao carregar /user/me:', res.status);
-          const cached = readCache(USER_CACHE_KEY);
-          if (cached) { currentUser = cached; fillProfileUI(); }
-          return;
-        }
-        const data = await res.json();
-        currentUser = data || {};
-        writeCache(USER_CACHE_KEY, currentUser);
-        fillProfileUI();
-      } catch (err) {
-        console.error('Erro carregando /user/me', err);
-        const cached = readCache(USER_CACHE_KEY);
-        if (cached) { currentUser = cached; fillProfileUI(); }
-      }
+    if (!res.ok){
+      throw new Error("Auth check failed: " + res.status);
     }
+    let me = {};
+    try{ me = await res.json(); }catch(_){}
+    window.__VW_ME = me;
+    return me;
+  }
 
-    async function loadSettings() {
-      try {
-        const res = await fetch(API_ROOT + "/user/settings", {
-          headers: authHeaders()
-        });
-        if (!res.ok) {
-          console.warn('Falha ao carregar /user/settings:', res.status);
-          const cached = readCache(ADDR_CACHE_KEY);
-          if (cached) { currentAddress = cached; fillAddressUI(); }
-          return;
-        }
-        const data = await res.json();
-        const addr = (data && data.address) || {};
-        currentAddress = {
-          eircode: addr.eircode || "",
-          county: addr.county || "",
-          city: addr.city || "",
-          street: addr.street || "",
-          country: addr.country || "Ireland"
-        };
-        writeCache(ADDR_CACHE_KEY, currentAddress);
-        fillAddressUI();
-      } catch (err) {
-        console.error('Erro carregando /user/settings', err);
-        const cached = readCache(ADDR_CACHE_KEY);
-        if (cached) { currentAddress = cached; fillAddressUI(); }
-      }
-    }
-
-    async function saveAccount() {
-      const name = document.getElementById("accName")?.value.trim() || "";
-      const email = document.getElementById("accEmail")?.value.trim() || "";
-      const phone = document.getElementById("accPhone")?.value.trim() || "";
-      const msgEl = document.getElementById("accountMsg");
-      if (msgEl) msgEl.textContent = "Saving changes…";
-
-      try {
-        const res = await fetch(API_ROOT + "/user/me/profile", {
-          method: "POST",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({ name, email, phone })
-        });
-
-        if (res.status === 401 || res.status === 403) {
-          requireTokenOrRedirect();
-          return;
-        }
-
-        if (!res.ok) {
-          throw new Error("Erro ao salvar");
-        }
-
-        currentUser = currentUser || {};
-        if (currentUser.user && typeof currentUser.user === 'object') {
-          currentUser.user = Object.assign({}, currentUser.user, { name, email, phone });
-        } else {
-          currentUser = Object.assign({}, currentUser, { name, email, phone });
-        }
-        writeCache(USER_CACHE_KEY, currentUser);
-        fillProfileUI();
-        if (msgEl) msgEl.textContent = "✅ Changes saved.";
-      } catch (err) {
-        console.error(err);
-        if (msgEl) msgEl.textContent = "❌ Error saving data.";
-      }
-    }
-
-    async function saveAddress() {
-      const msgEl = document.getElementById("addrMsg");
-      if (msgEl) msgEl.textContent = "Saving address…";
-
-      const data = {
-        eircode: document.getElementById("addrEircode")?.value.trim() || "",
-        county: document.getElementById("addrCounty")?.value.trim() || "",
-        city: document.getElementById("addrCity")?.value.trim() || "",
-        street: document.getElementById("addrStreet")?.value.trim() || "",
-        country: "Ireland"
-      };
-
-      try {
-        const res = await fetch(API_ROOT + "/user/me/address", {
-          method: "POST",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify(data)
-        });
-
-        if (res.status === 401 || res.status === 403) {
-          requireTokenOrRedirect();
-          return;
-        }
-
-        if (!res.ok) {
-          throw new Error("Erro ao salvar endereço");
-        }
-
-        currentAddress = data;
-        if (msgEl) msgEl.textContent = "✅ Address saved.";
-      } catch (err) {
-        console.error(err);
-        if (msgEl) msgEl.textContent = "❌ Error saving address.";
-      }
-    }
-
-    // Em alguns celulares (especialmente iPhone), fotos da galeria podem vir MUITO grandes,
-    // ou com mimetype vazio/HEIC, e isso costuma estourar limites do backend/Cloudinary.
-    // Aqui a gente tenta reduzir e converter pra JPEG antes de enviar.
-    async function prepareAvatarForUpload(file){
-      const MAX_BYTES = 2.5 * 1024 * 1024; // ~2.5MB
-      const MAX_DIM = 1600;
-      const QUALITY = 0.82;
-
-      if (!file) return { blob: null, name: 'avatar.jpg' };
-
-      const type = (file.type || '').toLowerCase();
-      const looksImage = type.startsWith('image/') || type === '';
-      const isHeic = type === 'image/heic' || type === 'image/heif';
-
-      // Se ja esta pequeno e com tipo "normal", manda como veio.
-      if (looksImage && !isHeic && file.size <= MAX_BYTES && type) {
-        return { blob: file, name: file.name || 'avatar.jpg' };
-      }
-
-      // Tenta desenhar num canvas e exportar JPEG (tambem resolve tipo vazio em iOS).
-      try {
-        const objectUrl = URL.createObjectURL(file);
-        const img = await new Promise((resolve, reject) => {
-          const im = new Image();
-          im.decoding = 'async';
-          im.onload = () => { try { URL.revokeObjectURL(objectUrl); } catch(_){}; resolve(im); };
-          im.onerror = (e) => { try { URL.revokeObjectURL(objectUrl); } catch(_){}; reject(e); };
-          im.src = objectUrl;
-        });
-
-        let w = img.naturalWidth || img.width;
-        let h = img.naturalHeight || img.height;
-        if (!w || !h) throw new Error('invalid image');
-        const scale = Math.min(1, MAX_DIM / Math.max(w, h));
-        w = Math.max(1, Math.round(w * scale));
-        h = Math.max(1, Math.round(h * scale));
-
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d', { alpha: false });
-        ctx.drawImage(img, 0, 0, w, h);
-
-        const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', QUALITY));
-        if (!blob) throw new Error('jpeg conversion failed');
-
-        const base = (file.name || 'avatar').replace(/\.[a-z0-9]+$/i, '');
-        return { blob, name: base + '.jpg' };
-      } catch (e) {
-        // Se falhar a conversao, envia o arquivo original mesmo.
-        return { blob: file, name: file.name || 'avatar.jpg' };
-      }
-    }
-
-    async function uploadAvatar(file) {
-      const msgEl = document.getElementById("accountMsg");
-      const avatarImg = document.getElementById("avatar");
-      if (!file) return;
-
-      // preview imediato enquanto faz upload
-      try {
-        const previewUrl = URL.createObjectURL(file);
-        if (avatarImg) avatarImg.src = previewUrl;
-      } catch (_) {}
-
-      if (msgEl) msgEl.textContent = "Uploading photo…";
-
-      const prepared = await prepareAvatarForUpload(file);
-      if (!prepared || !prepared.blob) return;
-
-      const fd = new FormData();
-      // Importante: usar o 3º parametro (filename) ajuda no iOS quando o tipo vem vazio.
-      fd.append("avatar", prepared.blob, prepared.name || 'avatar.jpg');
-
-      try {
-        const res = await fetch(API_ROOT + "/user/me/avatar", {
-          method: "POST",
-          headers: authHeaders(),
-          body: fd
-        });
-
-        if (res.status === 401 || res.status === 403) {
-          requireTokenOrRedirect();
-          return;
-        }
-
-        const raw = await res.text();
-        let data = null;
-        try { data = raw ? JSON.parse(raw) : null; } catch (_) { data = raw; }
-
-        if (!res.ok) {
-          const errMsg = (data && (data.error || data.message)) || (typeof data === 'string' ? data : '') || `HTTP ${res.status}`;
-          throw new Error(errMsg);
-        }
-
-        // Resposta esperada: { avatar_url: "..." } ou { avatar: "..." }
-        if (data && typeof data === 'object' && (data.avatar_url || data.avatar)) {
-          let finalUrl = String(data.avatar_url || data.avatar);
-          if (!/^https?:\/\//i.test(finalUrl)) {
-            let path = finalUrl;
-            if (!path.startsWith("/")) path = "/" + path;
-            finalUrl = API_ROOT + path;
-          }
-          // cache-busting pra evitar avatar antigo em cache
-          finalUrl += (finalUrl.includes("?") ? "&" : "?") + "v=" + Date.now();
-
-          if (avatarImg) avatarImg.src = finalUrl;
-          currentUser = currentUser || {};
-          if (currentUser.user && typeof currentUser.user === 'object') {
-            currentUser.user.avatar_url = finalUrl;
-          } else {
-            currentUser.avatar_url = finalUrl;
-          }
-          writeCache(USER_CACHE_KEY, currentUser);
-        }
-
-        if (msgEl) msgEl.textContent = "✅ Photo uploaded.";
-      } catch (err) {
-        console.error(err);
-        if (msgEl) msgEl.textContent = err?.message ? ("❌ " + err.message) : "❌ Error uploading photo.";
-      }
-    }
-
-    function logout() {
-      try { for (const k of TOKEN_KEYS) { try { sessionStorage.removeItem(k); } catch (_) {} } } catch (_) {}
-      window.location.href = "cliente-login-2.html";
-    }
+  async function logout(){ window.VW_AUTH.logout(); }
 
     function attachEvents() {
       const pick = document.getElementById("btnPickAvatar");
@@ -1141,7 +742,10 @@ function normalizeUser(raw){
     }
 
     async function initPage() {
-      requireTokenOrRedirect();
+      const me = await window.VW_AUTH.requireAuth();
+      if(!me) return;
+      currentUser = me;
+      fillProfileUI();
       // paint cached data immediately (helps on GitHub Pages / slow networks)
       const cachedU = readCache(USER_CACHE_KEY);
       if (cachedU) { currentUser = cachedU; fillProfileUI(); }

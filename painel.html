@@ -617,11 +617,65 @@
   </div>
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
-  <script src="vintage-auth.js"></script>
-  
+<script>
+const __MEM_STORE = {
+  _m: Object.create(null),
+  getItem(k){ return Object.prototype.hasOwnProperty.call(this._m, String(k)) ? this._m[String(k)] : null; },
+  setItem(k, v){ this._m[String(k)] = String(v); },
+  removeItem(k){ delete this._m[String(k)]; },
+  key(i){ return Object.keys(this._m)[Number(i) || 0] || null; },
+  get length(){ return Object.keys(this._m).length; },
+};
 
+/* === Cookie Auth Helper (sem storage) === */
+(function(){
+  const AUTH_ROOT = "https://clientes-0r5d.onrender.com";
+  const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app";
 
-  <script>
+  function isAbsolute(u){ return /^https?:\/\//i.test(String(u||"")); }
+  function isRewardsPath(p){
+    const s = String(p||"");
+    return s.startsWith("/rewards/") || s.startsWith("/checkout/") || s.startsWith("/cart");
+  }
+  function buildUrl(input){
+    const s = String(input||"");
+    if (isAbsolute(s)) return s;
+    return (isRewardsPath(s) ? REWARDS_ROOT : AUTH_ROOT) + s;
+  }
+
+  function authFetch(input, opts){
+    const o = opts ? { ...opts } : {};
+    o.credentials = "include";
+    o.headers = { ...(o.headers || {}) };
+    return fetch(buildUrl(input), o);
+  }
+
+  function redirectToLogin(){
+    const back = encodeURIComponent(location.pathname.split("/").pop() || "");
+    location.href = `cliente-login-2.html?back=${back}`;
+  }
+
+  async function requireAuth(){
+    const res = await authFetch("/user/me", { method:"GET", headers:{ "Accept":"application/json" } });
+    if (res.status === 401 || res.status === 403){
+      redirectToLogin();
+      return null;
+    }
+    if (!res.ok){
+      throw new Error("Auth check failed: " + res.status);
+    }
+    let me = {};
+    try{ me = await res.json(); }catch(_){}
+    window.__VW_ME = me;
+    return me;
+  }
+
+  async function logout(){ window.VW_AUTH.logout(); }
+
+  window.VW_AUTH = { AUTH_ROOT, REWARDS_ROOT, authFetch, requireAuth, logout, redirectToLogin };
+})();
+</script>
+<script>
     // ====== Estado (demo) ======
     const state = {
   me: null,
@@ -748,24 +802,9 @@ function escAttr(v){
       return `${h}h ${String(m).padStart(2,'0')}m`;
     }
 
-    function loadPersisted(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
-        const data = JSON.parse(raw);
-        if (typeof data.points === 'number') state.points = data.points;
-        if (Array.isArray(data.cashbackHistory)) state.cashbackHistory = data.cashbackHistory;
-      } catch(_){ /* ignore */ }
-    }
+    function loadPersisted(){ /* no-op: sem storage */ }
 
-    function savePersisted(){
-      try{
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          points: state.points,
-          cashbackHistory: state.cashbackHistory,
-        }));
-      } catch(_){ /* ignore */ }
-    }
+    function savePersisted(){ /* no-op: sem storage */ }
 
     function ensureDailyReset(){
       const todayKey = getIrelandDateKey();
@@ -1106,17 +1145,18 @@ function escAttr(v){
       const fd = new FormData();
       fd.append("avatar", file);
 
-      const base = (window.VW_API && window.VW_API.root) || "https://clientes.vintage-clothes.ie";
+      const base = (window.VW_API && window.VW_API.root) || "https://clientes-0r5d.onrender.com";
 
       try{
-        const res = await fetch(base + "/user/me/avatar", {
+
+        const res = await window.VW_AUTH.authFetch("/user/me/avatar", {
           method: "POST",
-          credentials: "include",
           body: fd
         });
 
         if (res.status === 401 || res.status === 403){
-          setText('accountMsg', 'Session expired. Please sign in again.');
+          setText('accountMsg', 'Please log in again.');
+          window.location.href = 'cliente-login-2.html';
           return;
         }
 
@@ -1506,7 +1546,13 @@ async function spin(){
     function logout(){
   if (window.VintageAuth && typeof window.VintageAuth.logout === 'function'){
     window.VintageAuth.logout();
+    return;
   }
+  // Fallback
+  ['vw_token','token','authToken','auth_token','access_token'].forEach((k)=>{ try{ __MEM_STORE.removeItem(k); }catch(_){} });
+  try{ __MEM_STORE.removeItem('vw_token'); }catch(_){}
+  try{ document.cookie = 'vw_token=; Path=/; Max-Age=0; SameSite=Lax'; }catch(_){}
+  window.location.href = 'cliente-login-2.html?back=painel.html';
 }
 
 
@@ -1540,7 +1586,7 @@ async function spin(){
     }
 
     // ====== Eventos ======
-    document.addEventListener('DOMContentLoaded', () => {
+    window.afterAuthBoot = async (me) => {
       loadDemo();
 
       // carrega estado salvo + aplica reset diário por horário oficial da Irlanda
@@ -1627,7 +1673,7 @@ async function spin(){
         }, { passive: true });
       }
 
-});
+};
 
     // ======= Campo reativo dourado =======
     (() => {
@@ -1743,193 +1789,113 @@ async function spin(){
   </script>
 <script>
 (function(){
-  const API_ROOT = "https://clientes.vintage-clothes.ie"; // backend (cookie auth)
-  const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // rewards backend (cookie auth)
+  const API_ROOT = (window.VW_AUTH && window.VW_AUTH.AUTH_ROOT) || "https://clientes-0r5d.onrender.com";
+  const REWARDS_ROOT = (window.VW_AUTH && window.VW_AUTH.REWARDS_ROOT) || "https://vw-rewards-backend-production.up.railway.app";
 
-  // =========================
-  // AUTH (cookie + GET /me)
-  // =========================
-  async function authFetch(path, opts = {}){
-    const url = API_ROOT + path;
-    const init = {
-      method: opts.method || 'GET',
-      credentials: 'include',
-      headers: { ...(opts.headers || {}) },
-    };
-    if (opts.body !== undefined){
-      if (!init.headers['Content-Type']) init.headers['Content-Type'] = 'application/json';
-      init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
-    }
-    const res = await fetch(url, init);
-    const raw = await res.text();
-    let data = null;
-    try{ data = raw ? JSON.parse(raw) : null; }catch(_){ data = raw; }
-
-    if (!res.ok){
-      const err = new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
-      err.status = res.status;
-      err.data = data;
-      throw err;
-    }
-    return data;
+  function isAbsolute(u){ return /^https?:\/\//i.test(String(u||"")); }
+  function pickBase(path){
+    const p = String(path||"");
+    if (p.startsWith("/rewards/") || p.startsWith("/checkout/") || p.startsWith("/cart")) return REWARDS_ROOT;
+    return API_ROOT;
   }
 
-  async function loadMe(){
-  try {
-    const me = await authFetch('/user/me');
-    applyMe(me);
-    return me;
-  } catch (err) {
-    console.warn('Not logged');
-    return null;
-  }
-}
-
-  function applyMe(me){
-    try{ if (typeof state !== 'undefined') state.me = me; }catch(_){}
-
-    try{
-      const id = me && (me.id ?? me.user_id ?? me.userId);
-      if (id !== undefined && id !== null) sessionStorage.setItem('vw_user_id', String(id));
-    }catch(_){}
-
-    try{
-      const nameEl = document.getElementById('userName');
-      const emailEl = document.getElementById('userEmail');
-      if (nameEl) nameEl.textContent = (me && me.name) ? me.name : 'Your Name';
-      if (emailEl) emailEl.textContent = (me && me.email) ? me.email : 'email@example.com';
-    }catch(_){}
-
-    try{ if (typeof applyAvatar === 'function') applyAvatar(me || {}); }catch(_){}
-    try{ if (typeof renderHero === 'function') renderHero(); }catch(_){}
+  function authFetch(path, opts){
+    const p = String(path||"");
+    const url = isAbsolute(p) ? p : (pickBase(p) + p);
+    const o = opts ? { ...opts } : {};
+    o.credentials = "include";
+    o.headers = { ...(o.headers || {}) };
+    return fetch(url, o);
   }
 
-  // =========================
-  // REWARDS (no login decisions in front)
-  // =========================
-  async function rewardsFetch(path, opts = {}){
-    const url = REWARDS_ROOT + path;
-    const init = {
-      method: opts.method || 'GET',
-      credentials: 'include',
-      headers: { ...(opts.headers || {}) },
-    };
-    if (opts.body !== undefined){
-      if (!init.headers['Content-Type']) init.headers['Content-Type'] = 'application/json';
-      init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
-    }
-    const res = await fetch(url, init);
-    const raw = await res.text();
-    let data = null;
-    try{ data = raw ? JSON.parse(raw) : null; }catch(_){ data = raw; }
-
-    if (!res.ok){
-      const err = new Error((data && (data.error || data.message)) || `HTTP ${res.status}`);
-      err.status = res.status;
-      err.data = data;
-      throw err;
-    }
-    return data;
-  }
-
-  // Back-compat helper (existing code calls apiJson)
   async function apiJson(path, opts = {}){
-    const p = String(path || '');
-    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
-    return isRewards ? rewardsFetch(p, opts) : authFetch(p, opts);
+    const init = { method: opts.method || "GET", headers: { ...(opts.headers || {}) } };
+    if (opts.body !== undefined){
+      if (opts.body instanceof FormData){
+        init.body = opts.body;
+      } else {
+        init.headers["Content-Type"] = init.headers["Content-Type"] || "application/json";
+        init.body = (typeof opts.body === "string") ? opts.body : JSON.stringify(opts.body);
+      }
+    }
+    const res = await authFetch(path, init);
+    if (res.status === 401 || res.status === 403){
+      window.VW_AUTH && window.VW_AUTH.redirectToLogin && window.VW_AUTH.redirectToLogin();
+      throw new Error("unauthorized");
+    }
+    const txt = await res.text();
+    let data = null;
+    try{ data = txt ? JSON.parse(txt) : null; }catch(_){ data = txt; }
+    if (!res.ok){
+      const msg = (data && (data.error || data.message)) ? (data.error || data.message) : ("HTTP " + res.status);
+      throw new Error(msg);
+    }
+    return data;
   }
 
-  // Helpers used by the UI
-  function syncPointsUI(points){
-    const p = document.getElementById('pointsNow');
-    if (p) p.textContent = String(points ?? 0);
-    const cash = document.getElementById('cashValue');
-    if (cash){
-      const eur = (Number(points||0) * 0.5);
-      cash.textContent = '= € ' + eur.toFixed(2);
+  function applyAvatar(user){
+    const img = document.getElementById("avatar");
+    if (!img) return;
+
+    const raw = (user && (user.avatar_url || user.avatar || user.avatarUrl || user.photo_url || user.photoUrl)) || "";
+    if (!raw){
+      if (typeof defaultAvatarDataUri === "function") img.src = defaultAvatarDataUri();
+      return;
     }
+
+    let url = String(raw);
+    if (!/^https?:\/\//i.test(url)){
+      if (!url.startsWith("/")) url = "/" + url;
+      url = API_ROOT + url;
+    }
+    url += (url.includes("?") ? "&" : "?") + "v=" + Date.now();
+    img.src = url;
   }
 
   async function loadRewardsStatus(){
     try{
-      const data = await rewardsFetch('/rewards/status', { method:'GET' });
-
-      // points
-      const points = Number(data?.points ?? data?.user?.points ?? 0);
-      try{ if (typeof state !== 'undefined') state.points = points; }catch(_){}
-      try{ syncPointsUI(points); }catch(_){}
-
-      // bonus spins + cooldown (optional fields)
-      try{
-        const extra = Number(
-          data?.extraSpins ?? data?.extra_spins ?? data?.bonusSpins ?? data?.bonus_spins ?? data?.extra_spin ?? 0
-        ) || 0;
-        if (typeof state !== 'undefined') state.extraSpins = extra;
-      }catch(_){}
-
-      const remainingMs = Number(
-        data?.remainingMs ?? data?.remaining_ms ??
-        data?.nextSpinMs ?? data?.next_spin_ms ??
-        data?.cooldownMs ?? data?.cooldown_ms ??
-        data?.nextDailySpinMs ?? data?.next_daily_spin_ms ??
-        0
-      ) || 0;
-
-      if (remainingMs > 0){
-        try{
-          window.__spinRemain = {
-            startPerf: (window.performance && typeof window.performance.now === 'function') ? window.performance.now() : 0,
-            remainingMs: remainingMs,
-          };
-        }catch(_){}
+      const data = await apiJson("/rewards/status", { method:"GET" });
+      if (typeof syncPointsUI === "function"){
+        const pts = Number(data?.points ?? data?.user?.points ?? 0);
+        syncPointsUI(pts);
       }
-
-      // discount + shipping (optional)
-      try{
-        const ad = data?.activeDiscount || data?.active_discount || null;
-        if (typeof state !== 'undefined'){
-          state.activeDiscount = ad ? {
-            id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
-            percent: Number(ad.percent ?? ad.value ?? 0),
-            expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
-          } : null;
-        }
-
-        const sh = data?.activeShipping || data?.active_shipping || null;
-        if (typeof state !== 'undefined'){
-          state.activeShipping = sh ? {
-            id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
-            expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
-          } : null;
-        }
-      }catch(_){}
-
-      // Refresh UI if the page has those renderers
-      try{ if (typeof renderAll === 'function') renderAll(); }catch(_){}
-      try{ if (typeof updateResetHint === 'function') updateResetHint(); }catch(_){}
-    }catch(err){
-      // No redirect here; just keep UI running
-      console.warn('Rewards status unavailable.', err);
+      return data;
+    }catch(_){
+      return null;
     }
   }
 
-  // Expose for other scripts (spin override expects window.VW_API.*)
   window.VW_API = window.VW_API || {};
   window.VW_API.root = API_ROOT;
-  window.VW_API.rewardsRoot = REWARDS_ROOT;
   window.VW_API.apiJson = apiJson;
-  window.VW_API.authFetch = authFetch;
-  window.VW_API.rewardsFetch = rewardsFetch;
-  window.VW_API.loadMe = loadMe;
   window.VW_API.loadRewardsStatus = loadRewardsStatus;
+  window.VW_API.applyPoints = (points) => apiJson("/rewards/apply-points", { method:"POST", body:{ points } });
+  window.VW_API.applyDiscount = () => apiJson("/rewards/apply-discount", { method:"POST", body:{} });
+  window.VW_API.applyShipping = () => apiJson("/rewards/apply-shipping", { method:"POST", body:{} });
+  window.VW_API.grantDiscount = (percent) => apiJson("/rewards/grant-discount", { method:"POST", body:{ percent } });
+  window.VW_API.creditPoints = (points, source="wheel") => apiJson("/rewards/credit-points", { method:"POST", body:{ points, source } });
+  window.VW_API.checkoutCreate = (payload) => apiJson("/checkout/create", { method:"POST", body: payload || {} });
+  window.VW_API.grantShipping = () => apiJson("/rewards/grant-shipping", { method:"POST", body:{} });
+  window.VW_API.grantExtraSpin = (qty=1, source="wheel") => apiJson("/rewards/grant-extra-spin", { method:"POST", body:{ qty, source } });
 
-  // Page boot: only loads /me and rewards; auth-guard.js handles guard/redirects
-  document.addEventListener('DOMContentLoaded', () => {
-    loadMe().then(() => {
-      // After /me, we can safely load rewards (if session exists)
-      loadRewardsStatus();
-    });
-  });
+  async function boot(){
+    const me = await (window.VW_AUTH && window.VW_AUTH.requireAuth ? window.VW_AUTH.requireAuth() : null);
+    if (!me) return;
+
+    const nameEl = document.getElementById("userName");
+    const emailEl = document.getElementById("userEmail");
+    if (nameEl) nameEl.textContent = me.name || "Your Name";
+    if (emailEl) emailEl.textContent = me.email || "email@example.com";
+    applyAvatar(me);
+
+    try{ await loadRewardsStatus(); }catch(_){}
+
+    if (typeof window.afterAuthBoot === "function"){
+      await window.afterAuthBoot(me);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => { boot(); });
 })();
 </script>
 <script>

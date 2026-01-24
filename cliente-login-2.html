@@ -583,7 +583,7 @@ $("loginForm").addEventListener("submit", async (e) => {
     const isEmail = looksLikeEmail(user);
     const payload = isEmail ? { email: user, password } : { phone: normalizePhone(user), password };
 
-    const loginPath = isEmail ? "/auth/login" : "/auth/login/phone";
+    const loginPath = isEmail ? "/login" : "/login/phone";
     const r = await fetch(API_BASE + loginPath, {
       method: "POST",
       credentials: "include",
