@@ -1761,11 +1761,7 @@ function getToken(){
   return (window.VintageAuth && typeof window.VintageAuth.getToken==="function") ? window.VintageAuth.getToken() : null;
 }
 
-function requireTokenOrRedirect(){
-  return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect === "function")
-    ? window.VintageAuth.requireTokenOrRedirect()
-    : null;
-}
+
 function getCookie(name){
   const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
   return m ? decodeURIComponent(m[1]) : null;
@@ -2032,13 +2028,13 @@ function authHeaders(extra){
   }
 
   async function loadProfile(){
-    requireTokenOrRedirect();
+
 
     try {
       const res = await fetch(API_ROOT + "/user/me", { credentials: "include" });
 
       if (res.status === 401 || res.status === 403) {
-        requireTokenOrRedirect();
+ 
         return;
       }
 
@@ -2356,4 +2352,5 @@ function authHeaders(extra){
 
 </body>
 </html>
+
 
