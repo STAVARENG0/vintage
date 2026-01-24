@@ -1106,7 +1106,7 @@ function escAttr(v){
       const fd = new FormData();
       fd.append("avatar", file);
 
-      const base = (window.VW_API && window.VW_API.root) || "https://clientes-0r5d.onrender.com";
+      const base = (window.VW_API && window.VW_API.root) || "https://clientes.vintage-clothes.ie";
 
       try{
         const headers = (window.VintageAuth && typeof window.VintageAuth.authHeaders==='function') ? window.VintageAuth.authHeaders() : {};
@@ -1751,59 +1751,52 @@ async function spin(){
     })();
   </script>
 <script>
-(function(){
-      const API_ROOT = "https://clientes.vintage-clothes.ie"; // backend de login/conta
-  const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
-
-  function getCookie(name){
-    const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
-    return m ? decodeURIComponent(m[1]) : null;
-  }
-
+    const API_ROOT = "https://clientes.vintage-clothes.ie"; // backend de login/conta
+    const REWARDS_ROOT = "https://vw-rewards-backend-production.up.railway.app"; // backend de pontos/bônus (Railway)
   function getToken(){
-    return getCookie("vw_token");
-  }
-
-  function authHeaders(extra){
-    const h = extra && typeof extra === 'object' ? { ...extra } : {};
-    const token = getToken();
-    if (token) h.Authorization = "Bearer " + token;
-    return h;
-  }
-
-  function requireTokenOrRedirect(){
-    if (getToken()) return;
-    const back = (location && location.pathname) ? location.pathname.split('/').pop() : '';
-    const q = [];
-    if (back) q.push('back=' + encodeURIComponent(back));
-    q.push('reason=unauthorized');
-    location.href = 'cliente-login-2.html' + (q.length ? '?' + q.join('&') : '');
-  }
-
-
-
-      async function apiJson(path, opts = {}){
-    const p = String(path || '');
-    const isRewards = p.startsWith('/rewards/');
-    const base = isRewards ? REWARDS_ROOT : API_ROOT;
-    const url = base + p;
-
-    const method = String(opts.method || 'GET').toUpperCase();
-    const headers = authHeaders(opts.headers || {});
-
-    const init = {
-      method,
-      headers,
-      credentials: 'include',
-    };
-
-    if (opts.body !== undefined) {
-      if (!('Content-Type' in headers)) headers['Content-Type'] = 'application/json';
-      init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+      return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
+function getToken(){
+  return (window.VintageAuth && typeof window.VintageAuth.getToken==="function") ? window.VintageAuth.getToken() : null;
+}
+
+function requireTokenOrRedirect(){
+  return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect === "function")
+    ? window.VintageAuth.requireTokenOrRedirect()
+    : null;
+}
+function getCookie(name){
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function authHeaders(extra){
+  return (window.VintageAuth && typeof window.VintageAuth.authHeaders === "function")
+    ? window.VintageAuth.authHeaders(extra)
+    : (extra || {});
+}
+
+
+
+    async function apiJson(path, opts = {}){
+    const token = getCookie("vw_token");
+    const p = String(path || '');
+    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
+    const base = isRewards ? REWARDS_ROOT : API_ROOT;
+    const url = base + path;
+   const init = {
+  method: opts.method || 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+    ...(opts.headers || {}),
+    ...(token ? { Authorization: 'Bearer ' + token } : {}),
+  },
+};
+
+
+    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
 
     const res = await fetch(url, init);
-
     if (res.status === 401 || res.status === 403){
       requireTokenOrRedirect();
       throw new Error('unauthorized');
@@ -1811,13 +1804,12 @@ async function spin(){
 
     const text = await res.text();
     let data = null;
-    try { data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
+    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
 
     if (!res.ok){
       const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
       throw new Error(msg);
     }
-
     return data;
   }
 
@@ -2041,7 +2033,7 @@ async function spin(){
     requireTokenOrRedirect();
 
     try {
-      const res = await fetch(API_ROOT + "/user/me", { headers: authHeaders() });
+      const res = await fetch(API_ROOT + "/user/me", { credentials: "include" });
 
       if (res.status === 401 || res.status === 403) {
         requireTokenOrRedirect();
@@ -2075,7 +2067,6 @@ async function spin(){
   }
 
   document.addEventListener("DOMContentLoaded", loadProfile);
-})();
 </script>
 <script>
 // Override do SPIN para usar o backend e bloquear por 24h independente do horário do PC
@@ -2194,8 +2185,7 @@ async function spin(){
 
       // *** AQUI a checagem real: /rewards/spin no backend ***
       try{
-        spinRes = await api.apiJson('/rewards/spin', { method:'POST' });
-        const res = spinRes;
+       const res = await api.apiJson('/rewards/spin', { method:'POST' });
 
         if (res && res.ok !== false && res.canSpin !== false){
           allowed = true;
