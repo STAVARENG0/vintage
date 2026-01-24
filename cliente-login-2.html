@@ -458,19 +458,11 @@ const API_BASE = "https://clientes.vintage-clothes.ie";
 
 // Redirect after login / account verification (supports ?back=...)
 const DEFAULT_REDIRECT_AFTER_LOGIN = "painel.html";
-function getRedirectTarget(){
-  const params = new URLSearchParams(window.location.search);
-  const back = params.get("back") || params.get("redirect") || params.get("next");
-  const raw = (back || DEFAULT_REDIRECT_AFTER_LOGIN).trim();
-  try{
-    const u = new URL(raw, window.location.origin);
-    if(u.origin !== window.location.origin) return DEFAULT_REDIRECT_AFTER_LOGIN;
-    return u.pathname + u.search + u.hash;
-  }catch(_){
-    return DEFAULT_REDIRECT_AFTER_LOGIN;
-  }
+  function getRedirectTarget(){
+  return DEFAULT_REDIRECT_AFTER_LOGIN; // sempre vai pro painel
 }
 const REDIRECT_AFTER_LOGIN = getRedirectTarget();
+
 
 
 // Password rules
