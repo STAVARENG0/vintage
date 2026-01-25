@@ -101,6 +101,10 @@ async function bumpAttemptsOrDelete(row) {
   await pool.execute(`UPDATE auth_otps SET attempts=? WHERE id=?`, [attempts, row.id]);
   return { deleted: false, attempts };
 }
+function isExpired(row) {
+  const exp = toDate(row.expires_at);
+  return !exp || Date.now() > exp.getTime();
+}
 
 async function verifyOtp({ purpose, contact, code }) {
   const row = await getOtpRow(purpose, contact);
