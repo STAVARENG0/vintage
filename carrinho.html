@@ -773,17 +773,18 @@
         return obj;
       });
 
-      try{ localStorage.setItem(key, JSON.stringify(normalized)); }catch(_){ }
+     try{ localStorage.setItem(key, JSON.stringify(normalized)); }catch(_){}
 
-      
-      if (!suppressCartSync){
-        scheduleCartSync();
-      }
+if (!suppressCartSync){
+  syncCartToBackend(); // manda pro backend na hora (sem debounce)
+}
+
     }
 
     function isLoggedInForCart(){
-  return !!sessionStorage.getItem('vw_user_id');
+  return !!getToken() && !!getUserId();
 }
+
 
 
 
@@ -815,6 +816,9 @@
       if (Date.now() - lastLocalCartChangeAt < 1500) return;
       if (!isLoggedInForCart()) return;
       if (!window.VW_API || !window.VW_API.apiJson) return;
+
+      loadLocalCart();
+const cart = Array.isArray(state.cart) ? state.cart : [];
 
       try{
         const data = await window.VW_API.apiJson('/cart', { method:'GET' });
@@ -1564,6 +1568,7 @@ function statusToStepIndex(status){
     window.removeCartItem = function(id){
       state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
       saveLocalCart();
+      syncCartToBackend(); // força mandar pro backend na hora
       renderCart();
     };
 
@@ -1573,7 +1578,7 @@ function statusToStepIndex(status){
       state.cart = [];
       try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
    
-      scheduleCartSync();
+      syncCartToBackend(); // força mandar pro backend na hora
       renderCart();
     }
 
