@@ -2187,8 +2187,9 @@ function authHeaders(){
     }catch(_){}
   }
 
-  async function loadProfile(){
-    requireTokenOrRedirect();
+ async function loadProfile(){
+  // requireTokenOrRedirect();
+
 
     try {
       const res = await fetch(API_ROOT + "/user/me", {
