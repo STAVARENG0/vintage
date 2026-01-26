@@ -755,11 +755,12 @@
       state.cart = (Array.isArray(arr) ? arr : []).map(normalizeCartItem);
     }
 
-    let suppressCartSync = false;
+   let lastLocalCartChangeAt = 0;
     const CART_SYNC_DEBOUNCE_MS = 800;
     let cartSyncTimer = null;
 
     function saveLocalCart(){
+      lastLocalCartChangeAt = Date.now();
       const key = chooseActiveCartKey();
       const normalized = (Array.isArray(state.cart) ? state.cart : []).map((it) => {
         const obj = (it && typeof it === 'object') ? { ...it } : {};
@@ -811,6 +812,7 @@
     }
 
     async function syncCartFromBackend(){
+      if (Date.now() - lastLocalCartChangeAt < 1500) return;
       if (!isLoggedInForCart()) return;
       if (!window.VW_API || !window.VW_API.apiJson) return;
 
