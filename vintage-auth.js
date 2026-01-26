@@ -153,54 +153,27 @@
    */
   function logout() {
   ssRemove(USER_CACHE_KEY);
-    function killCookie(name, domain){
-  const d = domain ? `; domain=${domain}` : '';
-  document.cookie = `${name}=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${d}`;
-}
+  try { sessionStorage.setItem('vw_force_logout', '1'); } catch (_) {}
 
-try{
-  // tenta nos 2 domínios mais prováveis
-  killCookie('vw_token');
-  killCookie('vw_token_js');
-  killCookie('vw_admin_token');
-  killCookie('vw_admin_token_js');
+  // limpa tokens do front (se existirem)
+  try { localStorage.removeItem('token'); sessionStorage.removeItem('token'); } catch(_) {}
 
-  killCookie('vw_token', '.vintage-clothes.ie');
-  killCookie('vw_token_js', '.vintage-clothes.ie');
-  killCookie('vw_admin_token', '.vintage-clothes.ie');
-  killCookie('vw_admin_token_js', '.vintage-clothes.ie');
+  // tenta apagar cookies que o front consegue (só funciona se NÃO forem HttpOnly)
+  function killCookie(name, domain){
+    const d = domain ? `; domain=${domain}` : '';
+    document.cookie = `${name}=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${d}`;
+  }
 
-  killCookie('vw_token', 'clientes.vintage-clothes.ie');
-  killCookie('vw_token_js', 'clientes.vintage-clothes.ie');
-  killCookie('vw_admin_token', 'clientes.vintage-clothes.ie');
-  killCookie('vw_admin_token_js', 'clientes.vintage-clothes.ie');
-}catch(_){}
-
-try { sessionStorage.setItem('vw_force_logout', '1'); } catch (_) {}
-
-  var tries = [
-    { path: '/logout', method: 'POST' },
-    { path: '/logout', method: 'GET' },
-    { path: '/auth/logout', method: 'POST' },
-    { path: '/auth/logout', method: 'GET' },
-    { path: '/user/logout', method: 'POST' },
-    { path: '/user/logout', method: 'GET' },
-    { path: '/auth/signout', method: 'POST' },
-    { path: '/auth/signout', method: 'GET' }
-  ];
-
-  // tenta derrubar sessão no backend (cookie HttpOnly só sai assim)
-  var p = Promise.resolve();
-  tries.forEach(function (t) {
-    p = p.then(function () {
-      return apiFetch(t.path, { method: t.method }).catch(function () {});
+  try{
+    ['vw_token','vw_token_js','vw_admin_token','vw_admin_token_js'].forEach((c) => {
+      killCookie(c);
+      killCookie(c, '.vintage-clothes.ie');
+      killCookie(c, 'clientes.vintage-clothes.ie');
     });
-  });
+  }catch(_){}
 
-  return p.then(function () {
-    // IMPORTANTe: manda pro login SEM back= pra não voltar pro painel
-    location.href = DEFAULT_LOGIN_PAGE + '?reason=logout';
-  });
+  // vai pro login e impede auto-redirect
+  location.href = 'cliente-login-2.html?reason=logout';
 }
 
 
