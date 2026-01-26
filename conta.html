@@ -1062,10 +1062,12 @@ function normalizeUser(raw){
 
       try {
         const res = await fetch(API_ROOT + "/user/me/avatar", {
-          method: "POST",
-          headers: authHeaders(),
-          body: fd
-        });
+  method: "POST",
+  credentials: "include",
+  headers: authHeaders(),
+  body: fd
+});
+
 
         if (res.status === 401 || res.status === 403) {
           requireTokenOrRedirect();
