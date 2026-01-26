@@ -907,45 +907,48 @@ function normalizeUser(raw){
       }
     }
 
-    async function saveAccount() {
-      const name = document.getElementById("accName")?.value.trim() || "";
-      const email = document.getElementById("accEmail")?.value.trim() || "";
-      const phone = document.getElementById("accPhone")?.value.trim() || "";
-      const msgEl = document.getElementById("accountMsg");
-      if (msgEl) msgEl.textContent = "Saving changes…";
+   async function saveAccount() {
+  const name = document.getElementById("accName")?.value.trim() || "";
+  const email = document.getElementById("accEmail")?.value.trim() || "";
+  const phone = document.getElementById("accPhone")?.value.trim() || "";
+  const msgEl = document.getElementById("accountMsg");
+  if (msgEl) msgEl.textContent = "Saving changes…";
 
-      try {
-        const res = await fetch(API_ROOT + "/user/me/address", {
-  method: "POST",
-  credentials: "include",
-  headers: authHeaders({ "Content-Type": "application/json" }),
-  body: JSON.stringify(data)
-});
+  const data = { name, email, phone };
 
+  try {
+    const res = await fetch(API_ROOT + "/user/me/profile", {
+      method: "POST",
+      credentials: "include",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(data)
+    });
 
-        if (res.status === 401 || res.status === 403) {
-          requireTokenOrRedirect();
-          return;
-        }
-
-        if (!res.ok) {
-          throw new Error("Erro ao salvar");
-        }
-
-        currentUser = currentUser || {};
-        if (currentUser.user && typeof currentUser.user === 'object') {
-          currentUser.user = Object.assign({}, currentUser.user, { name, email, phone });
-        } else {
-          currentUser = Object.assign({}, currentUser, { name, email, phone });
-        }
-        writeCache(USER_CACHE_KEY, currentUser);
-        fillProfileUI();
-        if (msgEl) msgEl.textContent = "✅ Changes saved.";
-      } catch (err) {
-        console.error(err);
-        if (msgEl) msgEl.textContent = "❌ Error saving data.";
-      }
+    if (res.status === 401 || res.status === 403) {
+      requireTokenOrRedirect();
+      return;
     }
+
+    if (!res.ok) {
+      throw new Error("Erro ao salvar");
+    }
+
+    currentUser = currentUser || {};
+    if (currentUser.user && typeof currentUser.user === "object") {
+      currentUser.user = Object.assign({}, currentUser.user, data);
+    } else {
+      currentUser = Object.assign({}, currentUser, data);
+    }
+
+    writeCache(USER_CACHE_KEY, currentUser);
+    fillProfileUI();
+    if (msgEl) msgEl.textContent = "✅ Changes saved.";
+  } catch (err) {
+    console.error(err);
+    if (msgEl) msgEl.textContent = "❌ Error saving data.";
+  }
+}
+
 
     async function saveAddress() {
       const msgEl = document.getElementById("addrMsg");
