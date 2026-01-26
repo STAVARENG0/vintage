@@ -723,36 +723,13 @@
     }
 
     function chooseActiveCartKey(){
-      const guest = readCartByKey(CART_GUEST_KEY);
-      const tok = getToken();
-      const uidRaw = getUserId();
-      const uid = uidRaw ? String(uidRaw) : '';
-      const candidate = (uid && tok) ? `vw_cart_u_${uid}` : null;
-      const candCart = candidate ? readCartByKey(candidate) : [];
+  const tok = getToken();
+  const uid = getUserId();
+  if (tok && uid) return `vw_cart_u_${String(uid)}`;
+ // logado = sempre carrinho por usuário
+  return CART_GUEST_KEY; // deslogado = carrinho guest
+}
 
-      // 1) If a user cart exists with items, use it.
-      if (candidate && candCart.length) return candidate;
-
-      // 2) If guest cart has items, keep using it (so Store + Dashboard stay aligned).
-      // Also mirror into the user cart (without deleting the guest cart) when possible.
-      if (guest.length){
-        if (candidate && !candCart.length){
-          try{ localStorage.setItem(candidate, JSON.stringify(guest)); }catch(_){ }
-        }
-        return CART_GUEST_KEY;
-      }
-
-      // 3) If logged in but uid differs, pick any existing vw_cart_u_* with items.
-      if (tok){
-        for (const k of listUserCartKeys()){
-          const c = readCartByKey(k);
-          if (c.length) return k;
-        }
-      }
-
-      // 4) Fall back.
-      return candidate || CART_GUEST_KEY;
-    }
 
     function normalizeCartItem(it){
       const obj = (it && typeof it === 'object') ? { ...it } : {};
@@ -797,11 +774,7 @@
 
       try{ localStorage.setItem(key, JSON.stringify(normalized)); }catch(_){ }
 
-      // Mirror to guest cart too so Store and Dashboard never diverge during this phase.
-      if (key !== CART_GUEST_KEY){
-        try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
-      }
-
+      
       if (!suppressCartSync){
         scheduleCartSync();
       }
@@ -1597,7 +1570,7 @@ function statusToStepIndex(status){
       // Clear the SAME cart used by the Store (so they stay in sync).
       state.cart = [];
       try{ localStorage.setItem(chooseActiveCartKey(), JSON.stringify([])); }catch(_){ }
-      try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify([])); }catch(_){ }
+   
       scheduleCartSync();
       renderCart();
     }
