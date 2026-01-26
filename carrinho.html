@@ -883,13 +883,6 @@
       }
     });
 
-    // If the token is missing (not logged in), send to login.
-    // (We accept multiple keys so this matches the Store login behavior.)
-    try{
-      if(!getToken()){
-        window.location.href = 'cliente-login-2.html';
-      }
-    }catch(_){ }
     const fmtEUR = (n) => {
       const v = Number(n);
       if (Number.isNaN(v)) return '€ ' + (n ?? '');
