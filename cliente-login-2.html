@@ -574,13 +574,14 @@ function redirectAfterLogin(){ window.location.href = REDIRECT_AFTER_LOGIN; }
 // Se já estiver logado, entra direto no painel (MAS não quando veio de logout)
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(location.search);
-  if (params.get("logout") === "1") return; // não auto-redireciona
+  if (params.get("logout") === "1" || params.get("reason") === "logout") return;
 
   try {
     const r = await fetch(API_BASE + "/user/me", { credentials: "include" });
     if (r.ok) redirectAfterLogin();
   } catch (_) {}
 });
+
 
 
 // ---------- Login ----------
