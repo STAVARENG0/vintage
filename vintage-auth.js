@@ -161,21 +161,15 @@
   }
 
   function authHeaders(extra) {
-  var h = {};
-  if (extra && typeof extra === 'object') {
-    for (var k in extra) {
-      if (Object.prototype.hasOwnProperty.call(extra, k)) h[k] = extra[k];
+    // Mantido por compatibilidade (agora sem Authorization)
+    var h = {};
+    if (extra && typeof extra === 'object') {
+      for (var k in extra) {
+        if (Object.prototype.hasOwnProperty.call(extra, k)) h[k] = extra[k];
+      }
     }
+    return h;
   }
-
-  var t = window.VintageAuth && typeof window.VintageAuth.getToken === "function"
-    ? window.VintageAuth.getToken()
-    : null;
-
-  if (t) h.Authorization = "Bearer " + t;
-  return h;
-}
-
 
   function setApiBase(url) {
     window.VintageAuth._apiBase = String(url || '');
@@ -192,16 +186,7 @@
 
   // compat
   window.VintageAuth.getLoggedUser = getLoggedUser;
-  window.VintageAuth.getToken = function () {
-  return (
-    localStorage.getItem("vw_token") ||
-    sessionStorage.getItem("vw_token") ||
-    localStorage.getItem("vw_admin_token") ||
-    sessionStorage.getItem("vw_admin_token") ||
-    null
-  );
-};
-
+  window.VintageAuth.getToken = function () { return null; };
   window.VintageAuth.authHeaders = authHeaders;
   window.VintageAuth.requireTokenOrRedirect = checkOrRedirect;
   window.VintageAuth.logout = logout;
