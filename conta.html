@@ -1114,18 +1114,26 @@ function normalizeUser(raw){
       }
     }
 
- function logout() {
+ fasync function logout() {
+  // tenta encerrar sessão no backend (pra apagar cookie HttpOnly)
+  const endpoints = [
+    "/auth/logout",
+    "/logout",
+    "/user/logout",
+    "/auth/signout"
+  ];
+
+  for (const p of endpoints) {
+    try {
+      await fetch(API_ROOT + p, { method: "POST", credentials: "include" });
+    } catch (_) {}
+  }
+
+  // limpa armazenamento do navegador (não resolve cookie HttpOnly, mas ajuda)
   try { sessionStorage.clear(); } catch(_) {}
   try { localStorage.clear(); } catch(_) {}
 
-  try {
-    document.cookie.split(";").forEach(c => {
-      const eqPos = c.indexOf("=");
-      const name = (eqPos > -1 ? c.substr(0, eqPos) : c).trim();
-      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
-    });
-  } catch(_) {}
-
+  // vai pro login
   window.location.href = "cliente-login-2.html?logout=1";
 }
 
