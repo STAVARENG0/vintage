@@ -691,13 +691,13 @@
     const CART_GUEST_KEY = "vw_cart";
 
     function getUserId(){
-      try{
-        const u = (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function') ? window.VintageAuth.getLoggedUser().user : null;
-        const id = u && (u.id ?? u.user_id ?? u.userId ?? u.uid);
-        return (id === undefined || id === null) ? '' : String(id);
-      }catch(_){ return ''; }
-    }
-    }
+  try{
+    const u = (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function') ? window.VintageAuth.getLoggedUser().user : null;
+    const id = u && (u.id ?? u.user_id ?? u.userId ?? u.uid);
+    return (id === undefined || id === null) ? '' : String(id);
+  }catch(_){ return ''; }
+}
+
 
     function readCartByKey(key){
       try{
