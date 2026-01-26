@@ -2014,11 +2014,19 @@ function getCookie(name){
 }
 
     async function apiJson(path, opts = {}){
-    const p = String(path || '');
-    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
+    let p = String(path || '');
+if (!p.startsWith('/')) p = '/' + p;
+
+const isRewards = (
+  p.startsWith('/rewards/') ||
+  p.startsWith('/checkout/') ||
+  p === '/cart' ||
+  p.startsWith('/cart/')
+);
+
     const base = isRewards ? REWARDS_ROOT : API_ROOT;
-    const url = base + path;
-      const token = isRewards ? getCookie("vw_token_js") : null;
+    const url = base + p;
+    const token = getCookie("vw_token_js") || getCookie("vw_admin_token_js") || null;
     const init = {
       method: opts.method || 'GET',
       headers: {
