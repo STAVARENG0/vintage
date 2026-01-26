@@ -129,61 +129,49 @@
    * Valida login e redireciona para login em caso de 401/403 (ou erro)
    */
   function checkOrRedirect() {
-  try {
-    if (sessionStorage.getItem('vw_force_logout') === '1') {
-      redirectToLogin('logout');
-      return Promise.resolve({ ok: false, status: 401 });
-    }
-  } catch (_) {}
-
-  return me().then(function (r) {
-    if (r && r.ok) return r;
-    if (r && (r.status === 401 || r.status === 403)) {
-      redirectToLogin('unauthorized');
+    return me().then(function (r) {
+      if (r && r.ok) {
+        return r;
+      }
+      if (r && (r.status === 401 || r.status === 403)) {
+        redirectToLogin('unauthorized');
+        return r;
+      }
+      // Falha inesperada: por segurança, manda pro login também
+      redirectToLogin('auth_failed');
       return r;
-    }
-    redirectToLogin('auth_failed');
-    return r;
-  });
-}
-
+    });
+  }
 
   /**
    * Logout (opcional): tenta POST /logout e redireciona
    */
   function logout() {
   ssRemove(USER_CACHE_KEY);
-  try { sessionStorage.setItem('vw_force_logout', '1'); } catch (_) {}
 
-  // limpa tokens do front (se existirem)
-  try { localStorage.removeItem('token'); sessionStorage.removeItem('token'); } catch(_) {}
+  var tries = [
+    { path: '/logout', method: 'POST' },
+    { path: '/logout', method: 'GET' },
+    { path: '/auth/logout', method: 'POST' },
+    { path: '/auth/logout', method: 'GET' },
+    { path: '/user/logout', method: 'POST' },
+    { path: '/user/logout', method: 'GET' },
+    { path: '/auth/signout', method: 'POST' },
+    { path: '/auth/signout', method: 'GET' }
+  ];
 
-  // tenta apagar cookies que o front consegue (só funciona se NÃO forem HttpOnly)
-  function killCookie(name, domain){
-    const d = domain ? `; domain=${domain}` : '';
-    document.cookie = `${name}=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${d}`;
-  }
-
-  try{
-    ['vw_token','vw_token_js','vw_admin_token','vw_admin_token_js'].forEach((c) => {
-      killCookie(c);
-      killCookie(c, '.vintage-clothes.ie');
-      killCookie(c, 'clientes.vintage-clothes.ie');
+  // tenta derrubar sessão no backend (cookie HttpOnly só sai assim)
+  var p = Promise.resolve();
+  tries.forEach(function (t) {
+    p = p.then(function () {
+      return apiFetch(t.path, { method: t.method }).catch(function () {});
     });
-  }catch(_){}
+  });
 
-   // tenta deslogar no backend (pra derrubar cookie HttpOnly)
-  try {
-    apiFetch('/logout', { method: 'POST' })
-      .catch(function(){})
-      .finally(function () { location.href = '/'; });
-    return;
-  } catch (_) {}
-
-  // fallback
-  location.href = '/';
-
-
+  return p.then(function () {
+    // IMPORTANTe: manda pro login SEM back= pra não voltar pro painel
+    location.href = DEFAULT_LOGIN_PAGE + '?reason=logout';
+  });
 }
 
 

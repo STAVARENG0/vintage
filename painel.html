@@ -2030,11 +2030,10 @@ function authHeaders(extra){
     try {
       const res = await fetch(API_ROOT + "/user/me", { credentials: "include" });
 
-     if (res.status === 401 || res.status === 403) {
-  window.location.href = 'cliente-login-2.html?back=painel.html';
-  return;
-}
-
+      if (res.status === 401 || res.status === 403) {
+ 
+        return;
+      }
 
       if (!res.ok) {
         console.warn("Falha ao carregar /user/me:", res.status);
@@ -2058,10 +2057,9 @@ function authHeaders(extra){
       // carrega pontos + desconto (DB)
       loadRewardsStatus();
     } catch (err) {
-  console.error("Erro carregando /user/me", err);
-  window.location.href = 'cliente-login-2.html?back=painel.html';
-  return;
-}
+      console.error("Erro carregando /user/me", err);
+    }
+  }
 
   document.addEventListener("DOMContentLoaded", loadProfile);
 </script>
@@ -2351,8 +2349,6 @@ function authHeaders(extra){
 
 </body>
 </html>
-
-
 
 
 
