@@ -173,7 +173,8 @@
   }catch(_){}
 
   // vai pro login e impede auto-redirect
-  location.href = 'cliente-login-2.html?reason=logout';
+  location.href = '/';
+
 }
 
 
