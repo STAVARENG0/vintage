@@ -172,8 +172,17 @@
     });
   }catch(_){}
 
-  // vai pro login e impede auto-redirect
+   // tenta deslogar no backend (pra derrubar cookie HttpOnly)
+  try {
+    apiFetch('/logout', { method: 'POST' })
+      .catch(function(){})
+      .finally(function () { location.href = '/'; });
+    return;
+  } catch (_) {}
+
+  // fallback
   location.href = '/';
+
 
 }
 
