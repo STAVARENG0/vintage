@@ -1114,9 +1114,23 @@ function normalizeUser(raw){
       }
     }
 
-    function logout() {
-      try { for (const k of TOKEN_KEYS) { try { sessionStorage.removeItem(k); } catch (_) {} } } catch (_) {}
-      window.location.href = "cliente-login-2.html";
+   <script>
+function logout() {
+  try { sessionStorage.clear(); } catch(_) {}
+  try { localStorage.clear(); } catch(_) {}
+
+  try {
+    document.cookie.split(";").forEach(c => {
+      const eqPos = c.indexOf("=");
+      const name = (eqPos > -1 ? c.substr(0, eqPos) : c).trim();
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+    });
+  } catch(_) {}
+
+  window.location.href = "cliente-login-2.html?logout=1";
+}
+</script>
+
     }
 
     function attachEvents() {
