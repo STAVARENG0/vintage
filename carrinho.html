@@ -808,8 +808,10 @@
     }
 
     function isLoggedInForCart(){
-      return !!getToken() && !!getUserId();
-    }
+  return !!sessionStorage.getItem('vw_user_id');
+}
+
+
 
     async function syncCartToBackend(){
       if (!isLoggedInForCart()) return;
