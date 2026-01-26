@@ -1122,14 +1122,6 @@ function logout() {
   window.location.href = "cliente-login-2.html?logout=1";
 }
 
-  // limpa armazenamento do navegador (não resolve cookie HttpOnly, mas ajuda)
-  try { sessionStorage.clear(); } catch(_) {}
-  try { localStorage.clear(); } catch(_) {}
-
-  // vai pro login
-  window.location.href = "cliente-login-2.html?logout=1";
-}
-
 
 
     function attachEvents() {
