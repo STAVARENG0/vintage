@@ -129,19 +129,24 @@
    * Valida login e redireciona para login em caso de 401/403 (ou erro)
    */
   function checkOrRedirect() {
-    return me().then(function (r) {
-      if (r && r.ok) {
-        return r;
-      }
-      if (r && (r.status === 401 || r.status === 403)) {
-        redirectToLogin('unauthorized');
-        return r;
-      }
-      // Falha inesperada: por segurança, manda pro login também
-      redirectToLogin('auth_failed');
+  try {
+    if (sessionStorage.getItem('vw_force_logout') === '1') {
+      redirectToLogin('logout');
+      return Promise.resolve({ ok: false, status: 401 });
+    }
+  } catch (_) {}
+
+  return me().then(function (r) {
+    if (r && r.ok) return r;
+    if (r && (r.status === 401 || r.status === 403)) {
+      redirectToLogin('unauthorized');
       return r;
-    });
-  }
+    }
+    redirectToLogin('auth_failed');
+    return r;
+  });
+}
+
 
   /**
    * Logout (opcional): tenta POST /logout e redireciona
