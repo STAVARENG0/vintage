@@ -2003,14 +2003,13 @@ function statusToStepIndex(status){
       return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
 function requireTokenOrRedirect(){
-      return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect==='function') ? window.VintageAuth.requireTokenOrRedirect() : null;
-    }
-    
-  }
+  return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect==='function') ? window.VintageAuth.requireTokenOrRedirect() : null;
+}
 
-  function authHeaders(){
-    return (window.VintageAuth && typeof window.VintageAuth.authHeaders==='function') ? window.VintageAuth.authHeaders() : {};
-  }
+function authHeaders(){
+  return (window.VintageAuth && typeof window.VintageAuth.authHeaders==='function') ? window.VintageAuth.authHeaders() : {};
+}
+
 
 
 
