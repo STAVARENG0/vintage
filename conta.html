@@ -1114,7 +1114,7 @@ function normalizeUser(raw){
       }
     }
 
- fasync function logout() {
+ async function logout() {
   // tenta encerrar sessão no backend (pra apagar cookie HttpOnly)
   const endpoints = [
     "/auth/logout",
