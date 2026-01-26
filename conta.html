@@ -881,11 +881,11 @@ function normalizeUser(raw){
 
     async function loadSettings() {
       try {
-        cconst res = await fetch(API_ROOT + "/user/settings", {
+       const res = await fetch(API_ROOT + "/user/settings", {
   credentials: "include",
   headers: authHeaders()
 });
-        if (!res.ok) {
+          if (!res.ok) {
           console.warn('Falha ao carregar /user/settings:', res.status);
           const cached = readCache(ADDR_CACHE_KEY);
           if (cached) { currentAddress = cached; fillAddressUI(); }
