@@ -808,8 +808,9 @@
     }
 
     function isLoggedInForCart(){
-  return !!sessionStorage.getItem('vw_user_id');
+  return !!getToken();
 }
+
 
 
 
