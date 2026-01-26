@@ -147,33 +147,13 @@
    * Logout (opcional): tenta POST /logout e redireciona
    */
   function logout() {
-  ssRemove(USER_CACHE_KEY);
-
-  var tries = [
-    { path: '/logout', method: 'POST' },
-    { path: '/logout', method: 'GET' },
-    { path: '/auth/logout', method: 'POST' },
-    { path: '/auth/logout', method: 'GET' },
-    { path: '/user/logout', method: 'POST' },
-    { path: '/user/logout', method: 'GET' },
-    { path: '/auth/signout', method: 'POST' },
-    { path: '/auth/signout', method: 'GET' }
-  ];
-
-  // tenta derrubar sessão no backend (cookie HttpOnly só sai assim)
-  var p = Promise.resolve();
-  tries.forEach(function (t) {
-    p = p.then(function () {
-      return apiFetch(t.path, { method: t.method }).catch(function () {});
-    });
-  });
-
-  return p.then(function () {
-    // IMPORTANTe: manda pro login SEM back= pra não voltar pro painel
-    location.href = DEFAULT_LOGIN_PAGE + '?reason=logout';
-  });
-}
-
+    ssRemove(USER_CACHE_KEY);
+    return apiFetch('/logout', { method: 'POST' })
+      .catch(function (_) { /* ignora */ })
+      .then(function () {
+        redirectToLogin('logout');
+      });
+  }
 
   function getLoggedUser() {
     var user = safeJsonParse(ssGet(USER_CACHE_KEY)) || null;

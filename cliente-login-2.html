@@ -571,32 +571,13 @@ function pwScore(pw){ return validatePassword(pw).points; }
 
 
 function redirectAfterLogin(){ window.location.href = REDIRECT_AFTER_LOGIN; }
-// Se já estiver logado, entra direto no painel (MAS não quando veio de logout)
+// Se já estiver logado (ex: voltou do Google), entra direto no painel
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("LOGIN PAGE OPENED:", location.href);
-
-  const params = new URLSearchParams(location.search);
-  console.log("PARAMS:", Object.fromEntries(params.entries()));
-
-  if (params.get("logout") === "1" || params.get("reason") === "logout") {
-    console.log("SKIP AUTO-REDIRECT (logout)");
-    return;
-  }
-
   try {
     const r = await fetch(API_BASE + "/user/me", { credentials: "include" });
-    console.log("/user/me status:", r.status);
-    if (r.ok) {
-      console.log("AUTO-REDIRECT TO PANEL NOW");
-      redirectAfterLogin();
-    }
-  } catch (e) {
-    console.log("ERROR /user/me:", e);
-  }
+    if (r.ok) redirectAfterLogin();
+  } catch (_) {}
 });
-
-
-
 
 // ---------- Login ----------
 $("loginForm").addEventListener("submit", async (e) => {

@@ -1114,15 +1114,10 @@ function normalizeUser(raw){
       }
     }
 
-function logout() {
-  if (window.VintageAuth && typeof window.VintageAuth.logout === "function") {
-    window.VintageAuth.logout();
-    return;
-  }
-  window.location.href = "cliente-login-2.html?logout=1";
-}
-
-
+    function logout() {
+      try { for (const k of TOKEN_KEYS) { try { sessionStorage.removeItem(k); } catch (_) {} } } catch (_) {}
+      window.location.href = "cliente-login-2.html";
+    }
 
     function attachEvents() {
       const pick = document.getElementById("btnPickAvatar");
