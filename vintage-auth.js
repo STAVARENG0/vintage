@@ -153,6 +153,7 @@
    */
   function logout() {
   ssRemove(USER_CACHE_KEY);
+try { sessionStorage.setItem('vw_force_logout', '1'); } catch (_) {}
 
   var tries = [
     { path: '/logout', method: 'POST' },
