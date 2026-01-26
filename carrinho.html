@@ -808,9 +808,8 @@
     }
 
     function isLoggedInForCart(){
-  return !!getToken();
+  return !!sessionStorage.getItem('vw_user_id');
 }
-
 
 
 
@@ -1766,38 +1765,13 @@ function statusToStepIndex(status){
     }
 
     function logout(){
-  // 1) tenta o logout do seu sistema (se existir)
-  try{
-    if (window.VintageAuth && typeof window.VintageAuth.logout === 'function'){
-      window.VintageAuth.logout();
-    }
-  }catch(_){}
-
-  // 2) limpa session/local storage (pra não “voltar sozinho”)
-  try{
-    sessionStorage.removeItem('vw_user_id');
-    sessionStorage.removeItem('vw_token');
-    localStorage.removeItem('vw_user_id');
-  }catch(_){}
-
-  // 3) apaga cookies do token (isso é o principal)
-  function delCookie(name){
-    // path padrão
-    document.cookie = name + "=; Max-Age=0; path=/";
-    // tenta também com domínio (pra garantir)
-    document.cookie = name + "=; Max-Age=0; path=/; domain=" + location.hostname;
-    document.cookie = name + "=; Max-Age=0; path=/; domain=." + location.hostname;
+  if(window.VintageAuth && typeof window.VintageAuth.logout==='function'){
+    window.VintageAuth.logout();
+    return;
   }
-
-  delCookie("vw_token_js");
-  delCookie("vw_admin_token_js");
-  delCookie("vw_token");
-  delCookie("vw_admin_token");
-
-  // 4) manda pro login
-  window.location.href = "cliente-login-2.html";
+  sessionStorage.removeItem('vw_token');
+  window.location.href = 'cliente-login-2.html';
 }
-
 
     // ====== Dados demo ======
     function loadDemo(){
