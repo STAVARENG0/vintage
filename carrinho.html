@@ -2006,12 +2006,17 @@ function authHeaders(){
 
 
 
+function getCookie(name){
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
 
     async function apiJson(path, opts = {}){
     const p = String(path || '');
-    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/') || p.startsWith('/cart');
+    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
     const base = isRewards ? REWARDS_ROOT : API_ROOT;
     const url = base + path;
+      const token = isRewards ? getCookie("vw_token_js") : null;
     const init = {
       method: opts.method || 'GET',
       headers: {
@@ -2021,6 +2026,8 @@ function authHeaders(){
       },
     };
     if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+
+    if (isRewards && token) init.headers.Authorization = "Bearer " + token;
 
     const res = await fetch(url, init);
   if (res.status === 401 || res.status === 403){
