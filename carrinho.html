@@ -2030,10 +2030,11 @@ function requireTokenOrRedirect(){
     if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
 
     const res = await fetch(url, init);
-    if (res.status === 401 || res.status === 403){
-      requireTokenOrRedirect();
-      throw new Error('unauthorized');
-    }
+  if (res.status === 401 || res.status === 403){
+  if (!isRewards) requireTokenOrRedirect(); // só redireciona se for o backend de conta
+  throw new Error('unauthorized');
+}
+
 
     const text = await res.text();
     let data = null;
