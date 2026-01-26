@@ -153,6 +153,29 @@
    */
   function logout() {
   ssRemove(USER_CACHE_KEY);
+    function killCookie(name, domain){
+  const d = domain ? `; domain=${domain}` : '';
+  document.cookie = `${name}=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${d}`;
+}
+
+try{
+  // tenta nos 2 domínios mais prováveis
+  killCookie('vw_token');
+  killCookie('vw_token_js');
+  killCookie('vw_admin_token');
+  killCookie('vw_admin_token_js');
+
+  killCookie('vw_token', '.vintage-clothes.ie');
+  killCookie('vw_token_js', '.vintage-clothes.ie');
+  killCookie('vw_admin_token', '.vintage-clothes.ie');
+  killCookie('vw_admin_token_js', '.vintage-clothes.ie');
+
+  killCookie('vw_token', 'clientes.vintage-clothes.ie');
+  killCookie('vw_token_js', 'clientes.vintage-clothes.ie');
+  killCookie('vw_admin_token', 'clientes.vintage-clothes.ie');
+  killCookie('vw_admin_token_js', 'clientes.vintage-clothes.ie');
+}catch(_){}
+
 try { sessionStorage.setItem('vw_force_logout', '1'); } catch (_) {}
 
   var tries = [
