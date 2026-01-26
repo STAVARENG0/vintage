@@ -915,11 +915,13 @@ function normalizeUser(raw){
       if (msgEl) msgEl.textContent = "Saving changes…";
 
       try {
-        const res = await fetch(API_ROOT + "/user/me/profile", {
-          method: "POST",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({ name, email, phone })
-        });
+        const res = await fetch(API_ROOT + "/user/me/address", {
+  method: "POST",
+  credentials: "include",
+  headers: authHeaders({ "Content-Type": "application/json" }),
+  body: JSON.stringify(data)
+});
+
 
         if (res.status === 401 || res.status === 403) {
           requireTokenOrRedirect();
