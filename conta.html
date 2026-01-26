@@ -1114,20 +1114,13 @@ function normalizeUser(raw){
       }
     }
 
- async function logout() {
-  // tenta encerrar sessão no backend (pra apagar cookie HttpOnly)
-  const endpoints = [
-    "/auth/logout",
-    "/logout",
-    "/user/logout",
-    "/auth/signout"
-  ];
-
-  for (const p of endpoints) {
-    try {
-      await fetch(API_ROOT + p, { method: "POST", credentials: "include" });
-    } catch (_) {}
+function logout() {
+  if (window.VintageAuth && typeof window.VintageAuth.logout === "function") {
+    window.VintageAuth.logout();
+    return;
   }
+  window.location.href = "cliente-login-2.html?logout=1";
+}
 
   // limpa armazenamento do navegador (não resolve cookie HttpOnly, mas ajuda)
   try { sessionStorage.clear(); } catch(_) {}
