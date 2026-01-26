@@ -859,8 +859,9 @@ function normalizeUser(raw){
     async function loadProfile() {
       try {
         const res = await fetch(API_ROOT + "/user/me", {
-          headers: authHeaders()
-        });
+  credentials: "include",
+  headers: authHeaders()
+});
         if (!res.ok) {
           console.warn('Falha ao carregar /user/me:', res.status);
           const cached = readCache(USER_CACHE_KEY);
