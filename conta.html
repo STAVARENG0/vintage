@@ -765,23 +765,27 @@ const res = await fetch(url, init);
     const USER_CACHE_KEY = 'vw_user_cache';
     const ADDR_CACHE_KEY = 'vw_address_cache';
 
-    function readCache(key){
-      try{
-        if (key === USER_CACHE_KEY){
-          return (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function') ? (window.VintageAuth.getLoggedUser().user || null) : null;
-        }
-        const store = localStorage;
-        const raw = store.getItem(key);
-        return raw ? JSON.parse(raw) : null;
-      }catch(_){ return null; }
-    }
+   function readCache(key){
+  try{
+    const store = (key === USER_CACHE_KEY) ? sessionStorage : localStorage;
+    const raw = store.getItem(key);
+    if (raw) return JSON.parse(raw);
 
-    function writeCache(key, value){
-      try{
-        const store = (key === USER_CACHE_KEY) ? sessionStorage : localStorage;
-        store.setItem(key, JSON.stringify(value || {}));
-      }catch(_){ }
+    if (key === USER_CACHE_KEY){
+      return (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function')
+        ? (window.VintageAuth.getLoggedUser()?.user || null)
+        : null;
     }
+    return null;
+  }catch(_){ return null; }
+}
+
+function writeCache(key, value){
+  try{
+    const store = (key === USER_CACHE_KEY) ? sessionStorage : localStorage;
+    store.setItem(key, JSON.stringify(value || {}));
+  }catch(_){ }
+}
 
 function normalizeUser(raw){
       if (!raw) return {};
