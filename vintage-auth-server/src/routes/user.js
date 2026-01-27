@@ -211,19 +211,18 @@ router.post(
 
 // LOGOUT (apaga cookies e encerra sessão no navegador)
 router.get("/logout", (req, res) => {
-  const optsHttpOnly = {
-    httpOnly: true,
+  const base = {
     secure: true,
     sameSite: "none",
     path: "/",
-    // se no login você setou domain, repita aqui também:
-    // domain: ".vintage-clothes.ie",
+    domain: ".vintage-clothes.ie",
   };
 
-  res.clearCookie("vw_token", optsHttpOnly);
-  res.clearCookie("vw_token_js", { ...optsHttpOnly, httpOnly: false });
+  res.clearCookie("vw_token", { ...base, httpOnly: true });
+  res.clearCookie("vw_token_js", { ...base, httpOnly: false });
 
   return res.status(204).end();
 });
+
 
 module.exports = router;
