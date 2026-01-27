@@ -1119,10 +1119,11 @@ function normalizeUser(raw){
 
 async function logout() {
   try {
-    await fetch("https://clientes.vintage-clothes.ie/user/logout", {
-      method: "GET",
-      credentials: "include"
-    });
+    await fetch("https://auth.vintage-clothes.ie/user/logout", {
+  method: "GET",
+  credentials: "include"
+});
+
   } catch (_) {}
 
   try { sessionStorage.clear(); } catch (_) {}
