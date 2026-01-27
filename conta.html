@@ -1114,13 +1114,20 @@ function normalizeUser(raw){
       }
     }
 
-function logout() {
-  if (window.VintageAuth && typeof window.VintageAuth.logout === "function") {
-    window.VintageAuth.logout();
-    return;
-  }
+async function logout() {
+  try {
+    await fetch(API_ROOT + "/user/logout", {
+      method: "GET",
+      credentials: "include"
+    });
+  } catch (_) {}
+
+  try { sessionStorage.clear(); } catch (_) {}
+  try { localStorage.clear(); } catch (_) {}
+
   window.location.href = "https://vintage-clothes.ie/";
 }
+
 
 
 
