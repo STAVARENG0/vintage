@@ -551,9 +551,8 @@ function pwScore(pw){ return validatePassword(pw).points; }
 
 
   async function api(path, { method="GET", body } = {}) {
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-  const headers = { "Content-Type": "application/json" };
-  if (token) headers.Authorization = `Bearer ${token}`;
+ const headers = { "Content-Type": "application/json" };
+
 
   const opts = { method, credentials: "include", headers };
   if (body) opts.body = JSON.stringify(body);
