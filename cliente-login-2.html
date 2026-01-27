@@ -579,9 +579,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("PARAMS:", Object.fromEntries(params.entries()));
 
   if (params.get("logout") === "1" || params.get("reason") === "logout") {
-    console.log("SKIP AUTO-REDIRECT (logout)");
-    return;
-  }
+  console.log("SKIP AUTO-REDIRECT (logout)");
+  window.location.href = "https://vintage-clothes.ie/";
+  return;
+}
+
 
   try {
     const r = await fetch(API_BASE + "/user/me", { credentials: "include" });
