@@ -668,6 +668,7 @@
   <script src="auth-guard.js"></script>
   <script>
   const API_ROOT = "https://auth.vintage-clothes.ie";
+const REWARDS_ROOT = "https://clientes.vintage-clothes.ie";
 
 
 function requireTokenOrRedirect(){
@@ -684,7 +685,8 @@ function authHeaders(extra){
 
 
     async function apiJson(path, opts = {}){
-      const url = API_ROOT + path;
+      if (!String(path || '').startsWith('/')) path = '/' + path;
+const url = API_ROOT + path;
       const init = {
         method: opts.method || 'GET',
         headers: authHeaders({ 'Content-Type': 'application/json', ...(opts.headers||{}) }),
