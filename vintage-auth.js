@@ -198,7 +198,8 @@
   window.VintageAuth = window.VintageAuth || {};
   window.VintageAuth._apiBase = window.VintageAuth._apiBase || '';
   window.VintageAuth.setApiBase = setApiBase;
-  window.VintageAuth.setApiBase("https://clientes.vintage-clothes.ie");
+  window.VintageAuth.setApiBase("https://auth.vintage-clothes.ie");
+
 
   window.VintageAuth.apiFetch = apiFetch;
   window.VintageAuth.me = me;
