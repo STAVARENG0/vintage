@@ -1116,7 +1116,7 @@ function normalizeUser(raw){
 
 async function logout() {
   try {
-    await fetch(API_ROOT + "/user/logout", {
+    await fetch("https://clientes.vintage-clothes.ie/user/logout", {
       method: "GET",
       credentials: "include"
     });
@@ -1125,8 +1125,17 @@ async function logout() {
   try { sessionStorage.clear(); } catch (_) {}
   try { localStorage.clear(); } catch (_) {}
 
+  // limpa caches (se tiver service worker / cache storage)
+  try {
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (_) {}
+
   window.location.href = "https://vintage-clothes.ie/";
 }
+
 
 
 
