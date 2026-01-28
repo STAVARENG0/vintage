@@ -113,15 +113,6 @@ header{ text-align:center; margin-bottom:18px }
 .btn:hover{ transform:translateY(-1px); filter:brightness(1.08) }
 .btn.disabled{ opacity:.55; pointer-events:none; filter:grayscale(1) }
 footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
-.admin-btn-modal { position: absolute; top: 12px; right: 12px; z-index: 100; }
-.admin-btn-modal a{
-  background: var(--accent); color:#fff; text-decoration:none; padding:4px 8px;
-  border-radius:6px; font-weight:600; font-size:11px; box-shadow:0 1px 4px rgba(0,0,0,0.1);
-  transition: filter 0.2s; display:inline-block;
-}
-.admin-btn-modal a:hover { filter: brightness(1.1); }
-
-
 /* Customer account button (mirrors Admin button, left side) */
 .account-btn-modal{
   position:absolute; top:12px; left:12px; z-index:100;
@@ -504,7 +495,6 @@ header{ text-align:center; }
   transform: translateX(2px);
 }
 </style>
-
 <!-- === Override: replace VINTAGE text with logo image === -->
 <style>
 /* Hide the animated letters and brush, use the logo image instead */
@@ -525,15 +515,11 @@ header{ text-align:center; }
 .site-name::before { content: none !important; } /* remove brush overlay */
 .brand { gap: 10px; } /* keep layout tidy */
 </style>
-
-
 <style id="logo-gap-fix">
 /* Remove the tiny baseline gap under <img> by making it block-level */
 .brand img{ display:block; margin:0 auto; }
 .brand{ line-height: 0; } /* ensure no extra line-box space */
 </style>
-
-
 <style id="logo-white-gap-kill">
 /* Mata a “margem branca” do logo: vem do background e border do .brand img */
 .brand img{
@@ -544,8 +530,6 @@ header{ text-align:center; }
 }
 .brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; }
 </style>
-
-
 <style id="logo-gap-kill-2">
 /* Elimina qualquer faixa clara/“margem” embaixo do logo  */
 .brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; gap:0 !important; }
@@ -567,8 +551,6 @@ header{ text-align:center; }
 }
 h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !important; }
 </style>
-
-
 <!-- ====== ARTESANATO GLASS THEME + GOLD FIELD (aplicado na Vintage) ====== -->
 <style id="vintage-artesanato-glass">
 :root{
@@ -698,8 +680,6 @@ body{
   background:linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395) !important;
 }
 </style>
-
-
 <!-- ================= AJUSTES (MENU acima + BOTÕES BRANCOS + LOGO MAIOR) ================= -->
 <style id="vintage-glass-fixes">
 /* 1) Menu lateral sempre acima do “vidro” e dos modais */
@@ -783,8 +763,6 @@ body{
   box-shadow: 0 10px 26px rgba(0,0,0,.08) !important;
 }
 </style>
-
-
 <!-- === Logo neon + sem folgas (override final) === -->
 <style id="logo-neon-tight">
 /* 1) Remove “moldura”/espaços do container da logo */
@@ -837,24 +815,21 @@ background: transparent !important;
 </style>
 </head>
 <body>
-  <canvas id="reactiveField" aria-hidden="true"></canvas>
+<canvas aria-hidden="true" id="reactiveField"></canvas>
 <div class="wrap">
 <div class="card">
-<div class="admin-btn-modal"><a href="login.html">Admin</a></div>
 
 <div class="account-btn-modal" id="accountMenu">
-  <div id="guestMenu">
-    <a class="secondary" id="loginLink" href="cliente-login-2.html">Log in</a>
-    <a id="signupLink" href="cliente-login-2.html">Sign up</a>
-  </div>
-
-  <div id="authMenu" style="display:none;">
-    <span class="hello" id="helloUser">Hello, Matheus 👋</span>
-    <a class="secondary" href="painel.html" id="accessPanelBtn">Access panel</a>
-    <button type="button" id="logoutBtn">Logout</button>
-  </div>
+<div id="guestMenu">
+<a class="secondary" href="cliente-login-2.html" id="loginLink">Log in</a>
+<a href="cliente-login-2.html" id="signupLink">Sign up</a>
 </div>
-
+<div id="authMenu" style="display:none;">
+<span class="hello" id="helloUser">Hello, Matheus 👋</span>
+<a class="secondary" href="painel.html" id="accessPanelBtn">Access panel</a>
+<button id="logoutBtn" type="button">Logout</button>
+</div>
+</div>
 <header>
 <div class="brand"><svg aria-label="Curated Pieces" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">Curated Pieces</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1><div aria-label="Redes sociais" class="social-buttons">
 <a aria-label="Instagram Vintage Clothes" class="social-btn social-instagram" href="https://www.instagram.com/vintageclothes.ie?igsh=emtmYjV1NGF6ZGZk&amp;utm_source=qr" rel="noopener noreferrer" target="_blank">
@@ -874,8 +849,8 @@ background: transparent !important;
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
-  <a class="pill-btn" href="index.html">HOME</a>
-  <button class="pill-btn" id="menuButton">MENU</button>
+<a class="pill-btn" href="index.html">HOME</a>
+<button class="pill-btn" id="menuButton">MENU</button>
 </div>
 </div>
 </header>
@@ -896,16 +871,11 @@ background: transparent !important;
 <h2>Your Cart</h2>
 <div id="cartItems" style="margin:12px 0;"></div>
 <hr class="cart-divider" style="margin:12px 0;"/>
-
-
-
-
-
-      <div class="cart-total">
-        <span>Total:</span>
-        <span id="cartTotal">€ --</span>
-      </div>
-      <button class="btn cart-checkout">Checkout</button>
+<div class="cart-total">
+<span>Total:</span>
+<span id="cartTotal">€ --</span>
+</div>
+<button class="btn cart-checkout">Checkout</button>
 </div>
 </div>
 <script>
@@ -1254,30 +1224,27 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 </div>
 </div>
-
 <!-- Menu lateral -->
-<div class="menu-modal" id="menuModal" aria-hidden="true" style="display:none;">
-  <div class="menu-overlay" id="menuOverlay"></div>
-
-  <nav class="menu-panel" aria-label="Main menu">
-    <button class="menu-close" id="menuClose" aria-label="Fechar menu">×</button>
-    <h2 class="menu-title">Menu</h2>
-    <ul class="menu-list">
-      <li><a href="dresses-skirts.html">Dresses &amp; Skirts</a></li>
-      <li><a href="trousers.html">Trousers</a></li>
-      <li><a href="shirts-tees.html">Shirts &amp; Tees</a></li>
-      <li><a href="hoodies-sweatshirts.html">Hoodies &amp; Sweatshirts</a></li>
-      <li><a href="puffers.html">Puffers</a></li>
-      <li><a href="coats-outerwear.html">Coats &amp; Outerwear</a></li>
-      <li><a href="leatherwear.html">Leatherwear</a></li>
-      <li><a href="shoes.html">Shoes</a></li>
-      <li><a href="bags-accessories.html">Bags &amp; Accessories</a></li>
-      <li><a href="activewear.html">Activewear</a></li>
-      <li><a href="curated-pieces.html">Curated Pieces</a></li>
-    </ul>
-  </nav>
+<div aria-hidden="true" class="menu-modal" id="menuModal" style="display:none;">
+<div class="menu-overlay" id="menuOverlay"></div>
+<nav aria-label="Main menu" class="menu-panel">
+<button aria-label="Fechar menu" class="menu-close" id="menuClose">×</button>
+<h2 class="menu-title">Menu</h2>
+<ul class="menu-list">
+<li><a href="dresses-skirts.html">Dresses &amp; Skirts</a></li>
+<li><a href="trousers.html">Trousers</a></li>
+<li><a href="shirts-tees.html">Shirts &amp; Tees</a></li>
+<li><a href="hoodies-sweatshirts.html">Hoodies &amp; Sweatshirts</a></li>
+<li><a href="puffers.html">Puffers</a></li>
+<li><a href="coats-outerwear.html">Coats &amp; Outerwear</a></li>
+<li><a href="leatherwear.html">Leatherwear</a></li>
+<li><a href="shoes.html">Shoes</a></li>
+<li><a href="bags-accessories.html">Bags &amp; Accessories</a></li>
+<li><a href="activewear.html">Activewear</a></li>
+<li><a href="curated-pieces.html">Curated Pieces</a></li>
+</ul>
+</nav>
 </div>
-
 <script>
 
 // ==== VModal behavior (clean) ====
@@ -1434,7 +1401,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   })();
 </script>
-
 <script>
 (() => {
   // Campo reativo dourado (mesmo efeito do Artesanato)
@@ -1604,45 +1570,25 @@ document.addEventListener('DOMContentLoaded', () => {
   step();
 })();
 </script>
-
-
-
 <script>
 (function(){
-  // Matches the login page keys (cliente-login-2.html)
-  const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"]; 
+  // Keys used by login page
+  const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
+  const USER_ID_KEY = "vw_user_id";
+  const COOKIE_KEYS = ["vw_token","vw_token_js"];
 
-  function getToken(){
-    for (const k of TOKEN_KEYS){
-      try{ const t = localStorage.getItem(k); if (t) return t; }catch(_){}
-    }
-    // cookie fallback (optional)
-    try{
-      const m = document.cookie.match(/(?:^|; )vw_token=([^;]+)/);
-      if (m) return decodeURIComponent(m[1]);
-    }catch(_){}
-    return null;
-  }
-
-  function b64urlToJson(b64url){
-    const b64 = (b64url || "").replace(/-/g, "+").replace(/_/g, "/");
-    const pad = b64.length % 4 ? "=".repeat(4 - (b64.length % 4)) : "";
-    const json = atob(b64 + pad);
-    return JSON.parse(json);
-  }
-
-  function guessNameFromToken(token){
-    let name = "Matheus";
-    try{
-      const parts = String(token).split(".");
-      if (parts.length >= 2){
-        const payload = b64urlToJson(parts[1]);
-        name = payload.name || payload.fullName || payload.username || payload.user || payload.email || name;
-        if (String(name).includes("@")) name = String(name).split("@")[0];
-        if (String(name).trim().includes(" ")) name = String(name).trim().split(" ")[0];
+  function clearCookies(){
+    const expires = "Thu, 01 Jan 1970 00:00:00 GMT";
+    const host = (location.hostname || "").replace(/^www\./,"");
+    const domains = [host, "."+host, ".vintage-clothes.ie"];
+    for (const name of COOKIE_KEYS){
+      // try without domain
+      document.cookie = `${name}=; expires=${expires}; Max-Age=0; path=/; SameSite=Lax`;
+      // try with multiple domains
+      for (const d of domains){
+        document.cookie = `${name}=; expires=${expires}; Max-Age=0; path=/; domain=${d}; SameSite=Lax`;
       }
-    }catch(_){ }
-    return String(name || "Matheus");
+    }
   }
 
   function setMenuAuthed(isAuthed, name){
@@ -1657,49 +1603,66 @@ document.addEventListener('DOMContentLoaded', () => {
       auth.style.gap = "8px";
       auth.style.alignItems = "center";
       auth.style.flexWrap = "wrap";
-      if (hello) hello.textContent = "Hello, " + (name || "Matheus") + " 👋";
-    }else{
+      if (hello) hello.textContent = "Hello, " + (name || "Ana") + " 👋";
+    } else {
       guest.style.display = "flex";
       guest.style.gap = "8px";
       guest.style.alignItems = "center";
       guest.style.flexWrap = "wrap";
       auth.style.display = "none";
-      if (hello) hello.textContent = "Hello, Matheus 👋";
+      if (hello) hello.textContent = "Hello, Ana 👋";
     }
   }
 
   function wireLogout(){
     const btn = document.getElementById("logoutBtn");
     if (!btn) return;
-    btn.addEventListener("click", function(){
-      try{ TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); }catch(_){}
-      try{ document.cookie = "vw_token=; Path=/; Max-Age=0; SameSite=Lax"; }catch(_){}
-      location.reload();
-    });
-  }
 
-  function setBackLinks(){
-    const page = (location.pathname.split('/').pop() || 'index.html');
-    const login = document.getElementById('loginLink');
-    const signup = document.getElementById('signupLink');
-    if (login) login.href = 'cliente-login-2.html?back=' + encodeURIComponent(page);
-    if (signup) signup.href = 'cliente-login-2.html?open=register&back=' + encodeURIComponent(page);
-  }
+    btn.addEventListener("click", async function(){
+      // Best-effort server logout (clears auth cookies if endpoint exists)
+      const endpoints = [
+        ["POST","https://auth.vintage-clothes.ie/user/logout"],
+        ["GET","https://auth.vintage-clothes.ie/user/logout"],
+        ["POST","https://auth.vintage-clothes.ie/logout"],
+        ["GET","https://auth.vintage-clothes.ie/logout"],
+        ["POST","https://auth.vintage-clothes.ie/user/signout"],
+        ["GET","https://auth.vintage-clothes.ie/user/signout"]
+      ];
+      for (const [method,url] of endpoints){
+        try { await fetch(url, { method, credentials: "include" }); } catch(_){}
+      }
 
-  function init(){
-    setBackLinks();
-    const token = getToken();
-    if (token){
-      setMenuAuthed(true, guessNameFromToken(token));
-    }else{
+      try { TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); } catch(_){}
+      try { localStorage.removeItem(USER_ID_KEY); } catch(_){}
+      clearCookies();
+      setMenuAuthed(false, null);
+
+      // Force a clean refresh
+      location.href = location.href.split("#")[0];
+    });}
+
+  async function init(){
+    try{
+      const r = await fetch("https://auth.vintage-clothes.ie/user/me", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      if (!r.ok){
+        setMenuAuthed(false, null);
+      } else {
+        const me = await r.json();
+        setMenuAuthed(true, me.name);
+      }
+    }catch(_){
       setMenuAuthed(false, null);
     }
+
     wireLogout();
   }
 
   document.addEventListener("DOMContentLoaded", init);
 })();
 </script>
-
 </body>
 </html>
