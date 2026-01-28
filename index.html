@@ -1670,13 +1670,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function wireLogout(){
     const btn = document.getElementById("logoutBtn");
     if (!btn) return;
-    btn.addEventListener("click", function(){
-      try{ TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); }catch(_){}
-      // Also clear the cookie used as fallback
-      try{ document.cookie = "vw_token=; Path=/; Max-Age=0; SameSite=Lax"; }catch(_){}
-      location.reload();
+   btn.addEventListener('click', async function(){
+  try{
+    await fetch("https://auth.vintage-clothes.ie/user/logout", {
+      method: "POST",
+      credentials: "include"
     });
-  }
+  }catch(_){}
+
+  try{ TOKEN_KEYS.forEach(k=> localStorage.removeItem(k)); }catch(_){}
+  location.reload();
+});
+
 
   async function init(){
   try{
