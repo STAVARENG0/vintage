@@ -693,6 +693,8 @@
 
     
     const CART_UPDATED_AT_KEY = "vw_cart_updatedAt";
+
+    const CART_DIRTY_KEY = "vw_cart_dirty";
 function getUserId(){
   try{
     const u = (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function') ? window.VintageAuth.getLoggedUser().user : null;
@@ -808,7 +810,10 @@ function getUserId(){
       try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(Date.now())); }catch(_){ }
 
 
-      if (!suppressCartSync){
+      
+      // Mark cart dirty only when logged in (so we don't overwrite server on next login)
+      try{ if (isLoggedInForCart()) localStorage.setItem(CART_DIRTY_KEY, "1"); }catch(_){ }
+if (!suppressCartSync){
         scheduleCartSync();
       }
     }
@@ -864,28 +869,67 @@ function getUserId(){
         })();
 
         const localUpdatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY) || 0) || 0;
+        const isDirty = (localStorage.getItem(CART_DIRTY_KEY) === "1");
 
         suppressCartSync = true;
         try{
-          // If local is newer (including "I cleared the cart"), push local -> server.
-          if (localUpdatedAt >= serverUpdatedAt){
-            await window.VW_API.apiJson('/cart', {
-              method:'POST',
-              body:{ cart: localCart, updatedAt: localUpdatedAt }
-            });
+          // If NOT dirty, do NOT overwrite server. Server is source of truth.
+          // Exception: server empty and local has items (guest -> logged-in merge), then push local once.
+          if (!isDirty){
+            if (serverCart.length){
+              state.cart = serverCart.map(normalizeCartItem);
+              const key = chooseActiveCartKey();
+              try{ localStorage.setItem(key, JSON.stringify(state.cart)); }catch(_){ }
+              if (key !== CART_GUEST_KEY){
+                try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){ }
+              }
+              try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){ }
+              renderCart();
+              return;
+            }
+
+            if (!serverCart.length && localCart.length){
+              const now = Date.now();
+              await window.VW_API.apiJson('/cart', {
+                method:'POST',
+                body:{ cart: localCart, updatedAt: now }
+              });
+              try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(now)); }catch(_){ }
+              try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){ }
+              return;
+            }
+
+            // both empty
+            state.cart = [];
+            const key = chooseActiveCartKey();
+            try{ localStorage.setItem(key, '[]'); }catch(_){ }
+            if (key !== CART_GUEST_KEY){
+              try{ localStorage.setItem(CART_GUEST_KEY, '[]'); }catch(_){ }
+            }
+            try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){ }
+            renderCart();
             return;
           }
 
-          // Otherwise server is newer -> pull server -> local (without touching updatedAt)
-          state.cart = serverCart.map(normalizeCartItem);
+          // Dirty: reconcile by last-updated and push/pull accordingly
+          if (localUpdatedAt >= serverUpdatedAt){
+            await window.VW_API.apiJson('/cart', {
+              method:'POST',
+              body:{ cart: localCart, updatedAt: localUpdatedAt || Date.now() }
+            });
+            try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){ }
+            return;
+          }
 
+          // Server newer -> pull
+          state.cart = serverCart.map(normalizeCartItem);
           const key = chooseActiveCartKey();
           try{ localStorage.setItem(key, JSON.stringify(state.cart)); }catch(_){ }
           if (key !== CART_GUEST_KEY){
             try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){ }
           }
           try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){ }
-
+          try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){ }
           renderCart();
         } finally {
           suppressCartSync = false;
