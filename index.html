@@ -1678,15 +1678,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function init(){
-    const token = getToken();
-    if (token){
-      setMenuAuthed(true, guessNameFromToken(token));
-    }else{
+  async function init(){
+  try{
+    const r = await fetch("https://auth.vintage-clothes.ie/user/me", {
+      method: "GET",
+      credentials: "include"
+    });
+
+    if (!r.ok) {
       setMenuAuthed(false, null);
+    } else {
+      const me = await r.json();
+      setMenuAuthed(true, me.name);
     }
-    wireLogout();
+  }catch(e){
+    setMenuAuthed(false, null);
   }
+
+  wireLogout();
+}
+
 
   document.addEventListener("DOMContentLoaded", init);
 })();
