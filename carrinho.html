@@ -836,13 +836,13 @@ if (!suppressCartSync){
             await window.VW_API.apiJson('/cart', { method: 'DELETE' });
           }catch(_){
             // Fallback if DELETE isn't supported
-            await window.VW_API.apiJson('/cart', { method: 'PUT', body:{ cart: [], clear: true , replace:true} });
+            await window.VW_API.apiJson('/cart', { method: 'POST', body: { cart: [], clear: true } });
           }
           try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
           return;
         }
 
-        await window.VW_API.apiJson('/cart', { method: 'PUT', body:{ cart, replace:true } });
+        await window.VW_API.apiJson('/cart', { method: 'POST', body: { cart } });
         try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
       }catch(err){
         console.warn('Failed to sync cart to backend', err);
@@ -924,7 +924,7 @@ if (!suppressCartSync){
               const merged = Array.from(mergedMap.values()).map(normalizeCartItem);
               const now = Date.now();
               try{
-                await window.VW_API.apiJson('/cart', { method:'PUT', body:{ cart: merged, updatedAt: now , replace:true} });
+                await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: merged, updatedAt: now } });
               }catch(_){
                 // If push fails, fall back to server view
               }
@@ -959,10 +959,10 @@ if (!suppressCartSync){
               try{
                 await window.VW_API.apiJson('/cart', { method:'DELETE' });
               }catch(_){
-                await window.VW_API.apiJson('/cart', { method:'PUT', body:{ cart: [], clear:true, updatedAt: localUpdatedAt || Date.now() , replace:true} });
+                await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: [], clear:true, updatedAt: localUpdatedAt || Date.now() } });
               }
             }else{
-              await window.VW_API.apiJson('/cart', { method:'PUT', body:{ cart: localCart, updatedAt: localUpdatedAt || Date.now() , replace:true} });
+              await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart, updatedAt: localUpdatedAt || Date.now() } });
             }
             try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
             return;
