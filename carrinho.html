@@ -691,7 +691,9 @@
     const USER_ID_KEY = "vw_user_id";
     const CART_GUEST_KEY = "vw_cart";
 
-    function getUserId(){
+    
+    const CART_UPDATED_AT_KEY = "vw_cart_updatedAt";
+function getUserId(){
   try{
     const u = (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function') ? window.VintageAuth.getLoggedUser().user : null;
     const id = u && (u.id ?? u.user_id ?? u.userId ?? u.uid);
@@ -802,6 +804,10 @@
         try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(normalized)); }catch(_){ }
       }
 
+      // Touch updatedAt so devices can reconcile newest cart
+      try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(Date.now())); }catch(_){ }
+
+
       if (!suppressCartSync){
         scheduleCartSync();
       }
@@ -846,19 +852,41 @@
         const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
         const localCart = Array.isArray(state.cart) ? state.cart : [];
 
+        // server updatedAt can be ms timestamp or ISO string (or missing)
+        const rawUpdated = (data && (data.updatedAt ?? data.updated_at ?? data.updatedAtMs ?? data.updated_at_ms)) ?? 0;
+        const serverUpdatedAt = (() => {
+          if (typeof rawUpdated === 'number') return rawUpdated || 0;
+          if (typeof rawUpdated === 'string') {
+            const t = Date.parse(rawUpdated);
+            return Number.isNaN(t) ? 0 : t;
+          }
+          return 0;
+        })();
+
+        const localUpdatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY) || 0) || 0;
+
         suppressCartSync = true;
         try{
-          if (serverCart.length && !localCart.length){
-            state.cart = serverCart.map(normalizeCartItem);
-            saveLocalCart();
-            renderCart();
-          } else if (!serverCart.length && localCart.length){
-            await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart } });
-          } else if (serverCart.length && localCart.length){
-            state.cart = serverCart.map(normalizeCartItem);
-            saveLocalCart();
-            renderCart();
+          // If local is newer (including "I cleared the cart"), push local -> server.
+          if (localUpdatedAt >= serverUpdatedAt){
+            await window.VW_API.apiJson('/cart', {
+              method:'POST',
+              body:{ cart: localCart, updatedAt: localUpdatedAt }
+            });
+            return;
           }
+
+          // Otherwise server is newer -> pull server -> local (without touching updatedAt)
+          state.cart = serverCart.map(normalizeCartItem);
+
+          const key = chooseActiveCartKey();
+          try{ localStorage.setItem(key, JSON.stringify(state.cart)); }catch(_){ }
+          if (key !== CART_GUEST_KEY){
+            try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){ }
+          }
+          try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){ }
+
+          renderCart();
         } finally {
           suppressCartSync = false;
         }
