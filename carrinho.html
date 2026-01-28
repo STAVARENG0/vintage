@@ -825,37 +825,24 @@ if (!suppressCartSync){
 
 
     async function syncCartToBackend(){
-      if (!isLoggedInForCart()) return;
-      if (!window.VW_API || !window.VW_API.apiJson) return;
+      if (!isLoggedIn()) return;
+      if (suppressCartSync) return;
 
-      const cart = Array.isArray(state.cart) ? state.cart : [];
+      const dirty = localStorage.getItem(CART_DIRTY_KEY) === '1';
+      if (!dirty) return;
+
+      const cart = readLocalCart();
+      const localUpdatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY) || Date.now());
+
       try{
-        if (!cart.length){
-          // Clear cart on backend (some backends ignore POST with [])
-          try{
-            await window.VW_API.apiJson('/cart', { method: 'POST', body: { cart: [], clear: true, mode: 'replace' } });
-          }catch(_){}
+        const resp = await window.VW_API.apiJson('/cart', {
+          method: 'POST',
+          body: { cart, updatedAt: new Date(localUpdatedAt).toISOString(), mode: 'replace' }
+        });
 
-          // Verify, then try DELETE as stronger fallback
-          try{
-            const chk = await window.VW_API.apiJson('/cart', { method:'GET' });
-            const still = Array.isArray(chk && chk.cart) ? chk.cart : [];
-            if (still.length){
-              try{
-                await window.VW_API.apiJson('/cart', { method: 'DELETE' });
-              }catch(_){
-                await window.VW_API.apiJson('/cart', { method: 'POST', body: { cart: [], clear: true, force: true, mode: 'replace' } });
-              }
-            }
-          }catch(_){}
-
-          try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
-          return;
-        }
-
-        // Replace cart on backend
-        await window.VW_API.apiJson('/cart', { method: 'POST', body: { cart, mode: 'replace' } });
-        try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
+        const serverTs = Date.parse(resp?.updatedAt || '') || localUpdatedAt;
+        localStorage.setItem(CART_UPDATED_AT_KEY, String(serverTs));
+        localStorage.setItem(CART_DIRTY_KEY, '0');
       }catch(err){
         console.warn('Failed to sync cart to backend', err);
       }
@@ -871,130 +858,47 @@ if (!suppressCartSync){
     }
 
     async function syncCartFromBackend(){
-      if (!isLoggedInForCart()) return;
-      if (!window.VW_API || !window.VW_API.apiJson) return;
+      if (!isLoggedIn()) return;
+
+      const API_CART = `${REWARDS_ROOT}/cart`;
 
       try{
-        const data = await window.VW_API.apiJson('/cart', { method:'GET' });
-        const serverCart = Array.isArray(data && data.cart) ? data.cart : [];
-        const localCart = Array.isArray(state.cart) ? state.cart : [];
+        const res = await fetch(API_CART, { method: 'GET', headers: authHeaders(), credentials: 'include' });
+        if (!res.ok) return;
 
-        // server updatedAt can be ms timestamp or ISO string (or missing)
-        const rawUpdated = (data && (data.updatedAt ?? data.updated_at ?? data.updatedAtMs ?? data.updated_at_ms)) ?? 0;
-        const serverUpdatedAt = (() => {
-          if (typeof rawUpdated === 'number') return rawUpdated || 0;
-          if (typeof rawUpdated === 'string') {
-            const t = Date.parse(rawUpdated);
-            return Number.isNaN(t) ? 0 : t;
-          }
-          return 0;
-        })();
-
-        const localUpdatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY) || 0) || 0;
-        const isDirty = (localStorage.getItem(CART_DIRTY_KEY) === "1");
-
-        const keyOf = (it) => String((it && (it.product_id ?? it.productId ?? it.id)) ?? '');
-        const nQty = (it) => {
-          const q = Number(it && (it.qty ?? it.quantity ?? 1));
-          return (Number.isFinite(q) && q > 0) ? q : 1;
-        };
+        const data = await res.json().catch(()=>null);
+        const serverCart = Array.isArray(data?.cart) ? data.cart : [];
+        const serverUpdatedAt = Date.parse(data?.updatedAt || '') || 0;
 
         suppressCartSync = true;
         try{
-          // NOT dirty: server is source-of-truth, but we MERGE local additions (from Store page) into server.
-          if (!isDirty){
-            const serverMap = new Map();
-            serverCart.forEach(it => serverMap.set(keyOf(it), it));
+          const localCart = readLocalCart();
+          const localUpdatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY) || 0);
 
-            let needsPush = false;
-            const mergedMap = new Map(serverMap);
-
-            // Merge local items that are missing on server (new products)
-            for (const it of localCart){
-              const k = keyOf(it);
-              if (!k) continue;
-              if (!mergedMap.has(k)){
-                mergedMap.set(k, it);
-                needsPush = true;
-              }
-            }
-
-            // Merge quantity increases (local qty > server qty) as "additions"
-            for (const it of localCart){
-              const k = keyOf(it);
-              if (!k) continue;
-              if (serverMap.has(k)){
-                const s = serverMap.get(k);
-                if (nQty(it) > nQty(s)){
-                  mergedMap.set(k, { ...s, qty: nQty(it) });
-                  needsPush = true;
-                }
-              }
-            }
-
-            if (needsPush){
-              const merged = Array.from(mergedMap.values()).map(normalizeCartItem);
-              const now = Date.now();
-              try{
-                await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: merged, updatedAt: now } });
-              }catch(_){
-                // If push fails, fall back to server view
-              }
-              state.cart = merged;
-              const active = chooseActiveCartKey();
-              try{ localStorage.setItem(active, JSON.stringify(state.cart)); }catch(_){}
-              if (active !== CART_GUEST_KEY){
-                try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){}
-              }
-              try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(now)); }catch(_){}
-              try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
-              renderCart();
-              return;
-            }
-
-            // No local additions: just pull server (keeps cart after relog)
-            state.cart = serverCart.map(normalizeCartItem);
-            const active = chooseActiveCartKey();
-            try{ localStorage.setItem(active, JSON.stringify(state.cart)); }catch(_){}
-            if (active !== CART_GUEST_KEY){
-              try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){}
-            }
-            try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){}
-            renderCart();
-            return;
+          // If local snapshot is newer, push it; otherwise pull server snapshot (authoritative).
+          if (localUpdatedAt > serverUpdatedAt && localCart) {
+            await fetch(API_CART, {
+              method: 'POST',
+              headers: authHeaders(),
+              credentials: 'include',
+              body: JSON.stringify({ cart: localCart, updatedAt: new Date(localUpdatedAt).toISOString(), mode: 'replace' }),
+            }).catch(()=>{});
+            state.cart = localCart;
+            localStorage.setItem(CART_DIRTY_KEY, '0');
+          } else {
+            state.cart = serverCart;
+            writeLocalCart(serverCart);
+            // If server doesn't return updatedAt, keep localUpdatedAt (so we don't accidentally "win" later)
+            localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || localUpdatedAt || Date.now()));
+            localStorage.setItem(CART_DIRTY_KEY, '0');
           }
 
-          // DIRTY: reconcile by last-updated. If local is newer, push (including clear).
-          if (localUpdatedAt >= serverUpdatedAt){
-            if (!localCart.length){
-              // Clear on server
-              try{
-                await window.VW_API.apiJson('/cart', { method:'DELETE' });
-              }catch(_){
-                await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: [], clear:true, updatedAt: localUpdatedAt || Date.now() } });
-              }
-            }else{
-              await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart, updatedAt: localUpdatedAt || Date.now() } });
-            }
-            try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
-            return;
-          }
-
-          // Server newer -> pull
-          state.cart = serverCart.map(normalizeCartItem);
-          const active = chooseActiveCartKey();
-          try{ localStorage.setItem(active, JSON.stringify(state.cart)); }catch(_){}
-          if (active !== CART_GUEST_KEY){
-            try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){}
-          }
-          try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){}
-          try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
           renderCart();
         } finally {
           suppressCartSync = false;
         }
-      }catch(err){
-        console.warn('Failed to load cart from backend', err);
+      } catch(err) {
+        console.warn('syncCartFromBackend error', err);
       }
     }
 
