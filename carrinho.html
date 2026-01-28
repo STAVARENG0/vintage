@@ -830,10 +830,20 @@ if (!suppressCartSync){
 
       const cart = Array.isArray(state.cart) ? state.cart : [];
       try{
-        await window.VW_API.apiJson('/cart', {
-          method: 'POST',
-          body: { cart },
-        });
+        if (!cart.length){
+          // Some backends ignore POST with [] — use DELETE to truly clear
+          try{
+            await window.VW_API.apiJson('/cart', { method: 'DELETE' });
+          }catch(_){
+            // Fallback if DELETE isn't supported
+            await window.VW_API.apiJson('/cart', { method: 'POST', body: { cart: [], clear: true } });
+          }
+          try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
+          return;
+        }
+
+        await window.VW_API.apiJson('/cart', { method: 'POST', body: { cart } });
+        try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
       }catch(err){
         console.warn('Failed to sync cart to backend', err);
       }
@@ -871,65 +881,102 @@ if (!suppressCartSync){
         const localUpdatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY) || 0) || 0;
         const isDirty = (localStorage.getItem(CART_DIRTY_KEY) === "1");
 
+        const keyOf = (it) => String((it && (it.product_id ?? it.productId ?? it.id)) ?? '');
+        const nQty = (it) => {
+          const q = Number(it && (it.qty ?? it.quantity ?? 1));
+          return (Number.isFinite(q) && q > 0) ? q : 1;
+        };
+
         suppressCartSync = true;
         try{
-          // If NOT dirty, do NOT overwrite server. Server is source of truth.
-          // Exception: server empty and local has items (guest -> logged-in merge), then push local once.
+          // NOT dirty: server is source-of-truth, but we MERGE local additions (from Store page) into server.
           if (!isDirty){
-            if (serverCart.length){
-              state.cart = serverCart.map(normalizeCartItem);
-              const key = chooseActiveCartKey();
-              try{ localStorage.setItem(key, JSON.stringify(state.cart)); }catch(_){ }
-              if (key !== CART_GUEST_KEY){
-                try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){ }
+            const serverMap = new Map();
+            serverCart.forEach(it => serverMap.set(keyOf(it), it));
+
+            let needsPush = false;
+            const mergedMap = new Map(serverMap);
+
+            // Merge local items that are missing on server (new products)
+            for (const it of localCart){
+              const k = keyOf(it);
+              if (!k) continue;
+              if (!mergedMap.has(k)){
+                mergedMap.set(k, it);
+                needsPush = true;
               }
-              try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){ }
+            }
+
+            // Merge quantity increases (local qty > server qty) as "additions"
+            for (const it of localCart){
+              const k = keyOf(it);
+              if (!k) continue;
+              if (serverMap.has(k)){
+                const s = serverMap.get(k);
+                if (nQty(it) > nQty(s)){
+                  mergedMap.set(k, { ...s, qty: nQty(it) });
+                  needsPush = true;
+                }
+              }
+            }
+
+            if (needsPush){
+              const merged = Array.from(mergedMap.values()).map(normalizeCartItem);
+              const now = Date.now();
+              try{
+                await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: merged, updatedAt: now } });
+              }catch(_){
+                // If push fails, fall back to server view
+              }
+              state.cart = merged;
+              const active = chooseActiveCartKey();
+              try{ localStorage.setItem(active, JSON.stringify(state.cart)); }catch(_){}
+              if (active !== CART_GUEST_KEY){
+                try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){}
+              }
+              try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(now)); }catch(_){}
+              try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
               renderCart();
               return;
             }
 
-            if (!serverCart.length && localCart.length){
-              const now = Date.now();
-              await window.VW_API.apiJson('/cart', {
-                method:'POST',
-                body:{ cart: localCart, updatedAt: now }
-              });
-              try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(now)); }catch(_){ }
-              try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){ }
-              return;
+            // No local additions: just pull server (keeps cart after relog)
+            state.cart = serverCart.map(normalizeCartItem);
+            const active = chooseActiveCartKey();
+            try{ localStorage.setItem(active, JSON.stringify(state.cart)); }catch(_){}
+            if (active !== CART_GUEST_KEY){
+              try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){}
             }
-
-            // both empty
-            state.cart = [];
-            const key = chooseActiveCartKey();
-            try{ localStorage.setItem(key, '[]'); }catch(_){ }
-            if (key !== CART_GUEST_KEY){
-              try{ localStorage.setItem(CART_GUEST_KEY, '[]'); }catch(_){ }
-            }
-            try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){ }
+            try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){}
             renderCart();
             return;
           }
 
-          // Dirty: reconcile by last-updated and push/pull accordingly
+          // DIRTY: reconcile by last-updated. If local is newer, push (including clear).
           if (localUpdatedAt >= serverUpdatedAt){
-            await window.VW_API.apiJson('/cart', {
-              method:'POST',
-              body:{ cart: localCart, updatedAt: localUpdatedAt || Date.now() }
-            });
-            try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){ }
+            if (!localCart.length){
+              // Clear on server
+              try{
+                await window.VW_API.apiJson('/cart', { method:'DELETE' });
+              }catch(_){
+                await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: [], clear:true, updatedAt: localUpdatedAt || Date.now() } });
+              }
+            }else{
+              await window.VW_API.apiJson('/cart', { method:'POST', body:{ cart: localCart, updatedAt: localUpdatedAt || Date.now() } });
+            }
+            try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
             return;
           }
 
           // Server newer -> pull
           state.cart = serverCart.map(normalizeCartItem);
-          const key = chooseActiveCartKey();
-          try{ localStorage.setItem(key, JSON.stringify(state.cart)); }catch(_){ }
-          if (key !== CART_GUEST_KEY){
-            try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){ }
+          const active = chooseActiveCartKey();
+          try{ localStorage.setItem(active, JSON.stringify(state.cart)); }catch(_){}
+          if (active !== CART_GUEST_KEY){
+            try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(state.cart)); }catch(_){}
           }
-          try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){ }
-          try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){ }
+          try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){}
+          try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
           renderCart();
         } finally {
           suppressCartSync = false;
@@ -1310,6 +1357,8 @@ cart: compact,
 
       if (!cart.length){
         wrap.innerHTML = `<div class="muted" style="font-weight:700;">Your cart is empty.</div>`;
+        // Important: still update checkout payload when cart becomes empty
+        persistCheckoutPayload(totals);
         return;
       }
 
