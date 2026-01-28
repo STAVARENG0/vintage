@@ -113,15 +113,6 @@ header{ text-align:center; margin-bottom:18px }
 .btn:hover{ transform:translateY(-1px); filter:brightness(1.08) }
 .btn.disabled{ opacity:.55; pointer-events:none; filter:grayscale(1) }
 footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
-.admin-btn-modal { position: absolute; top: 12px; right: 12px; z-index: 100; }
-.admin-btn-modal a{
-  background: var(--accent); color:#fff; text-decoration:none; padding:4px 8px;
-  border-radius:6px; font-weight:600; font-size:11px; box-shadow:0 1px 4px rgba(0,0,0,0.1);
-  transition: filter 0.2s; display:inline-block;
-}
-.admin-btn-modal a:hover { filter: brightness(1.1); }
-
-
 /* Customer account button (mirrors Admin button, left side) */
 .account-btn-modal{
   position:absolute; top:12px; left:12px; z-index:100;
@@ -503,7 +494,6 @@ header{ text-align:center; }
   transform: translateX(2px);
 }
 </style>
-
 <!-- === Override: replace VINTAGE text with logo image === -->
 <style>
 /* Hide the animated letters and brush, use the logo image instead */
@@ -524,15 +514,11 @@ header{ text-align:center; }
 .site-name::before { content: none !important; } /* remove brush overlay */
 .brand { gap: 10px; } /* keep layout tidy */
 </style>
-
-
 <style id="logo-gap-fix">
 /* Remove the tiny baseline gap under <img> by making it block-level */
 .brand img{ display:block; margin:0 auto; }
 .brand{ line-height: 0; } /* ensure no extra line-box space */
 </style>
-
-
 <style id="logo-white-gap-kill">
 /* Mata a “margem branca” do logo: vem do background e border do .brand img */
 .brand img{
@@ -543,8 +529,6 @@ header{ text-align:center; }
 }
 .brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; }
 </style>
-
-
 <style id="logo-gap-kill-2">
 /* Elimina qualquer faixa clara/“margem” embaixo do logo  */
 .brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; gap:0 !important; }
@@ -566,8 +550,6 @@ header{ text-align:center; }
 }
 h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !important; }
 </style>
-
-
 <!-- ====== ARTESANATO GLASS THEME + GOLD FIELD (aplicado na Vintage) ====== -->
 <style id="vintage-artesanato-glass">
 :root{
@@ -697,8 +679,6 @@ body{
   background:linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395) !important;
 }
 </style>
-
-
 <!-- ================= AJUSTES (MENU acima + BOTÕES BRANCOS + LOGO MAIOR) ================= -->
 <style id="vintage-glass-fixes">
 /* 1) Menu lateral sempre acima do “vidro” e dos modais */
@@ -782,8 +762,6 @@ body{
   box-shadow: 0 10px 26px rgba(0,0,0,.08) !important;
 }
 </style>
-
-
 <!-- === Logo neon + sem folgas (override final) === -->
 <style id="logo-neon-tight">
 /* 1) Remove “moldura”/espaços do container da logo */
@@ -834,51 +812,23 @@ background: transparent !important;
 }
 
 </style>
-
-<style id="mobile-top-buttons-fix">
-@media (max-width: 600px){
-  /* Account stays on top */
-  .account-btn-modal{
-    left: 12px !important;
-    right: 12px !important;
-  }
-  .account-btn-modal .hello{
-    display: block;
-    width: 100%;
-    margin: 0 0 6px 0;
-  }
-  #authMenu, #guestMenu{ flex-wrap: wrap; }
-
-  /* Move Admin away (avoids overlap with account buttons on mobile) */
-  .admin-btn-modal{
-    top: auto !important;
-    right: auto !important;
-    bottom: 20px !important;
-    left: 20px !important;
-    z-index: 110 !important;
-  }
-}
-</style>
 </head>
 <body>
-  <canvas id="reactiveField" aria-hidden="true"></canvas>
+<canvas aria-hidden="true" id="reactiveField"></canvas>
 <div class="wrap">
 <div class="card">
-<div class="admin-btn-modal"><a href="login.html">Admin</a></div>
 
 <div class="account-btn-modal" id="accountMenu">
-  <div id="guestMenu">
-    <a class="secondary" href="cliente-login-2.html">Log in</a>
-    <a href="cliente-login-2.html?open=register&back=index.html">Sign up</a>
-  </div>
-
-  <div id="authMenu" style="display:none;">
-    <span class="hello" id="helloUser">Hello, Ana 👋</span>
-    <a class="secondary" href="painel.html" id="accessPanelBtn">Access panel</a>
-    <button type="button" id="logoutBtn">Logout</button>
-  </div>
+<div id="guestMenu">
+<a class="secondary" href="cliente-login-2.html">Log in</a>
+<a href="cliente-login-2.html?open=register&amp;back=index.html">Sign up</a>
 </div>
-
+<div id="authMenu" style="display:none;">
+<span class="hello" id="helloUser">Hello, Ana 👋</span>
+<a class="secondary" href="painel.html" id="accessPanelBtn">Access panel</a>
+<button id="logoutBtn" type="button">Logout</button>
+</div>
+</div>
 <header>
 <div class="brand"><svg aria-label="WELCOME" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">WELCOME</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1>
 <div aria-label="Redes sociais" class="social-buttons">
@@ -899,7 +849,7 @@ background: transparent !important;
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
-  <button class="pill-btn" id="menuButton">MENU</button>
+<button class="pill-btn" id="menuButton">MENU</button>
 </div>
 </div>
 </header>
@@ -919,29 +869,18 @@ background: transparent !important;
 <h2>Your Cart</h2>
 <div id="cartItems" style="margin:12px 0;"></div>
 <hr class="cart-divider" style="margin:12px 0;"/>
-
-
-
-
-
-      <div class="cart-total">
-        <span>Total:</span>
-        <span id="cartTotal">€ --</span>
-      </div>
-      <button class="btn cart-checkout">Checkout</button>
+<div class="cart-total">
+<span>Total:</span>
+<span id="cartTotal">€ --</span>
+</div>
+<button class="btn cart-checkout">Checkout</button>
 </div>
 </div>
 <script>
 const PUBLIC_JSON = './products.json';
 const grid = document.getElementById('products');
 let currentList = [];
-function 
-
-
-  <!-- Social buttons (added above the search bar) -->
-  
-
-fmtEUR(n){
+function fmtEUR(n){
   const v = Number(n);
   if(Number.isNaN(v)) return '€ ' + (n ?? '');
   if(Number.isInteger(v)) return '€ ' + v;
@@ -1203,459 +1142,23 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 (function(){
-  // Keep cart total display in sync (simple + safe)
-  function safeFmtEUR(n){
-    try{ return (typeof fmtEUR === 'function') ? fmtEUR(n) : ('€ ' + Number(n||0).toFixed(2)); }
-    catch(_){ return '€ ' + Number(n||0).toFixed(2); }
-  }
-
-  function getActiveCartKey(){
-    try{
-      const uid = localStorage.getItem('vw_user_id');
-      const tok = localStorage.getItem('vw_token');
-      if(uid && tok) return `vw_cart_u_${uid}`;
-    }catch(_){}
-    return 'vw_cart';
-  }
-
-  function readCart(){
-    try{
-      const key = getActiveCartKey();
-      const arr = JSON.parse(localStorage.getItem(key) || '[]');
-      return Array.isArray(arr) ? arr : [];
-    }catch(_){ return []; }
-  }
-
-  function updateTotals(){
-    const totalEl = document.getElementById('cartTotal');
-    if(!totalEl) return;
-    const cart = readCart();
-    const sum = cart.reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty)||0), 0);
-    totalEl.textContent = safeFmtEUR(sum);
-  }
-
-  document.addEventListener('change', function(e){
-    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
-      updateTotals();
-    }
-  });
-
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', updateTotals);
-  } else {
-    updateTotals();
-  }
-
-  window.updateCartTotalsWithShipping = updateTotals;
-})();
-</script>
-<!-- ==== VModal (clean build) ==== -->
-<div aria-hidden="true" class="vmodal" id="vModal">
-<div aria-labelledby="vmTitle" aria-modal="true" class="vmodal__dialog" role="dialog">
-<button aria-label="Fechar" class="vmodal__close" id="vmClose">✕</button>
-<div class="vmodal__left">
-<div class="vmodal__main"><img alt="" id="vmMain"/></div>
-<div class="vmodal__thumbs" id="vmThumbs"></div>
-</div>
-<div class="vmodal__right">
-<h3 class="vmodal__title" id="vmTitle"></h3>
-<div class="vmodal__price" id="vmPrice"></div>
-<div class="vmodal__meta" id="vmMeta"></div>
-<div class="vmodal__desc" id="vmDesc"></div>
-<div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
-</div>
-</div>
-</div>
-
-<!-- Menu lateral -->
-<div class="menu-modal" id="menuModal" aria-hidden="true" style="display:none;">
-  <div class="menu-overlay" id="menuOverlay"></div>
-
-  <nav class="menu-panel" aria-label="Main menu">
-    <button class="menu-close" id="menuClose" aria-label="Fechar menu">×</button>
-    <h2 class="menu-title">Menu</h2>
-    <ul class="menu-list">
-      <li><a href="dresses-skirts.html">Dresses &amp; Skirts</a></li>
-      <li><a href="trousers.html">Trousers</a></li>
-      <li><a href="shirts-tees.html">Shirts &amp; Tees</a></li>
-      <li><a href="hoodies-sweatshirts.html">Hoodies &amp; Sweatshirts</a></li>
-      <li><a href="puffers.html">Puffers</a></li>
-      <li><a href="coats-outerwear.html">Coats &amp; Outerwear</a></li>
-      <li><a href="leatherwear.html">Leatherwear</a></li>
-      <li><a href="shoes.html">Shoes</a></li>
-      <li><a href="bags-accessories.html">Bags &amp; Accessories</a></li>
-      <li><a href="activewear.html">Activewear</a></li>
-      <li><a href="curated-pieces.html">Curated Pieces</a></li>
-    </ul>
-  </nav>
-</div>
-
-<script>
-
-// ==== VModal behavior (clean) ====
-(function(){
-  if (window.__vmodal) return; window.__vmodal = true;
-  const $ = (s, r=document)=> r.querySelector(s);
-  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
-
-  const modal = $('#vModal');
-  const mainImg = $('#vmMain');
-  const thumbs = $('#vmThumbs');
-  const titleEl = $('#vmTitle');
-  const priceEl = $('#vmPrice');
-  const metaEl = $('#vmMeta');
-  const descEl = $('#vmDesc');
-  const btnClose = $('#vmClose');
-  const btnAdd = $('#vmAdd');
-  let card = null;
-  let imgs = [];
-  let idx = 0;
-
-  function renderThumbs(){
-    thumbs.innerHTML = '';
-    imgs.forEach((src, i)=>{
-      const b = document.createElement('button');
-      b.className = 'vmodal__thumb' + (i===idx ? ' is-active' : '');
-      b.innerHTML = `<img src="${src}" alt="">`;
-      b.addEventListener('click', ()=> go(i));
-      thumbs.appendChild(b);
-    });
-  }
-  function go(i){
-    if(!imgs.length) return;
-    idx = (i + imgs.length) % imgs.length;
-    mainImg.src = imgs[idx];
-    $$('.vmodal__thumb', thumbs).forEach((t, j)=> t.classList.toggle('is-active', j===idx));
-  }
-
-  function openFromCard(c){
-    card = c;
-    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
-    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
-    const meta  = (card.querySelector('.stock')?.textContent?.trim() || card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '');
-    const desc  = card.getAttribute('data-description') || card.querySelector('.description')?.textContent?.trim() || '';
-
-    const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
-    const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
-    const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
-    imgs = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
-    if (!imgs.length) { imgs = ['/assets/placeholder.png']; }
-
-    titleEl.textContent = title.toUpperCase();
-    priceEl.textContent = price;
-    metaEl.textContent = meta;
-    descEl.textContent = desc;
-
-    
-    // sync CTA with site cart handler
-    try {
-      const ctaBtn = card.querySelector('[data-action="add-to-cart"]');
-      const pidFromBtn = ctaBtn?.dataset?.id;
-      const pidGuess = pidFromBtn || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
-      if (pidGuess) btnAdd.dataset.id = String(pidGuess);
-    } catch(e) {}
-    renderThumbs(); go(0);
-    modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden','false');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeModal(){
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden','true');
-    document.body.style.overflow = '';
-  }
-
-  // Delegated open on img/title click
-  document.addEventListener('click', (e)=>{
-    const img = e.target.closest('.product img');
-    const title = e.target.closest('.product h3');
-    const clickable = img || title;
-    if (clickable){
-      const c = clickable.closest('.product');
-      if (c){ e.preventDefault?.(); openFromCard(c); }
-    }
-  });
-
-  // Close
-  btnClose?.addEventListener('click', closeModal);
-  modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
-  document.addEventListener('keydown', (e)=>{
-    if (modal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeModal();
-  });
-
-  // Add to Cart — robust integration
-  btnAdd?.addEventListener('click', (e)=>{
-  e?.preventDefault?.();
-  e?.stopPropagation?.();
-  if (!card) return idx;
-  const pid =
-    btnAdd.dataset?.id ||
-    card.getAttribute('data-id') ||
-    card.getAttribute('data-product-id') ||
-    card.dataset?.productId;
-  if (pid) {
-  let did = false;
-  try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch (_) {}
-  if (!did) {
-    try { if (typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch (_) {}
-  }
-}
-  try {
-    btnAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles: false, detail: { index: idx } }));
-  } catch (_) {}
-  return idx;
-});})();
-
-</script>
-<script>
-  (function(){
-    const menuButton  = document.getElementById('menuButton');
-    const menuModal   = document.getElementById('menuModal');
-    const menuOverlay = document.getElementById('menuOverlay');
-    const menuClose   = document.getElementById('menuClose');
-
-    if (!menuButton || !menuModal) return;
-
-    // garante que o menu fique diretamente no <body>, acima de qualquer wrapper com transform/overflow
-    if (menuModal.parentElement !== document.body){
-      document.body.appendChild(menuModal);
-    }
-
-    function openMenu(){
-      menuModal.classList.add('is-open');
-      menuModal.style.display = 'block';
-      menuModal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeMenu(){
-      menuModal.classList.remove('is-open');
-      menuModal.style.display = 'none';
-      menuModal.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
-    }
-
-    menuButton.addEventListener('click', openMenu);
-    menuClose.addEventListener('click', closeMenu);
-    menuOverlay.addEventListener('click', closeMenu);
-
-    document.addEventListener('keydown', function(e){
-      if (e.key === 'Escape' && menuModal.classList.contains('is-open')){
-        closeMenu();
-      }
-    });
-  })();
-</script>
-
-
-<script>
-(() => {
-  // Campo reativo dourado (mesmo efeito do Artesanato)
-  const GOLD = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#D4AF37';
-  const GOLD_LIGHT = getComputedStyle(document.documentElement).getPropertyValue('--gold-light').trim() || '#F5D76E';
-  const GOLD_DEEP = getComputedStyle(document.documentElement).getPropertyValue('--gold-deep').trim() || '#8D6E21';
-
-  const MAX_PARTICLES_BASE = 135;
-  const LINK_DIST = 170;
-  const SAFETY_MARGIN = 22;
-  const MOUSE_REPEL_RADIUS = 120 + SAFETY_MARGIN;
-  const MOUSE_FORCE = 0.14;
-  const SPEED = 0.55;
-  const FRICTION = 0.965;
-  const CURVE = true;
-  const GLOW = true;
-
-  const canvas = document.getElementById('reactiveField');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d', { alpha: true });
-  let DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-  let W = 0, H = 0;
-
-  function resize(){
-    W = canvas.clientWidth = window.innerWidth;
-    H = canvas.clientHeight = window.innerHeight;
-    canvas.width = Math.floor(W * DPR);
-    canvas.height = Math.floor(H * DPR);
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-  }
-  resize();
-
-  window.addEventListener('resize', () => {
-    DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    resize();
-    init();
-  });
-
-  const pts = [];
-  function rand(min,max){ return Math.random()*(max-min)+min; }
-
-  function init(){
-    pts.length = 0;
-    const area = W * H;
-    const target = Math.min(250, Math.round(MAX_PARTICLES_BASE * (area / (1200*900))));
-    for(let i=0;i<target;i++){
-      pts.push({
-        x: rand(0,W),
-        y: rand(0,H),
-        vx: rand(-SPEED,SPEED),
-        vy: rand(-SPEED,SPEED),
-        r: rand(2.1,3.6)
-      });
-    }
-  }
-  init();
-
-  const mouse = { x:-9999, y:-9999, active:false };
-  document.addEventListener('mousemove', (e)=>{
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-    mouse.active = true;
-  }, {passive:true});
-  document.addEventListener('mouseleave', ()=>{ mouse.active = false; }, {passive:true});
-
-  function drawDot(p){
-    const g = ctx.createRadialGradient(p.x-1, p.y-1, 0, p.x, p.y, p.r*1.6);
-    g.addColorStop(0, GOLD_LIGHT);
-    g.addColorStop(0.55, GOLD);
-    g.addColorStop(1, GOLD_DEEP);
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fill();
-    if(GLOW){
-      ctx.save();
-      ctx.globalAlpha = .25;
-      ctx.shadowColor = GOLD;
-      ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-
-  function drawLink(a,b,dist){
-    const t = 1 - (dist / LINK_DIST);
-    const lw = 1 + t * 2.2;
-    const alpha = 0.12 + t * 0.6;
-
-    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
-    grad.addColorStop(0, GOLD);
-    grad.addColorStop(0.5, GOLD_LIGHT);
-    grad.addColorStop(1, GOLD);
-
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = lw;
-    ctx.globalAlpha = alpha;
-
-    if(CURVE){
-      const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const len = Math.hypot(dx,dy) || 1;
-      const nx = -dy/len, ny = dx/len;
-      const bend = 10 + 26 * t;
-      const cx = mx + nx * bend;
-      const cy = my + ny * bend;
-      ctx.beginPath();
-      ctx.moveTo(a.x,a.y);
-      ctx.quadraticCurveTo(cx,cy,b.x,b.y);
-      ctx.stroke();
-    }else{
-      ctx.beginPath();
-      ctx.moveTo(a.x,a.y);
-      ctx.lineTo(b.x,b.y);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function step(){
-    ctx.clearRect(0,0,W,H);
-
-    for(const p of pts){
-      if(mouse.active){
-        const dx = p.x - mouse.x;
-        const dy = p.y - mouse.y;
-        const d2 = dx*dx + dy*dy;
-        const r2 = MOUSE_REPEL_RADIUS * MOUSE_REPEL_RADIUS;
-        if(d2 < r2){
-          const d = Math.sqrt(d2) || 0.0001;
-          const force = (1 - d / MOUSE_REPEL_RADIUS) * MOUSE_FORCE;
-          p.vx += (dx / d) * force * 5.0;
-          p.vy += (dy / d) * force * 5.0;
-        }
-      }
-
-      p.vx += (Math.random()-0.5)*0.02;
-      p.vy += (Math.random()-0.5)*0.02;
-
-      p.vx *= FRICTION;
-      p.vy *= FRICTION;
-      p.x += p.vx;
-      p.y += p.vy;
-
-      if(p.x < 0){ p.x = 0; p.vx = Math.abs(p.vx); }
-      if(p.x > W){ p.x = W; p.vx = -Math.abs(p.vx); }
-      if(p.y < 0){ p.y = 0; p.vy = Math.abs(p.vy); }
-      if(p.y > H){ p.y = H; p.vy = -Math.abs(p.vy); }
-    }
-
-    for(let i=0;i<pts.length;i++){
-      for(let j=i+1;j<pts.length;j++){
-        const a = pts[i], b = pts[j];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const dist = Math.hypot(dx,dy);
-        if(dist < LINK_DIST){
-          drawLink(a,b,dist);
-        }
-      }
-    }
-
-    for(const p of pts) drawDot(p);
-    requestAnimationFrame(step);
-  }
-  step();
-})();
-</script>
-
-
-<script>
-(function(){
-  // Matches the login page keys (cliente-login-2.html)
+  // Keys used by login page
   const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
+  const USER_ID_KEY = "vw_user_id";
+  const COOKIE_KEYS = ["vw_token","vw_token_js"];
 
-  function getToken(){
-    for (const k of TOKEN_KEYS){
-      try{
-        const t = localStorage.getItem(k);
-        if (t) return t;
-      }catch(_){}
-    }
-    return null;
-  }
-
-  function b64urlToJson(b64url){
-    // base64url -> base64
-    const b64 = (b64url || "").replace(/-/g, "+").replace(/_/g, "/");
-    const pad = b64.length % 4 ? "=".repeat(4 - (b64.length % 4)) : "";
-    const json = atob(b64 + pad);
-    return JSON.parse(json);
-  }
-
-  function guessNameFromToken(token){
-    // Default example name requested by you
-    let name = "Ana";
-    try{
-      const parts = String(token).split(".");
-      if (parts.length >= 2){
-        const payload = b64urlToJson(parts[1]);
-        name = payload.name || payload.fullName || payload.username || payload.user || payload.email || name;
-        if (String(name).includes("@")) name = String(name).split("@")[0];
-        // Keep only first name if it's long
-        if (String(name).trim().includes(" ")) name = String(name).trim().split(" ")[0];
+  function clearCookies(){
+    const expires = "Thu, 01 Jan 1970 00:00:00 GMT";
+    const host = (location.hostname || "").replace(/^www\./,"");
+    const domains = [host, "."+host, ".vintage-clothes.ie"];
+    for (const name of COOKIE_KEYS){
+      // try without domain
+      document.cookie = `${name}=; expires=${expires}; Max-Age=0; path=/; SameSite=Lax`;
+      // try with multiple domains
+      for (const d of domains){
+        document.cookie = `${name}=; expires=${expires}; Max-Age=0; path=/; domain=${d}; SameSite=Lax`;
       }
-    }catch(_){}
-    return String(name || "Ana");
+    }
   }
 
   function setMenuAuthed(isAuthed, name){
@@ -1671,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       auth.style.alignItems = "center";
       auth.style.flexWrap = "wrap";
       if (hello) hello.textContent = "Hello, " + (name || "Ana") + " 👋";
-    }else{
+    } else {
       guest.style.display = "flex";
       guest.style.gap = "8px";
       guest.style.alignItems = "center";
@@ -1684,27 +1187,39 @@ document.addEventListener('DOMContentLoaded', () => {
   function wireLogout(){
     const btn = document.getElementById("logoutBtn");
     if (!btn) return;
+
     btn.addEventListener("click", function(){
-      try{ TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); }catch(_){}
-      // Also clear the cookie used as fallback
-      try{ document.cookie = "vw_token=; Path=/; Max-Age=0; SameSite=Lax"; }catch(_){}
+      try { TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); } catch(_){}
+      try { localStorage.removeItem(USER_ID_KEY); } catch(_){}
+      clearCookies();
+      setMenuAuthed(false, null);
+      // Avoid calling /user/logout (currently returning 404); UI will be logged out client-side
       location.reload();
     });
   }
 
-  function init(){
-    const token = getToken();
-    if (token){
-      setMenuAuthed(true, guessNameFromToken(token));
-    }else{
+  async function init(){
+    try{
+      const r = await fetch("https://auth.vintage-clothes.ie/user/me", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      if (!r.ok){
+        setMenuAuthed(false, null);
+      } else {
+        const me = await r.json();
+        setMenuAuthed(true, me.name);
+      }
+    }catch(_){
       setMenuAuthed(false, null);
     }
+
     wireLogout();
   }
 
   document.addEventListener("DOMContentLoaded", init);
 })();
 </script>
-
 </body>
 </html>
