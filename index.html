@@ -837,18 +837,25 @@ background: transparent !important;
 
 <style id="mobile-top-buttons-fix">
 @media (max-width: 600px){
-  /* Prevent Account buttons from covering the Admin button */
+  /* Account stays on top */
   .account-btn-modal{
-    right: 86px; /* leaves room for the Admin button on the right */
+    left: 12px !important;
+    right: 12px !important;
   }
-  /* Put the greeting on its own line so buttons wrap below it */
   .account-btn-modal .hello{
     display: block;
     width: 100%;
     margin: 0 0 6px 0;
   }
-  #authMenu, #guestMenu{
-    flex-wrap: wrap;
+  #authMenu, #guestMenu{ flex-wrap: wrap; }
+
+  /* Move Admin away (avoids overlap with account buttons on mobile) */
+  .admin-btn-modal{
+    top: auto !important;
+    right: auto !important;
+    bottom: 20px !important;
+    left: 20px !important;
+    z-index: 110 !important;
   }
 }
 </style>
@@ -1196,59 +1203,49 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 (function(){
-  function getCartSubtotal(){
-    const items = Array.from(document.querySelectorAll('.cart-item'));
-    let sum = 0;
-    items.forEach(item => {
-      const priceEl = item.querySelector('[data-price]');
-      const qtyEl = item.querySelector('input[type="number"]');
-      let price = 0;
-      let qty = 1;
-      if (priceEl){
-        price = parseFloat((priceEl.getAttribute('data-price')||'0').replace(',', '.'));
-      } else {
-        const m = (item.textContent||'').match(/€\s*([\d,.]+)/);
-        if (m) price = parseFloat(m[1].replace(',', '.'));
-      }
-      if (qtyEl) qty = parseInt(qtyEl.value || '1', 10);
-      if (!isNaN(price) && !isNaN(qty)) sum += price * qty;
-    });
-    return sum;
+  // Keep cart total display in sync (simple + safe)
+  function safeFmtEUR(n){
+    try{ return (typeof fmtEUR === 'function') ? fmtEUR(n) : ('€ ' + Number(n||0).toFixed(2)); }
+    catch(_){ return '€ ' + Number(n||0).toFixed(2); }
   }
+
+  function getActiveCartKey(){
+    try{
+      const uid = localStorage.getItem('vw_user_id');
+      const tok = localStorage.getItem('vw_token');
+      if(uid && tok) return `vw_cart_u_${uid}`;
+    }catch(_){}
+    return 'vw_cart';
+  }
+
+  function readCart(){
+    try{
+      const key = getActiveCartKey();
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      return Array.isArray(arr) ? arr : [];
+    }catch(_){ return []; }
+  }
+
   function updateTotals(){
-  let subtotal = getCartSubtotal();
-  const totalEl = document.getElementById('cartTotal');
-  if(totalEl){ totalEl.textContent = fmtEUR(subtotal); }
-}
-
-
-    if (shipVal){
-      shipVal.textContent = '€' + shipping.toFixed(0);
-    }
-
-    const grand = subtotal + shipping;
-
-    let totalValueEl = document.querySelector('#cart-grand-total');
-    if (!totalValueEl){
-      const totalEl = document.querySelector('.cart-total span:last-child');
-      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
-    }
-    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
+    const totalEl = document.getElementById('cartTotal');
+    if(!totalEl) return;
+    const cart = readCart();
+    const sum = cart.reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty)||0), 0);
+    totalEl.textContent = safeFmtEUR(sum);
   }
 
   document.addEventListener('change', function(e){
-    /* delivery method removed */
     if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
       updateTotals();
     }
   });
 
-  const ready = () => { updateTotals(); };
   if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', ready);
+    document.addEventListener('DOMContentLoaded', updateTotals);
   } else {
-    ready();
+    updateTotals();
   }
+
   window.updateCartTotalsWithShipping = updateTotals;
 })();
 </script>
