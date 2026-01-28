@@ -911,13 +911,7 @@ background: transparent !important;
 const PUBLIC_JSON = './products.json';
 const grid = document.getElementById('products');
 let currentList = [];
-function 
-
-
-  <!-- Social buttons (added above the search bar) -->
-  
-
-fmtEUR(n){
+function fmtEUR(n){
   const v = Number(n);
   if(Number.isNaN(v)) return '€ ' + (n ?? '');
   if(Number.isInteger(v)) return '€ ' + v;
@@ -1607,8 +1601,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (function(){
-  // Matches the login page keys (cliente-login-2.html)
-  const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
+  // Customer menu auth (cookie + localStorage)
+  const TOKEN_KEYS = ["vw_token","vw_token_js","token","authToken","auth_token","access_token"];
 
   function getToken(){
     for (const k of TOKEN_KEYS){
@@ -1621,7 +1615,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function b64urlToJson(b64url){
-    // base64url -> base64
     const b64 = (b64url || "").replace(/-/g, "+").replace(/_/g, "/");
     const pad = b64.length % 4 ? "=".repeat(4 - (b64.length % 4)) : "";
     const json = atob(b64 + pad);
@@ -1629,7 +1622,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function guessNameFromToken(token){
-    // Default example name requested by you
     let name = "Ana";
     try{
       const parts = String(token).split(".");
@@ -1637,7 +1629,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = b64urlToJson(parts[1]);
         name = payload.name || payload.fullName || payload.username || payload.user || payload.email || name;
         if (String(name).includes("@")) name = String(name).split("@")[0];
-        // Keep only first name if it's long
         if (String(name).trim().includes(" ")) name = String(name).trim().split(" ")[0];
       }
     }catch(_){}
@@ -1646,7 +1637,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setMenuAuthed(isAuthed, name){
     const guest = document.getElementById("guestMenu");
-    const auth = document.getElementById("authMenu");
+    const auth  = document.getElementById("authMenu");
     const hello = document.getElementById("helloUser");
     if (!guest || !auth) return;
 
@@ -1657,7 +1648,7 @@ document.addEventListener('DOMContentLoaded', () => {
       auth.style.alignItems = "center";
       auth.style.flexWrap = "wrap";
       if (hello) hello.textContent = "Hello, " + (name || "Ana") + " 👋";
-    }else{
+    } else {
       guest.style.display = "flex";
       guest.style.gap = "8px";
       guest.style.alignItems = "center";
@@ -1667,46 +1658,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function wireLogout(){
-  const btn = document.getElementById("logoutBtn");
-  if (!btn) return;
-  btn.addEventListener('click', async function(){
+  function clearCookie(name){
+    try{
+      document.cookie = name + "=; Path=/; Max-Age=0; SameSite=Lax";
+      document.cookie = name + "=; Path=/; Max-Age=0; SameSite=None; Secure";
+    }catch(_){}
+  }
+
+  function clearLocal(){
+    try{ TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); }catch(_){}
+    try{ localStorage.removeItem("vw_user_id"); }catch(_){}
+  }
+
+  async function fetchMe(){
+    try{
+      const r = await fetch("https://auth.vintage-clothes.ie/user/me", {
+        method: "GET",
+        credentials: "include"
+      });
+      if (!r.ok) return null;
+      return await r.json();
+    }catch(_){
+      return null;
+    }
+  }
+
+  async function serverLogout(){
     try{
       await fetch("https://auth.vintage-clothes.ie/user/logout", {
-        method: "POST",
+        method: "GET",
         credentials: "include"
       });
     }catch(_){}
-
-    try{ TOKEN_KEYS.forEach(k=> localStorage.removeItem(k)); }catch(_){}
-    location.reload();
-  });
-}
-
-
-  async function init(){
-  try{
-    const r = await fetch("https://auth.vintage-clothes.ie/user/me", {
-      method: "GET",
-      credentials: "include"
-    });
-
-    if (!r.ok) {
-      setMenuAuthed(false, null);
-    } else {
-      const me = await r.json();
-      setMenuAuthed(true, me.name);
-    }
-  }catch(e){
-    setMenuAuthed(false, null);
   }
 
-  wireLogout();
-}
+  function wireLogout(){
+    const btn = document.getElementById("logoutBtn");
+    if (!btn) return;
 
+    btn.addEventListener("click", async function(){
+      await serverLogout();     // clears httpOnly cookie on backend
+      clearLocal();             // clears localStorage tokens
+      clearCookie("vw_token_js"); // clears non-httpOnly cookie (if exists)
+      setMenuAuthed(false, null);
+      location.reload();
+    });
+  }
+
+  async function init(){
+    const me = await fetchMe();
+    if (me && (me.name || me.fullName || me.username)){
+      setMenuAuthed(true, me.name || me.fullName || me.username);
+    } else {
+      const token = getToken();
+      if (token){
+        setMenuAuthed(true, guessNameFromToken(token));
+      } else {
+        setMenuAuthed(false, null);
+      }
+    }
+    wireLogout();
+  }
 
   document.addEventListener("DOMContentLoaded", init);
-
 })();
 </script>
 
