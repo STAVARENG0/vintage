@@ -113,15 +113,6 @@ header{ text-align:center; margin-bottom:18px }
 .btn:hover{ transform:translateY(-1px); filter:brightness(1.08) }
 .btn.disabled{ opacity:.55; pointer-events:none; filter:grayscale(1) }
 footer{ color:var(--muted); text-align:center; font-size:12px; margin-top:20px }
-.admin-btn-modal { position: absolute; top: 12px; right: 12px; z-index: 100; }
-.admin-btn-modal a{
-  background: var(--accent); color:#fff; text-decoration:none; padding:4px 8px;
-  border-radius:6px; font-weight:600; font-size:11px; box-shadow:0 1px 4px rgba(0,0,0,0.1);
-  transition: filter 0.2s; display:inline-block;
-}
-.admin-btn-modal a:hover { filter: brightness(1.1); }
-
-
 /* Customer account button (mirrors Admin button, left side) */
 .account-btn-modal{
   position:absolute; top:12px; left:12px; z-index:100;
@@ -503,7 +494,6 @@ header{ text-align:center; }
   transform: translateX(2px);
 }
 </style>
-
 <!-- === Override: replace VINTAGE text with logo image === -->
 <style>
 /* Hide the animated letters and brush, use the logo image instead */
@@ -524,15 +514,11 @@ header{ text-align:center; }
 .site-name::before { content: none !important; } /* remove brush overlay */
 .brand { gap: 10px; } /* keep layout tidy */
 </style>
-
-
 <style id="logo-gap-fix">
 /* Remove the tiny baseline gap under <img> by making it block-level */
 .brand img{ display:block; margin:0 auto; }
 .brand{ line-height: 0; } /* ensure no extra line-box space */
 </style>
-
-
 <style id="logo-white-gap-kill">
 /* Mata a “margem branca” do logo: vem do background e border do .brand img */
 .brand img{
@@ -543,8 +529,6 @@ header{ text-align:center; }
 }
 .brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; }
 </style>
-
-
 <style id="logo-gap-kill-2">
 /* Elimina qualquer faixa clara/“margem” embaixo do logo  */
 .brand{ line-height:0 !important; padding-bottom:0 !important; margin-bottom:0 !important; gap:0 !important; }
@@ -566,8 +550,6 @@ header{ text-align:center; }
 }
 h1.site-name{ margin:0 !important; padding:0 !important; line-height:0 !important; }
 </style>
-
-
 <!-- ====== ARTESANATO GLASS THEME + GOLD FIELD (aplicado na Vintage) ====== -->
 <style id="vintage-artesanato-glass">
 :root{
@@ -697,8 +679,6 @@ body{
   background:linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395) !important;
 }
 </style>
-
-
 <!-- ================= AJUSTES (MENU acima + BOTÕES BRANCOS + LOGO MAIOR) ================= -->
 <style id="vintage-glass-fixes">
 /* 1) Menu lateral sempre acima do “vidro” e dos modais */
@@ -782,8 +762,6 @@ body{
   box-shadow: 0 10px 26px rgba(0,0,0,.08) !important;
 }
 </style>
-
-
 <!-- === Logo neon + sem folgas (override final) === -->
 <style id="logo-neon-tight">
 /* 1) Remove “moldura”/espaços do container da logo */
@@ -834,27 +812,23 @@ background: transparent !important;
 }
 
 </style>
-
 </head>
 <body>
-  <canvas id="reactiveField" aria-hidden="true"></canvas>
+<canvas aria-hidden="true" id="reactiveField"></canvas>
 <div class="wrap">
 <div class="card">
-<div class="admin-btn-modal"><a href="login.html">Admin</a></div>
 
 <div class="account-btn-modal" id="accountMenu">
-  <div id="guestMenu">
-    <a class="secondary" href="cliente-login-2.html">Log in</a>
-    <a href="cliente-login-2.html?open=register&back=index.html">Sign up</a>
-  </div>
-
-  <div id="authMenu" style="display:none;">
-    <span class="hello" id="helloUser">Hello, Ana 👋</span>
-    <a class="secondary" href="painel.html" id="accessPanelBtn">Access panel</a>
-    <button type="button" id="logoutBtn">Logout</button>
-  </div>
+<div id="guestMenu">
+<a class="secondary" href="cliente-login-2.html">Log in</a>
+<a href="cliente-login-2.html?open=register&amp;back=index.html">Sign up</a>
 </div>
-
+<div id="authMenu" style="display:none;">
+<span class="hello" id="helloUser">Hello, Ana 👋</span>
+<a class="secondary" href="painel.html" id="accessPanelBtn">Access panel</a>
+<button id="logoutBtn" type="button">Logout</button>
+</div>
+</div>
 <header>
 <div class="brand"><svg aria-label="WELCOME" class="welcome" role="img" viewbox="0 0 800 140" xmlns="http://www.w3.org/2000/svg"><text dy=".35em" text-anchor="middle" x="50%" y="50%">WELCOME</text></svg><h1 aria-label="VINTAGE" class="site-name"><span class="char" style="--i:0; color:#6B7B2A;">V</span><span class="char" style="--i:1; color:#F1B332;">I</span><span class="char" style="--i:2; color:#F37950;">N</span><span class="char" style="--i:3; color:#6B7B2A;">T</span><span class="char" style="--i:4; color:#FFBE0B;">A</span><span class="char" style="--i:5; color:#FFB000;">G</span><span class="char" style="--i:6; color:#F79A73;">E</span></h1>
 <div aria-label="Redes sociais" class="social-buttons">
@@ -875,7 +849,7 @@ background: transparent !important;
 <input id="search" placeholder="Search products..." type="text"/>
 <button onclick="searchProducts()">Search</button>
 </div><div class="category-buttons">
-  <button class="pill-btn" id="menuButton">MENU</button>
+<button class="pill-btn" id="menuButton">MENU</button>
 </div>
 </div>
 </header>
@@ -895,16 +869,11 @@ background: transparent !important;
 <h2>Your Cart</h2>
 <div id="cartItems" style="margin:12px 0;"></div>
 <hr class="cart-divider" style="margin:12px 0;"/>
-
-
-
-
-
-      <div class="cart-total">
-        <span>Total:</span>
-        <span id="cartTotal">€ --</span>
-      </div>
-      <button class="btn cart-checkout">Checkout</button>
+<div class="cart-total">
+<span>Total:</span>
+<span id="cartTotal">€ --</span>
+</div>
+<button class="btn cart-checkout">Checkout</button>
 </div>
 </div>
 <script>
@@ -1219,15 +1188,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById("logoutBtn");
     if (!btn) return;
 
-    btn.addEventListener("click", function(){
+    btn.addEventListener("click", async function(){
+      // Best-effort server logout (clears auth cookies if endpoint exists)
+      const endpoints = [
+        ["POST","https://auth.vintage-clothes.ie/user/logout"],
+        ["GET","https://auth.vintage-clothes.ie/user/logout"],
+        ["POST","https://auth.vintage-clothes.ie/logout"],
+        ["GET","https://auth.vintage-clothes.ie/logout"],
+        ["POST","https://auth.vintage-clothes.ie/user/signout"],
+        ["GET","https://auth.vintage-clothes.ie/user/signout"]
+      ];
+      for (const [method,url] of endpoints){
+        try { await fetch(url, { method, credentials: "include" }); } catch(_){}
+      }
+
       try { TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); } catch(_){}
       try { localStorage.removeItem(USER_ID_KEY); } catch(_){}
       clearCookies();
       setMenuAuthed(false, null);
-      // Avoid calling /user/logout (currently returning 404); UI will be logged out client-side
-      location.reload();
-    });
-  }
+
+      // Force a clean refresh
+      location.href = location.href.split("#")[0];
+    });}
 
   async function init(){
     try{
@@ -1252,6 +1234,5 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener("DOMContentLoaded", init);
 })();
 </script>
-
 </body>
 </html>
