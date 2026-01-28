@@ -1668,19 +1668,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function wireLogout(){
-    const btn = document.getElementById("logoutBtn");
-    if (!btn) return;
-   btn.addEventListener('click', async function(){
-  try{
-    await fetch("https://auth.vintage-clothes.ie/user/logout", {
-      method: "POST",
-      credentials: "include"
-    });
-  }catch(_){}
+  const btn = document.getElementById("logoutBtn");
+  if (!btn) return;
+  btn.addEventListener('click', async function(){
+    try{
+      await fetch("https://auth.vintage-clothes.ie/user/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+    }catch(_){}
 
-  try{ TOKEN_KEYS.forEach(k=> localStorage.removeItem(k)); }catch(_){}
-  location.reload();
-});
+    try{ TOKEN_KEYS.forEach(k=> localStorage.removeItem(k)); }catch(_){}
+    location.reload();
+  });
+}
 
 
   async function init(){
@@ -1705,6 +1706,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   document.addEventListener("DOMContentLoaded", init);
+
 
 </script>
 
