@@ -1130,6 +1130,190 @@ function saveCart(c){
 }
 let cart = loadCart();
 
+
+/* ====== CART SYNC (logged-in: keep /cart as source of truth across devices) ====== */
+const API_ROOT = 'https://auth.vintage-clothes.ie';
+const REWARDS_ROOT = 'https://clientes.vintage-clothes.ie';
+const CART_SYNC_CHANNEL = 'vw_cart_sync';
+const CART_PING_KEY = 'vw_cart_ping';
+function getCookie(name){
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+async function apiJson(path, opts = {}){
+  let p = String(path || '');
+  if(!p.startsWith('/')) p = '/' + p;
+  const isRewards = (p === '/cart' || p.startsWith('/cart/'));
+  const base = isRewards ? REWARDS_ROOT : API_ROOT;
+  const url = base + p;
+
+  const token = getCookie('vw_token_js') || getCookie('vw_admin_token_js') || localStorage.getItem(TOKEN_KEY) || null;
+
+  const init = {
+    method: opts.method || 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(opts.headers || {})
+    }
+  };
+  if(opts.body !== undefined){
+    init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+  }
+  if(token) init.headers.Authorization = 'Bearer ' + token;
+
+  const res = await fetch(url, init);
+  const ct = (res.headers.get('content-type') || '');
+  let data = null;
+  if(ct.includes('application/json')){
+    try{ data = await res.json(); }catch(_){ data = null; }
+  } else {
+    try{ data = await res.text(); }catch(_){ data = null; }
+  }
+  if(!res.ok){
+    const err = new Error('HTTP ' + res.status);
+    err.status = res.status;
+    err.data = data;
+    throw err;
+  }
+  return data;
+}
+function isLoggedIn(){
+  try{
+    const uid = localStorage.getItem(USER_ID_KEY);
+    const tok = localStorage.getItem(TOKEN_KEY) || getCookie('vw_token_js');
+    return !!(uid && tok);
+  }catch(_){ return false; }
+}
+function cartUpdatedAtKey(){
+  const uid = (localStorage.getItem(USER_ID_KEY) || 'guest');
+  return 'vw_cart_updatedAt_' + uid;
+}
+function getLocalUpdatedAt(){
+  try{ return Number(localStorage.getItem(cartUpdatedAtKey()) || '0') || 0; }catch(_){ return 0; }
+}
+function setLocalUpdatedAt(ts){
+  try{ localStorage.setItem(cartUpdatedAtKey(), String(Number(ts)||Date.now())); }catch(_){ }
+}
+function bumpCartSignal(){
+  try{ localStorage.setItem(CART_PING_KEY, String(Date.now())); }catch(_){ }
+  try{
+    if('BroadcastChannel' in window){
+      const bc = new BroadcastChannel(CART_SYNC_CHANNEL);
+      bc.postMessage({ type:'cart_ping', ts: Date.now() });
+      bc.close();
+    }
+  }catch(_){ }
+}
+
+let _syncTimer = null;
+let _lastServerUpdatedAt = 0;
+let _isApplyingServer = false;
+
+async function fetchCartFromServer(){
+  // returns {cart:Array, updatedAt:Number} or null if not available
+  try{
+    const data = await apiJson('/cart', { method:'GET' });
+    // Accept multiple shapes: [] OR {cart:[]} OR {items:[]}
+    const cartArr = Array.isArray(data) ? data : (Array.isArray(data?.cart) ? data.cart : (Array.isArray(data?.items) ? data.items : []));
+    const updatedAt = Number(data?.updatedAt || data?.ts || 0) || 0;
+    return { cart: cartArr, updatedAt };
+  }catch(e){
+    // not logged-in or endpoint not available
+    return null;
+  }
+}
+
+async function pushCartToServer(snapshotCart, updatedAt){
+  const payload = { cart: snapshotCart, replace:true, updatedAt: Number(updatedAt)||Date.now() };
+  // try common endpoints/methods
+  const attempts = [
+    ['PUT','/cart'],
+    ['POST','/cart'],
+    ['POST','/cart/replace'],
+    ['POST','/cart/update']
+  ];
+  for(const [method,url] of attempts){
+    try{
+      await apiJson(url, { method, body: payload });
+      return true;
+    }catch(_){}
+  }
+  return false;
+}
+
+async function refreshCartFromServer(){
+  if(!isLoggedIn()) return;
+  const server = await fetchCartFromServer();
+  if(!server) return;
+
+  const serverAt = Number(server.updatedAt)||0;
+  const localAt = getLocalUpdatedAt();
+  // If server is newer, apply it to local cache and UI.
+  if(serverAt > 0 && serverAt <= localAt) return;
+
+  _isApplyingServer = true;
+  try{
+    cart = Array.isArray(server.cart) ? server.cart : [];
+    saveCart(cart);
+    _lastServerUpdatedAt = serverAt || Date.now();
+    setLocalUpdatedAt(_lastServerUpdatedAt);
+    updateCartIcon();
+    // if cart modal is open, re-render it
+    const cartModal = document.getElementById('cartModal');
+    if(cartModal && cartModal.style.display === 'flex'){
+      openCart();
+    }
+  }finally{
+    _isApplyingServer = false;
+  }
+}
+
+function schedulePushToServer(){
+  if(!isLoggedIn()) return;
+  if(_isApplyingServer) return; // don't echo server->local back to server
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(async () => {
+    const snapshot = loadCart();
+    const ts = Date.now();
+    setLocalUpdatedAt(ts);
+    await pushCartToServer(snapshot, ts);
+    bumpCartSignal();
+  }, 250);
+}
+
+function startCartSync(){
+  if(!isLoggedIn()) return;
+  // initial pull
+  refreshCartFromServer();
+
+  // poll (cross-device)
+  setInterval(() => {
+    if(document.visibilityState === 'visible') refreshCartFromServer();
+  }, 4000);
+
+  // focus / visibility
+  window.addEventListener('focus', refreshCartFromServer);
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'visible') refreshCartFromServer();
+  });
+
+  // same-device tabs
+  window.addEventListener('storage', (e) => {
+    if(e.key === CART_PING_KEY){
+      refreshCartFromServer();
+    }
+  });
+  try{
+    if('BroadcastChannel' in window){
+      const bc = new BroadcastChannel(CART_SYNC_CHANNEL);
+      bc.onmessage = () => refreshCartFromServer();
+    }
+  }catch(_){}
+}
+/* ====== /CART SYNC ====== */
+
+
 window.addEventListener('storage', (e) => {
   const k = getActiveCartKey();
   if (e.key === k || e.key === CART_GUEST_KEY){
@@ -1156,6 +1340,7 @@ function addToCart(productId){
   }
   saveCart(cart);
   updateCartIcon();
+  schedulePushToServer();
 }
 
 function updateCartIcon(){
@@ -1220,6 +1405,7 @@ function changeQty(id, delta){
   saveCart(cart);
   openCart();
   updateCartIcon();
+  schedulePushToServer();
 }
 
 document.addEventListener('click', function(e){
@@ -1256,6 +1442,7 @@ document.addEventListener('DOMContentLoaded', () => {
   render(currentList);
   document.getElementById('year').textContent = new Date().getFullYear();
   updateCartIcon();
+  startCartSync();
 })();
 </script>
 <script>
