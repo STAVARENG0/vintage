@@ -1099,47 +1099,28 @@ const CART_GUEST_KEY='vw_cart';
 
 /* --- CART SYNC (multi-dispositivo) --- */
 const API_ROOT = "https://auth.vintage-clothes.ie";
-const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
+const CART_UPDATED_AT_KEY = "vw_cart_updatedAt";
+const CART_DIRTY_KEY = "vw_cart_dirty";
+
 function getToken(){
   try{
-    for (const k of TOKEN_KEYS){
-      const v = sessionStorage.getItem(k) || localStorage.getItem(k);
-      if (v) return v;
-    }
-  }catch(_){}
-  return "";
+    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "";
+  }catch(_){ return ""; }
 }
 function getUserId(){
   try{
     return sessionStorage.getItem(USER_ID_KEY) || localStorage.getItem(USER_ID_KEY) || "";
   }catch(_){ return ""; }
 }
-
-// Cookie/session login support: if the site uses HttpOnly cookies (no token in storage),
-// we still discover the user id via /user/me so cart sync can run across devices.
-async function ensureCartAuthContext(){
-  try{
-    if (getUserId()) return;
-    const me = await apiJson("/user/me", { method:"GET" });
-    const id = me && (me.id ?? me.user_id ?? me.userId ?? me.uid);
-    if (id !== undefined && id !== null && String(id)){
-      try{ localStorage.setItem(USER_ID_KEY, String(id)); }catch(_){}
-      try{ sessionStorage.setItem(USER_ID_KEY, String(id)); }catch(_){}
-      try{ localStorage.setItem("vw_cookie_authed","1"); }catch(_){}
-      // If we were using guest cart, migrate it into the user cart key now.
-      try{ migrateGuestCartIfNeeded(); }catch(_){}
-      try{ if (typeof cart !== "undefined"){ cart = loadCart(); updateCartIcon(); } }catch(_){}
-    }
-  }catch(_){ }
-}
 function isLoggedInForCart(){
-  const uid = getUserId();
-  const tok = getToken();
-  let cookieAuthed = false;
-  try{ cookieAuthed = (localStorage.getItem("vw_cookie_authed") === "1"); }catch(_){}
-  return !!(uid || tok || cookieAuthed);
+  try{
+    const tok = getToken();
+    const uid = getUserId();
+    if (tok && uid) return true;
+  }catch(_){}
+  // algumas sessões usam só cookie; então basta ter uid OU token
+  return !!(getUserId() || getToken());
 }
-
 
 async function apiJson(path, opts = {}){
   const method = (opts.method || "GET").toUpperCase();
@@ -1166,168 +1147,261 @@ async function apiJson(path, opts = {}){
   return data;
 }
 
-function getDirtyKey(){
-  const uid = getUserId();
-  if (uid) return `vw_cart_dirty_u_${uid}`;
-  const tok = getToken();
-  if (tok) return `vw_cart_dirty_t_${tok.slice(0,12)}`;
-  return "vw_cart_dirty_guest";
+function readCartByKey(key){
+  try{
+    const raw = localStorage.getItem(key);
+    if (!raw) return [];
+    const v = JSON.parse(raw);
+    return Array.isArray(v) ? v : [];
+  }catch(_){ return []; }
 }
 
-function markDirty(){ try{ localStorage.setItem(getDirtyKey(), "1"); }catch(_){ } }
-function clearDirty(){ try{ localStorage.removeItem(getDirtyKey()); }catch(_){ } }
+function listUserCartKeys(){
+  const out = [];
+  try{
+    for (let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if (k && String(k).startsWith("vw_cart_u_")) out.push(String(k));
+    }
+  }catch(_){}
+  return out;
+}
+
+function chooseActiveCartKey(){
+  const guest = readCartByKey(CART_GUEST_KEY);
+  const tok = getToken();
+  const uid = getUserId();
+  const candidate = (uid && tok) ? `vw_cart_u_${uid}` : null;
+  const candCart = candidate ? readCartByKey(candidate) : [];
+
+  // 1) If a user cart exists with items, use it.
+  if (candidate && candCart.length) return candidate;
+
+  // 2) If guest cart has items, keep using it (so Store + Dashboard stay aligned).
+  // Also mirror into the user cart (without deleting the guest cart) when possible.
+  if (guest.length){
+    if (candidate && !candCart.length){
+      try{ localStorage.setItem(candidate, JSON.stringify(guest)); }catch(_){}
+    }
+    return CART_GUEST_KEY;
+  }
+
+  // 3) If logged in but uid differs, pick any existing vw_cart_u_* with items.
+  if (tok){
+    for (const k of listUserCartKeys()){
+      const c = readCartByKey(k);
+      if (c.length) return k;
+    }
+  }
+
+  // 4) Fall back.
+  return candidate || CART_GUEST_KEY;
+}
+
+function loadCart(){
+  const key = chooseActiveCartKey();
+  return readCartByKey(key);
+}
+
+let __cartSyncTimer = null;
+let __cartPullTimer = null;
+let __suppressPush = false;
+
+function touchUpdatedAt(){
+  try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(Date.now())); }catch(_){}
+}
+function markDirty(){
+  try{ if (isLoggedInForCart()) localStorage.setItem(CART_DIRTY_KEY, "1"); }catch(_){}
+}
+function clearDirty(){
+  try{ localStorage.removeItem(CART_DIRTY_KEY); }catch(_){}
+}
 
 function cartSignature(c){
   try{
     const arr = Array.isArray(c) ? c : [];
     return JSON.stringify(
-      arr.map(i => ({ id: String(i.id ?? i.productId ?? ""), qty: Number(i.qty ?? i.quantity ?? 1) || 1 }))
+      arr.map(i => ({ id: String(i.id ?? i.product_id ?? i.productId ?? i.sku ?? i.code ?? ""), qty: Number(i.qty ?? i.quantity ?? 1) || 1 }))
          .sort((a,b)=> a.id.localeCompare(b.id))
     );
   }catch(_){ return ""; }
 }
 
-let __cartPollingTimer = null;
-let __cartPushTimer = null;
-let __cartPushing = false;
-let __lastServerSig = "";
+function saveCart(c, opts = {}){
+  const key = chooseActiveCartKey();
+  try{ localStorage.setItem(key, JSON.stringify(Array.isArray(c) ? c : [])); }catch(_){}
+  if (key !== CART_GUEST_KEY){
+    // Mirror to guest so Store + Dashboard never diverge.
+    try{ localStorage.setItem(CART_GUEST_KEY, JSON.stringify(Array.isArray(c) ? c : [])); }catch(_){}
+  }
+
+  // updatedAt + dirty for cross-device reconciliation
+  if (!opts.suppressMeta){
+    touchUpdatedAt();
+    markDirty();
+  }
+
+  if (!opts.suppressPush && !__suppressPush){
+    scheduleCartSync();
+  }
+}
 
 async function fetchServerCart(){
   const data = await apiJson("/cart", { method:"GET" });
-  if (Array.isArray(data)) return data;
-  if (data && Array.isArray(data.cart)) return data.cart;
-  if (data && Array.isArray(data.items)) return data.items;
-  return [];
-}
-
-async function pullCartFromServer(){
-  if (!isLoggedInForCart()) return;
-  // se o usuário está mexendo agora (dirty), não sobrescreve
-  try{ if (localStorage.getItem(getDirtyKey()) === "1") return; }catch(_){ }
-
-  try{
-    const serverCart = await fetchServerCart();
-    const serverSig = cartSignature(serverCart);
-    const local = loadCart();
-    const localSig = cartSignature(local);
-
-    if (serverSig && serverSig !== __lastServerSig) __lastServerSig = serverSig;
-
-    if (serverSig !== localSig){
-      // aplica no localStorage sem disparar push de volta
-      saveCart(serverCart, { suppressPush: true });
-      cart = serverCart;
-      updateCartIcon();
-      try{
-        const modal = document.getElementById("cartModal");
-        if (modal && modal.style.display === "flex") openCart();
-      }catch(_){ }
+  const serverCart = (Array.isArray(data) ? data : (data && Array.isArray(data.cart) ? data.cart : (data && Array.isArray(data.items) ? data.items : [])));
+  const rawUpdated = (data && (data.updatedAt ?? data.updated_at ?? data.updatedAtMs ?? data.updated_at_ms)) ?? 0;
+  const serverUpdatedAt = (() => {
+    if (typeof rawUpdated === "number") return rawUpdated || 0;
+    if (typeof rawUpdated === "string"){
+      const t = Date.parse(rawUpdated);
+      return Number.isNaN(t) ? 0 : t;
     }
-  }catch(_){ }
+    return 0;
+  })();
+  return { serverCart, serverUpdatedAt };
 }
 
-function schedulePushCart(){
+async function syncCartToBackend(){
   if (!isLoggedInForCart()) return;
-  if (__cartPushTimer) clearTimeout(__cartPushTimer);
-  __cartPushTimer = setTimeout(pushCartNow, 250);
-}
-
-async function pushCartNow(){
-  if (!isLoggedInForCart()) return;
-  if (__cartPushing) return;
-  __cartPushing = true;
-  markDirty();
-
   const localCart = loadCart();
+  const localUpdatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY) || 0) || Date.now();
+
   try{
     if (!localCart.length){
       try{
         await apiJson("/cart", { method:"DELETE" });
       }catch(_){
-        await apiJson("/cart", { method:"POST", body:{ cart: [], clear:true, replace:true, ts: Date.now() } });
+        await apiJson("/cart", { method:"POST", body:{ cart: [], clear:true, replace:true, updatedAt: localUpdatedAt } });
       }
     } else {
-      await apiJson("/cart", { method:"POST", body:{ cart: localCart, replace:true, ts: Date.now() } });
+      try{
+        await apiJson("/cart", { method:"PUT", body:{ cart: localCart, replace:true, updatedAt: localUpdatedAt } });
+      }catch(_){
+        await apiJson("/cart", { method:"POST", body:{ cart: localCart, replace:true, updatedAt: localUpdatedAt } });
+      }
     }
 
-    // confirma e libera polling
+    // Verify once (prevents "remove volta")
     try{
-      const serverCart = await fetchServerCart();
+      const { serverCart } = await fetchServerCart();
       if (cartSignature(serverCart) === cartSignature(localCart)){
-        __lastServerSig = cartSignature(serverCart);
         clearDirty();
-      } else {
-        setTimeout(clearDirty, 1200);
       }
     }catch(_){
-      setTimeout(clearDirty, 1200);
+      // if verification fails, keep dirty so next poll doesn't overwrite local
+      markDirty();
     }
   }catch(_){
-    setTimeout(clearDirty, 1200);
-  } finally {
-    __cartPushing = false;
+    markDirty();
   }
 }
 
-async function startCartSync(){
-  await ensureCartAuthContext();
+function scheduleCartSync(){
   if (!isLoggedInForCart()) return;
-  pullCartFromServer();
-  if (__cartPollingTimer) clearInterval(__cartPollingTimer);
-  __cartPollingTimer = setInterval(pullCartFromServer, 2000);
-  window.addEventListener("focus", pullCartFromServer);
+  if (__cartSyncTimer) clearTimeout(__cartSyncTimer);
+  __cartSyncTimer = setTimeout(() => {
+    __cartSyncTimer = null;
+    syncCartToBackend();
+  }, 700);
 }
 
-/* --- /CART SYNC --- */
-
-
-function getActiveCartKey(){
-  const uid = getUserId();
-  if (uid) return `vw_cart_u_${uid}`;
-  return CART_GUEST_KEY;
-}
-  return CART_GUEST_KEY;
-}
-
-function migrateGuestCartIfNeeded(){
-  const key = getActiveCartKey();
-  if(key === CART_GUEST_KEY) return;
+async function syncCartFromBackend(){
+  if (!isLoggedInForCart()) return;
   try{
-    const guest = JSON.parse(localStorage.getItem(CART_GUEST_KEY) || '[]');
-    const userCart = JSON.parse(localStorage.getItem(key) || '[]');
-    if((!Array.isArray(userCart) || userCart.length === 0) && Array.isArray(guest) && guest.length){
-      localStorage.setItem(key, JSON.stringify(guest));
-      localStorage.removeItem(CART_GUEST_KEY);
+    const { serverCart, serverUpdatedAt } = await fetchServerCart();
+    const localCart = loadCart();
+    const localUpdatedAt = Number(localStorage.getItem(CART_UPDATED_AT_KEY) || 0) || 0;
+    const isDirty = (localStorage.getItem(CART_DIRTY_KEY) === "1");
+
+    // If dirty, reconcile by last-updated
+    if (isDirty){
+      if (localUpdatedAt >= (serverUpdatedAt || 0)){
+        // local is newest -> push (including clear)
+        await syncCartToBackend();
+        return;
+      }
+      // server newer -> pull
+      __suppressPush = true;
+      try{
+        saveCart(serverCart, { suppressPush:true, suppressMeta:true });
+        try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){}
+        clearDirty();
+      } finally {
+        __suppressPush = false;
+      }
+      cart = serverCart;
+      updateCartIcon();
+      try{
+        const modal = document.getElementById("cartModal");
+        if (modal && modal.style.display === "flex") openCart();
+      }catch(_){}
+      return;
+    }
+
+    // Not dirty: if server newer OR cart differs -> pull
+    const sigS = cartSignature(serverCart);
+    const sigL = cartSignature(localCart);
+    if ((serverUpdatedAt && serverUpdatedAt > localUpdatedAt) || (sigS !== sigL)){
+      __suppressPush = true;
+      try{
+        saveCart(serverCart, { suppressPush:true, suppressMeta:true });
+        try{ localStorage.setItem(CART_UPDATED_AT_KEY, String(serverUpdatedAt || Date.now())); }catch(_){}
+        clearDirty();
+      } finally {
+        __suppressPush = false;
+      }
+      cart = serverCart;
+      updateCartIcon();
+      try{
+        const modal = document.getElementById("cartModal");
+        if (modal && modal.style.display === "flex") openCart();
+      }catch(_){}
+      return;
+    }
+
+    // local newer (rare) -> push
+    if (localUpdatedAt > (serverUpdatedAt || 0)){
+      markDirty();
+      scheduleCartSync();
     }
   }catch(_){ }
 }
 
-function loadCart(){
-  migrateGuestCartIfNeeded();
-  const key = getActiveCartKey();
-  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
-}
-function saveCart(c, opts = {}){
-  const key = getActiveCartKey();
-  try{ localStorage.setItem(key, JSON.stringify(c)); }catch(_){ }
-  if (!opts.suppressPush){
-    markDirty();
-    schedulePushCart();
-  }
-}
+function startCartSync(){
+  if (!isLoggedInForCart()) return;
+  syncCartFromBackend();
+  if (__cartPullTimer) clearInterval(__cartPullTimer);
+  __cartPullTimer = setInterval(() => {
+    try{
+      if (document.visibilityState !== "visible") return;
+      const isDirty = (localStorage.getItem(CART_DIRTY_KEY) === "1");
+      if (isDirty) return;
+      syncCartFromBackend();
+    }catch(_){}
+  }, 4000);
 
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible"){
+      try{ syncCartFromBackend(); }catch(_){}
+    }
+  });
+  window.addEventListener("focus", () => { try{ syncCartFromBackend(); }catch(_){ } });
+}
+/* --- /CART SYNC --- */
 let cart = loadCart();
 
 startCartSync();
 
 window.addEventListener('storage', (e) => {
-  const k = getActiveCartKey();
-  if (e.key === k || e.key === CART_GUEST_KEY){
-    cart = loadCart();
-    updateCartIcon();
-  }
+  try{
+    if (!e || !e.key) return;
+    const k = String(e.key);
+    if (k === CART_GUEST_KEY || k.startsWith('vw_cart') || k === CART_UPDATED_AT_KEY){
+      cart = loadCart();
+      updateCartIcon();
+    }
+  }catch(_){}
 });
-
 function addToCart(productId){
   cart = loadCart();
   const product = currentList.find(p => String(p.id) === String(productId));
@@ -1487,6 +1561,175 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   })();
 </script><script>
+(() => {
+  // Campo reativo dourado (mesmo efeito do Artesanato)
+  const GOLD = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#D4AF37';
+  const GOLD_LIGHT = getComputedStyle(document.documentElement).getPropertyValue('--gold-light').trim() || '#F5D76E';
+  const GOLD_DEEP = getComputedStyle(document.documentElement).getPropertyValue('--gold-deep').trim() || '#8D6E21';
+
+  const MAX_PARTICLES_BASE = 135;
+  const LINK_DIST = 170;
+  const SAFETY_MARGIN = 22;
+  const MOUSE_REPEL_RADIUS = 120 + SAFETY_MARGIN;
+  const MOUSE_FORCE = 0.14;
+  const SPEED = 0.55;
+  const FRICTION = 0.965;
+  const CURVE = true;
+  const GLOW = true;
+
+  const canvas = document.getElementById('reactiveField');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d', { alpha: true });
+  let DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  let W = 0, H = 0;
+
+  function resize(){
+    W = canvas.clientWidth = window.innerWidth;
+    H = canvas.clientHeight = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  resize();
+
+  window.addEventListener('resize', () => {
+    DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    resize();
+    init();
+  });
+
+  const pts = [];
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+
+  function init(){
+    pts.length = 0;
+    const area = W * H;
+    const target = Math.min(250, Math.round(MAX_PARTICLES_BASE * (area / (1200*900))));
+    for(let i=0;i<target;i++){
+      pts.push({
+        x: rand(0,W),
+        y: rand(0,H),
+        vx: rand(-SPEED,SPEED),
+        vy: rand(-SPEED,SPEED),
+        r: rand(2.1,3.6)
+      });
+    }
+  }
+  init();
+
+  const mouse = { x:-9999, y:-9999, active:false };
+  document.addEventListener('mousemove', (e)=>{
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  }, {passive:true});
+  document.addEventListener('mouseleave', ()=>{ mouse.active = false; }, {passive:true});
+
+  function drawDot(p){
+    const g = ctx.createRadialGradient(p.x-1, p.y-1, 0, p.x, p.y, p.r*1.6);
+    g.addColorStop(0, GOLD_LIGHT);
+    g.addColorStop(0.55, GOLD);
+    g.addColorStop(1, GOLD_DEEP);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
+    if(GLOW){
+      ctx.save();
+      ctx.globalAlpha = .25;
+      ctx.shadowColor = GOLD;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawLink(a,b,dist){
+    const t = 1 - (dist / LINK_DIST);
+    const lw = 1 + t * 2.2;
+    const alpha = 0.12 + t * 0.6;
+
+    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, GOLD);
+    grad.addColorStop(0.5, GOLD_LIGHT);
+    grad.addColorStop(1, GOLD);
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = lw;
+    ctx.globalAlpha = alpha;
+
+    if(CURVE){
+      const mx = (a.x + b.x)/2, my = (a.y + b.y)/2;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const len = Math.hypot(dx,dy) || 1;
+      const nx = -dy/len, ny = dx/len;
+      const bend = 10 + 26 * t;
+      const cx = mx + nx * bend;
+      const cy = my + ny * bend;
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.quadraticCurveTo(cx,cy,b.x,b.y);
+      ctx.stroke();
+    }else{
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(b.x,b.y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function step(){
+    ctx.clearRect(0,0,W,H);
+
+    for(const p of pts){
+      if(mouse.active){
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const d2 = dx*dx + dy*dy;
+        const r2 = MOUSE_REPEL_RADIUS * MOUSE_REPEL_RADIUS;
+        if(d2 < r2){
+          const d = Math.sqrt(d2) || 0.0001;
+          const force = (1 - d / MOUSE_REPEL_RADIUS) * MOUSE_FORCE;
+          p.vx += (dx / d) * force * 5.0;
+          p.vy += (dy / d) * force * 5.0;
+        }
+      }
+
+      p.vx += (Math.random()-0.5)*0.02;
+      p.vy += (Math.random()-0.5)*0.02;
+
+      p.vx *= FRICTION;
+      p.vy *= FRICTION;
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if(p.x < 0){ p.x = 0; p.vx = Math.abs(p.vx); }
+      if(p.x > W){ p.x = W; p.vx = -Math.abs(p.vx); }
+      if(p.y < 0){ p.y = 0; p.vy = Math.abs(p.vy); }
+      if(p.y > H){ p.y = H; p.vy = -Math.abs(p.vy); }
+    }
+
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const a = pts[i], b = pts[j];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.hypot(dx,dy);
+        if(dist < LINK_DIST){
+          drawLink(a,b,dist);
+        }
+      }
+    }
+
+    for(const p of pts) drawDot(p);
+    requestAnimationFrame(step);
+  }
+  step();
+})();
+</script>
+<script>
 (function(){
   // Keys used by login page
   const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
