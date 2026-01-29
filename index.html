@@ -1099,22 +1099,47 @@ const CART_GUEST_KEY='vw_cart';
 
 /* --- CART SYNC (multi-dispositivo) --- */
 const API_ROOT = "https://auth.vintage-clothes.ie";
+const TOKEN_KEYS = ["vw_token","token","authToken","auth_token","access_token"];
 function getToken(){
   try{
-    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "";
-  }catch(_){ return ""; }
+    for (const k of TOKEN_KEYS){
+      const v = sessionStorage.getItem(k) || localStorage.getItem(k);
+      if (v) return v;
+    }
+  }catch(_){}
+  return "";
 }
 function getUserId(){
   try{
     return sessionStorage.getItem(USER_ID_KEY) || localStorage.getItem(USER_ID_KEY) || "";
   }catch(_){ return ""; }
 }
+
+// Cookie/session login support: if the site uses HttpOnly cookies (no token in storage),
+// we still discover the user id via /user/me so cart sync can run across devices.
+async function ensureCartAuthContext(){
+  try{
+    if (getUserId()) return;
+    const me = await apiJson("/user/me", { method:"GET" });
+    const id = me && (me.id ?? me.user_id ?? me.userId ?? me.uid);
+    if (id !== undefined && id !== null && String(id)){
+      try{ localStorage.setItem(USER_ID_KEY, String(id)); }catch(_){}
+      try{ sessionStorage.setItem(USER_ID_KEY, String(id)); }catch(_){}
+      try{ localStorage.setItem("vw_cookie_authed","1"); }catch(_){}
+      // If we were using guest cart, migrate it into the user cart key now.
+      try{ migrateGuestCartIfNeeded(); }catch(_){}
+      try{ if (typeof cart !== "undefined"){ cart = loadCart(); updateCartIcon(); } }catch(_){}
+    }
+  }catch(_){ }
+}
 function isLoggedInForCart(){
   const uid = getUserId();
   const tok = getToken();
-  // algumas sessões usam só cookie; então basta ter uid OU token
-  return !!(uid || tok);
+  let cookieAuthed = false;
+  try{ cookieAuthed = (localStorage.getItem("vw_cookie_authed") === "1"); }catch(_){}
+  return !!(uid || tok || cookieAuthed);
 }
+
 
 async function apiJson(path, opts = {}){
   const method = (opts.method || "GET").toUpperCase();
@@ -1244,22 +1269,23 @@ async function pushCartNow(){
   }
 }
 
-function startCartSync(){
+async function startCartSync(){
+  await ensureCartAuthContext();
   if (!isLoggedInForCart()) return;
   pullCartFromServer();
   if (__cartPollingTimer) clearInterval(__cartPollingTimer);
   __cartPollingTimer = setInterval(pullCartFromServer, 2000);
   window.addEventListener("focus", pullCartFromServer);
 }
+
 /* --- /CART SYNC --- */
 
 
 function getActiveCartKey(){
-  try{
-    const uid = localStorage.getItem(USER_ID_KEY);
-    const tok = localStorage.getItem(TOKEN_KEY);
-    if(uid && tok) return `vw_cart_u_${uid}`;
-  }catch(_){ }
+  const uid = getUserId();
+  if (uid) return `vw_cart_u_${uid}`;
+  return CART_GUEST_KEY;
+}
   return CART_GUEST_KEY;
 }
 
