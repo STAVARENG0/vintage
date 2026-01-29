@@ -982,59 +982,186 @@ function searchProducts(){
   );
   render(filtered);
 }
-/* Cart (SYNCED) */
+/* Cart */
 const TOKEN_KEY='vw_token';
 const USER_ID_KEY='vw_user_id';
 const CART_GUEST_KEY='vw_cart';
 
-const CART_SYNC_DEBOUNCE_MS = 400;
-const CART_POLL_MS = 2500;
-
-let cartSyncTimer = null;
-let cartPollTimer = null;
-
-function getSession(){
-  const uid = (sessionStorage.getItem(USER_ID_KEY) || localStorage.getItem(USER_ID_KEY) || '').trim();
-  const tok = (sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || '').trim();
-  return { uid, tok };
+/* --- CART SYNC (multi-dispositivo) --- */
+const API_ROOT = "https://auth.vintage-clothes.ie";
+function getToken(){
+  try{
+    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || "";
+  }catch(_){ return ""; }
 }
-
+function getUserId(){
+  try{
+    return sessionStorage.getItem(USER_ID_KEY) || localStorage.getItem(USER_ID_KEY) || "";
+  }catch(_){ return ""; }
+}
 function isLoggedInForCart(){
-  const s = getSession();
-  return !!(s.uid && s.tok);
+  const uid = getUserId();
+  const tok = getToken();
+  // algumas sessões usam só cookie; então basta ter uid OU token
+  return !!(uid || tok);
 }
+
+async function apiJson(path, opts = {}){
+  const method = (opts.method || "GET").toUpperCase();
+  const body = opts.body;
+  const headers = Object.assign({ "Accept": "application/json" }, opts.headers || {});
+  const tok = getToken();
+  if (tok) headers["Authorization"] = "Bearer " + tok;
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+
+  const url = (path.startsWith("http") ? path : (API_ROOT + path));
+  const res = await fetch(url, {
+    method,
+    credentials: "include",
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const text = await res.text();
+  let data = null;
+  try{ data = text ? JSON.parse(text) : null; }catch(_){ data = text; }
+  if(!res.ok){
+    const msg = (data && (data.message || data.error)) ? (data.message || data.error) : (res.status + " " + res.statusText);
+    throw new Error(msg);
+  }
+  return data;
+}
+
+function getDirtyKey(){
+  const uid = getUserId();
+  if (uid) return `vw_cart_dirty_u_${uid}`;
+  const tok = getToken();
+  if (tok) return `vw_cart_dirty_t_${tok.slice(0,12)}`;
+  return "vw_cart_dirty_guest";
+}
+
+function markDirty(){ try{ localStorage.setItem(getDirtyKey(), "1"); }catch(_){ } }
+function clearDirty(){ try{ localStorage.removeItem(getDirtyKey()); }catch(_){ } }
+
+function cartSignature(c){
+  try{
+    const arr = Array.isArray(c) ? c : [];
+    return JSON.stringify(
+      arr.map(i => ({ id: String(i.id ?? i.productId ?? ""), qty: Number(i.qty ?? i.quantity ?? 1) || 1 }))
+         .sort((a,b)=> a.id.localeCompare(b.id))
+    );
+  }catch(_){ return ""; }
+}
+
+let __cartPollingTimer = null;
+let __cartPushTimer = null;
+let __cartPushing = false;
+let __lastServerSig = "";
+
+async function fetchServerCart(){
+  const data = await apiJson("/cart", { method:"GET" });
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.cart)) return data.cart;
+  if (data && Array.isArray(data.items)) return data.items;
+  return [];
+}
+
+async function pullCartFromServer(){
+  if (!isLoggedInForCart()) return;
+  // se o usuário está mexendo agora (dirty), não sobrescreve
+  try{ if (localStorage.getItem(getDirtyKey()) === "1") return; }catch(_){ }
+
+  try{
+    const serverCart = await fetchServerCart();
+    const serverSig = cartSignature(serverCart);
+    const local = loadCart();
+    const localSig = cartSignature(local);
+
+    if (serverSig && serverSig !== __lastServerSig) __lastServerSig = serverSig;
+
+    if (serverSig !== localSig){
+      // aplica no localStorage sem disparar push de volta
+      saveCart(serverCart, { suppressPush: true });
+      cart = serverCart;
+      updateCartIcon();
+      try{
+        const modal = document.getElementById("cartModal");
+        if (modal && modal.style.display === "flex") openCart();
+      }catch(_){ }
+    }
+  }catch(_){ }
+}
+
+function schedulePushCart(){
+  if (!isLoggedInForCart()) return;
+  if (__cartPushTimer) clearTimeout(__cartPushTimer);
+  __cartPushTimer = setTimeout(pushCartNow, 250);
+}
+
+async function pushCartNow(){
+  if (!isLoggedInForCart()) return;
+  if (__cartPushing) return;
+  __cartPushing = true;
+  markDirty();
+
+  const localCart = loadCart();
+  try{
+    if (!localCart.length){
+      try{
+        await apiJson("/cart", { method:"DELETE" });
+      }catch(_){
+        await apiJson("/cart", { method:"POST", body:{ cart: [], clear:true, replace:true, ts: Date.now() } });
+      }
+    } else {
+      await apiJson("/cart", { method:"POST", body:{ cart: localCart, replace:true, ts: Date.now() } });
+    }
+
+    // confirma e libera polling
+    try{
+      const serverCart = await fetchServerCart();
+      if (cartSignature(serverCart) === cartSignature(localCart)){
+        __lastServerSig = cartSignature(serverCart);
+        clearDirty();
+      } else {
+        setTimeout(clearDirty, 1200);
+      }
+    }catch(_){
+      setTimeout(clearDirty, 1200);
+    }
+  }catch(_){
+    setTimeout(clearDirty, 1200);
+  } finally {
+    __cartPushing = false;
+  }
+}
+
+function startCartSync(){
+  if (!isLoggedInForCart()) return;
+  pullCartFromServer();
+  if (__cartPollingTimer) clearInterval(__cartPollingTimer);
+  __cartPollingTimer = setInterval(pullCartFromServer, 2000);
+  window.addEventListener("focus", pullCartFromServer);
+}
+/* --- /CART SYNC --- */
+
 
 function getActiveCartKey(){
   try{
-    const {uid} = getSession();
-    if(uid) return `vw_cart_u_${uid}`;
+    const uid = localStorage.getItem(USER_ID_KEY);
+    const tok = localStorage.getItem(TOKEN_KEY);
+    if(uid && tok) return `vw_cart_u_${uid}`;
   }catch(_){ }
   return CART_GUEST_KEY;
 }
 
-function getUpdatedAtKey(){
-  const {uid} = getSession();
-  return uid ? `vw_cart_updatedAt_u_${uid}` : `vw_cart_updatedAt_guest`;
-}
-
-function getDirtyKey(){
-  const {uid} = getSession();
-  return uid ? `vw_cart_dirty_u_${uid}` : `vw_cart_dirty_guest`;
-}
-
 function migrateGuestCartIfNeeded(){
-  const {uid} = getSession();
-  if(!uid) return;
-  const userKey = `vw_cart_u_${uid}`;
+  const key = getActiveCartKey();
+  if(key === CART_GUEST_KEY) return;
   try{
     const guest = JSON.parse(localStorage.getItem(CART_GUEST_KEY) || '[]');
-    const userCart = JSON.parse(localStorage.getItem(userKey) || '[]');
+    const userCart = JSON.parse(localStorage.getItem(key) || '[]');
     if((!Array.isArray(userCart) || userCart.length === 0) && Array.isArray(guest) && guest.length){
-      localStorage.setItem(userKey, JSON.stringify(guest));
+      localStorage.setItem(key, JSON.stringify(guest));
       localStorage.removeItem(CART_GUEST_KEY);
-      // mark dirty so we push to server once
-      localStorage.setItem(getDirtyKey(), "1");
-      localStorage.setItem(getUpdatedAtKey(), String(Date.now()));
     }
   }catch(_){ }
 }
@@ -1042,176 +1169,28 @@ function migrateGuestCartIfNeeded(){
 function loadCart(){
   migrateGuestCartIfNeeded();
   const key = getActiveCartKey();
-  try{
-    const c = JSON.parse(localStorage.getItem(key)||'[]');
-    return Array.isArray(c) ? c : [];
-  }catch(_){ return []; }
+  try{ return JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ return []; }
 }
-
-function saveCartLocal(c){
+function saveCart(c, opts = {}){
   const key = getActiveCartKey();
   try{ localStorage.setItem(key, JSON.stringify(c)); }catch(_){ }
-  try{ localStorage.setItem(getUpdatedAtKey(), String(Date.now())); }catch(_){ }
-}
-
-function setDirty(v){
-  try{
-    const k = getDirtyKey();
-    if(v) localStorage.setItem(k, "1");
-    else localStorage.removeItem(k);
-  }catch(_){ }
-}
-function isDirty(){
-  try{ return localStorage.getItem(getDirtyKey()) === "1"; }catch(_){ return false; }
-}
-
-// ---- API helpers (works with VW_API if present, otherwise fetch) ----
-async function apiJson(path, opts={}){
-  if(window.VW_API && typeof window.VW_API.apiJson === 'function'){
-    return window.VW_API.apiJson(path, opts);
+  if (!opts.suppressPush){
+    markDirty();
+    schedulePushCart();
   }
-  const {tok} = getSession();
-  const method = (opts.method || 'GET').toUpperCase();
-  const headers = Object.assign({'Content-Type':'application/json'}, opts.headers || {});
-  if(tok) headers['Authorization'] = `Bearer ${tok}`;
-  const body = opts.body !== undefined ? JSON.stringify(opts.body) : undefined;
-  const res = await fetch(path, { method, headers, body, credentials:'include' });
-  if(!res.ok){
-    const t = await res.text().catch(()=> '');
-    throw new Error(`HTTP ${res.status} ${t}`);
-  }
-  const ct = res.headers.get('content-type') || '';
-  if(ct.includes('application/json')) return res.json();
-  const txt = await res.text();
-  try{ return JSON.parse(txt); }catch(_){ return txt; }
 }
 
-function normalizeServerCart(payload){
-  if(Array.isArray(payload)) return { cart: payload, updatedAt: 0 };
-  if(payload && typeof payload === 'object'){
-    const cart = Array.isArray(payload.cart) ? payload.cart : (Array.isArray(payload.items) ? payload.items : []);
-    const updatedAt = Number(payload.updatedAt || payload.updated_at || payload.ts || payload.version || 0) || 0;
-    return { cart, updatedAt };
-  }
-  return { cart: [], updatedAt: 0 };
-}
+let cart = loadCart();
 
-async function fetchCartFromServer(){
-  const payload = await apiJson('/cart', { method:'GET' });
-  return normalizeServerCart(payload);
-}
-
-async function pushCartToServer(cart){
-  // try "replace" semantics first (prevents merge that resurrects removed items)
-  if(!cart.length){
-    try{
-      await apiJson('/cart', { method:'DELETE' });
-      return;
-    }catch(_){ /* fallthrough */ }
-    // fallback clear
-    try{ await apiJson('/cart/clear', { method:'POST', body:{ clear:true } }); return; }catch(_){}
-    await apiJson('/cart', { method:'POST', body:{ cart: [], clear:true, replace:true } });
-    return;
-  }
-
-  try{ await apiJson('/cart', { method:'PUT', body:{ cart, replace:true } }); return; }catch(_){}
-  try{ await apiJson('/cart/replace', { method:'POST', body:{ cart, replace:true } }); return; }catch(_){}
-  await apiJson('/cart', { method:'POST', body:{ cart, replace:true } });
-}
-
-// ---- cross-tab sync ----
-const bc = ('BroadcastChannel' in window) ? new BroadcastChannel('vw_cart_sync') : null;
-
-function broadcastCartUpdated(){
-  if(!bc) return;
-  try{
-    const {uid} = getSession();
-    bc.postMessage({ type:'cart_updated', uid: uid || null, at: Date.now() });
-  }catch(_){}
-}
-
-if(bc){
-  bc.onmessage = (ev) => {
-    const msg = ev && ev.data;
-    if(!msg || msg.type !== 'cart_updated') return;
-    // if user differs, ignore
-    const {uid} = getSession();
-    if((msg.uid || null) !== (uid || null)) return;
-    cart = loadCart();
-    updateCartIcon();
-    // if modal open, re-render
-    const modal = document.getElementById('cartModal');
-    if(modal && modal.style.display === 'flex'){ openCart(); }
-  };
-}
+startCartSync();
 
 window.addEventListener('storage', (e) => {
   const k = getActiveCartKey();
-  if (e.key === k || e.key === CART_GUEST_KEY || e.key === getUpdatedAtKey()){
+  if (e.key === k || e.key === CART_GUEST_KEY){
     cart = loadCart();
     updateCartIcon();
-    const modal = document.getElementById('cartModal');
-    if(modal && modal.style.display === 'flex'){ openCart(); }
   }
 });
-
-// ---- main state ----
-let cart = loadCart();
-
-async function reconcileFromServer(){
-  if(!isLoggedInForCart()) return;
-  if(isDirty()) return; // don't overwrite while user is editing on this page
-  try{
-    const server = await fetchCartFromServer();
-    const localAt = Number(localStorage.getItem(getUpdatedAtKey()) || '0') || 0;
-    // if server has no updatedAt, still accept it (it is authoritative)
-    const shouldTakeServer = (server.updatedAt && server.updatedAt >= localAt) || (!server.updatedAt);
-    if(shouldTakeServer){
-      saveCartLocal(server.cart || []);
-      cart = loadCart();
-      updateCartIcon();
-      const modal = document.getElementById('cartModal');
-      if(modal && modal.style.display === 'flex'){ openCart(); }
-      broadcastCartUpdated();
-    }
-  }catch(err){
-    // silent
-    // console.warn('reconcileFromServer failed', err);
-  }
-}
-
-function schedulePushToServer(){
-  if(!isLoggedInForCart()) return;
-  if(cartSyncTimer) clearTimeout(cartSyncTimer);
-  cartSyncTimer = setTimeout(async () => {
-    cartSyncTimer = null;
-    try{
-      await pushCartToServer(loadCart());
-      setDirty(false);
-    }catch(_){
-      // keep dirty so polling won't resurrect old state
-      setDirty(true);
-    }
-  }, CART_SYNC_DEBOUNCE_MS);
-}
-
-function startPolling(){
-  if(cartPollTimer) clearInterval(cartPollTimer);
-  if(!isLoggedInForCart()) return;
-  cartPollTimer = setInterval(() => {
-    reconcileFromServer();
-  }, CART_POLL_MS);
-}
-
-// ---- public mutators ----
-function persistCartAndSync(newCart){
-  saveCartLocal(newCart);
-  cart = loadCart();
-  updateCartIcon();
-  setDirty(isLoggedInForCart()); // only lock when logged in
-  broadcastCartUpdated();
-  if(isLoggedInForCart()) schedulePushToServer();
-}
 
 function addToCart(productId){
   cart = loadCart();
@@ -1229,13 +1208,13 @@ function addToCart(productId){
   } else {
     cart.push({...product, qty: 1});
   }
-  persistCartAndSync(cart);
+  saveCart(cart);
+  updateCartIcon();
 }
 
 function updateCartIcon(){
   const countEl = document.getElementById('cartCount');
-  if(!countEl) return;
-  const totalItems = cart.reduce((sum, item) => sum + (Number(item.qty)||0), 0);
+  const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
   countEl.textContent = totalItems ? String(totalItems) : '';
 }
 
@@ -1244,7 +1223,6 @@ function openCart(){
   const cartModal = document.getElementById('cartModal');
   const list = document.getElementById('cartItems');
   const totalEl = document.getElementById('cartTotal');
-  if(!cartModal || !list) return;
   list.innerHTML = '';
   if(cart.length === 0){
     list.innerHTML = '<p style="color:#666">Your cart is empty.</p>';
@@ -1252,7 +1230,7 @@ function openCart(){
   } else {
     let total = 0;
     cart.forEach(item => {
-      total += Number(item.price) * (Number(item.qty)||0);
+      total += Number(item.price) * item.qty;
       const row = document.createElement('div');
       row.className = 'cart-item';
       row.innerHTML = `
@@ -1276,10 +1254,7 @@ function openCart(){
   cartModal.style.display = 'flex';
 }
 
-function closeCart(){ 
-  const m = document.getElementById('cartModal');
-  if(m) m.style.display = 'none';
-}
+function closeCart(){ document.getElementById('cartModal').style.display = 'none'; }
 
 function changeQty(id, delta){
   cart = loadCart();
@@ -1293,24 +1268,13 @@ function changeQty(id, delta){
       return;
     }
   }
-  item.qty = (Number(item.qty)||0) + delta;
-  if(item.qty <= 0){
-    cart = cart.filter(p => String(p.id) !== String(id));
-  } else if (max > 0 && item.qty > max){
-    item.qty = max;
-  }
-  persistCartAndSync(cart);
+  item.qty += delta;
+  if(item.qty <= 0){ cart = cart.filter(p => String(p.id) !== String(id)); }
+  else if (max > 0 && item.qty > max){ item.qty = max; }
+  saveCart(cart);
   openCart();
-}
-
-// initial UI sync + server reconcile
-document.addEventListener('DOMContentLoaded', () => {
-  cart = loadCart();
   updateCartIcon();
-  reconcileFromServer();
-  startPolling();
-});
-
+}
 
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-action="add-to-cart"]');
