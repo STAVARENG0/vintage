@@ -356,12 +356,16 @@ function commonConfig(){
         payload = null;
       }
 
-      // 2) Use payload.user_id as reference_id
-      if (!payload || !payload.user_id) {
-  throw new Error('User not identified');
+      // 2) Use payload.user_id as reference_id (fallback for static checkout)
+let userRefId = 'guest';
+
+if (payload && payload.user_id) {
+  userRefId = String(payload.user_id);
+} else {
+  // cria um id anônimo só pra referência
+  userRefId = 'guest_' + Date.now();
 }
 
-const userRefId = String(payload.user_id);
 
 
       // 3) Build items[] with custom_id = product id
