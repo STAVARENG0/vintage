@@ -1739,8 +1739,13 @@ function statusToStepIndex(status){
     };
 
     window.removeCartItem = function(id){
+      // Remove locally
       state.cart = (state.cart||[]).filter(it => String(it.id) !== String(id));
       saveLocalCart();
+
+      // Sync to server so polling/other devices don't "bring it back"
+      scheduleCartSync();
+
       renderCart();
     };
 
