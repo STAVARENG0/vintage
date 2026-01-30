@@ -1954,6 +1954,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+
+async function clearCartOnLogout(){
+  // Limpa carrinho local + tenta limpar no servidor (best-effort)
+  try { saveCart([], { suppressPush:true }); } catch(_){}
+  try { cart = []; updateCartIcon(); } catch(_){}
+  try { localStorage.removeItem(CART_DIRTY_KEY); } catch(_){}
+  try { localStorage.removeItem(CART_UPDATED_AT_KEY); } catch(_){}
+  try { await syncCartToBackend(); } catch(_){}
+  try { localStorage.removeItem(CART_GUEST_KEY); } catch(_){}
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--){
+      const k = localStorage.key(i);
+      if (k && k.startsWith("vw_cart_u_")) localStorage.removeItem(k);
+    }
+  } catch(_){}
+}
+
   function wireLogout(){
     const btn = document.getElementById("logoutBtn");
     if (!btn) return;
@@ -1972,8 +1989,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try { await fetch(url, { method, credentials: "include" }); } catch(_){}
       }
 
-      try { TOKEN_KEYS.forEach(k => localStorage.removeItem(k)); } catch(_){}
-      try { localStorage.removeItem(USER_ID_KEY); } catch(_){}
+      await clearCartOnLogout();
+
+      try { TOKEN_KEYS.forEach(k => { try{ localStorage.removeItem(k); }catch(_){ } try{ sessionStorage.removeItem(k); }catch(_){ } }); } catch(_){ }
+      try { localStorage.removeItem(USER_ID_KEY); } catch(_){ }
+      try { sessionStorage.removeItem(USER_ID_KEY); } catch(_){ }
       clearCookies();
       setMenuAuthed(false, null);
 
@@ -1988,15 +2008,41 @@ document.addEventListener('DOMContentLoaded', () => {
         credentials: "include"
       });
 
-      if (!r.ok){
-        setMenuAuthed(false, null);
-      } else {
+      
+if (!r.ok){
+  // Se a sessão expirou / foi deslogada em outro dispositivo, limpa o carrinho e dados locais
+  let hadAuth = false;
+  try{
+    hadAuth = !!(localStorage.getItem(USER_ID_KEY) || sessionStorage.getItem(USER_ID_KEY) || TOKEN_KEYS.some(k => (localStorage.getItem(k) || sessionStorage.getItem(k))));
+  }catch(_){}
+  if (hadAuth){
+    try { await clearCartOnLogout(); } catch(_){}
+    try { TOKEN_KEYS.forEach(k => { try{ localStorage.removeItem(k); }catch(_){ } try{ sessionStorage.removeItem(k); }catch(_){ } }); } catch(_){}
+    try { localStorage.removeItem(USER_ID_KEY); } catch(_){}
+    try { sessionStorage.removeItem(USER_ID_KEY); } catch(_){}
+    clearCookies();
+  }
+  setMenuAuthed(false, null);
+} else {
         const me = await r.json();
         setMenuAuthed(true, me.name);
       }
-    }catch(_){
-      setMenuAuthed(false, null);
-    }
+    
+}catch(_){
+  // Se deu erro ao validar sessão, e havia dados de login, limpa carrinho + dados locais
+  let hadAuth = false;
+  try{
+    hadAuth = !!(localStorage.getItem(USER_ID_KEY) || sessionStorage.getItem(USER_ID_KEY) || TOKEN_KEYS.some(k => (localStorage.getItem(k) || sessionStorage.getItem(k))));
+  }catch(_){}
+  if (hadAuth){
+    try { await clearCartOnLogout(); } catch(_){}
+    try { TOKEN_KEYS.forEach(k => { try{ localStorage.removeItem(k); }catch(_){ } try{ sessionStorage.removeItem(k); }catch(_){ } }); } catch(_){}
+    try { localStorage.removeItem(USER_ID_KEY); } catch(_){}
+    try { sessionStorage.removeItem(USER_ID_KEY); } catch(_){}
+    clearCookies();
+  }
+  setMenuAuthed(false, null);
+}
 
     wireLogout();
   }
