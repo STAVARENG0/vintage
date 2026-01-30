@@ -1027,6 +1027,7 @@ function searchProducts(){
 const TOKEN_KEY='vw_token';
 const USER_ID_KEY='vw_user_id';
 const CART_GUEST_KEY='vw_cart';
+const LOGIN_FLAG_KEY='vw_had_login';
 
 /* --- CART SYNC (multi-dispositivo) --- */
 const API_ROOT = "https://auth.vintage-clothes.ie";
@@ -1052,6 +1053,30 @@ function isLoggedInForCart(){
   // algumas sessões usam só cookie; então basta ter uid OU token
   return !!(getUserId() || getToken());
 }
+
+function hasHadLogin(){
+  try{ return (localStorage.getItem(LOGIN_FLAG_KEY)==="1" || sessionStorage.getItem(LOGIN_FLAG_KEY)==="1"); }catch(_){ return false; }
+}
+function setHadLogin(v){
+  try{ if(v){ localStorage.setItem(LOGIN_FLAG_KEY,"1"); } else { localStorage.removeItem(LOGIN_FLAG_KEY); } }catch(_){}
+  try{ if(v){ sessionStorage.setItem(LOGIN_FLAG_KEY,"1"); } else { sessionStorage.removeItem(LOGIN_FLAG_KEY); } }catch(_){}
+}
+
+// Se a sessão sumiu (token/uid limpos) mas esse navegador já teve login,
+// limpa o carrinho antes mesmo de renderizar o ícone.
+(function(){
+  try{
+    if (hasHadLogin() && !isLoggedInForCart()){
+      try{ localStorage.removeItem(CART_GUEST_KEY); }catch(_){}
+      try{
+        for (let i = localStorage.length - 1; i >= 0; i--){
+          const k = localStorage.key(i);
+          if (k && String(k).startsWith("vw_cart_u_")) localStorage.removeItem(k);
+        }
+      }catch(_){}
+    }
+  }catch(_){}
+})();
 
 async function apiJson(path, opts = {}){
   const method = (opts.method || "GET").toUpperCase();
@@ -1981,6 +2006,8 @@ async function clearCartOnLogout(){
       if (k && k.startsWith("vw_cart_u_")) localStorage.removeItem(k);
     }
   } catch(_){}
+  try{ setHadLogin(false); }catch(_){ }
+
 }
 
   function wireLogout(){
@@ -2005,7 +2032,7 @@ async function clearCartOnLogout(){
       try { TOKEN_KEYS.forEach(k => { try{ localStorage.removeItem(k); }catch(_){ } try{ sessionStorage.removeItem(k); }catch(_){ } }); } catch(_){ }
       try { localStorage.removeItem(USER_ID_KEY); } catch(_){ }
       try { sessionStorage.removeItem(USER_ID_KEY); } catch(_){ }
-      clearCookies();
+      clearCookies();try{ setHadLogin(false); }catch(_){ }
       setMenuAuthed(false, null);
 
       // Force a clean refresh
@@ -2049,7 +2076,8 @@ async function init(){
     } else {
       const me = await r.json();
       setMenuAuthed(true, me.name);
-    }
+    
+        try{ setHadLogin(true); }catch(_){ }}
   }catch(_){
     // Se deu erro ao validar sessão, e havia dados de login, limpa carrinho + dados locais
     let hadAuth = false;
