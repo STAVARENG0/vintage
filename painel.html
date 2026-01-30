@@ -1115,6 +1115,7 @@ function escAttr(v){
         const res = await fetch(base + "/user/me/avatar", {
           method: "POST",
           headers,
+          credentials: 'include',
           body: fd
         });
 
@@ -1776,39 +1777,38 @@ function authHeaders(extra){
 
 
     async function apiJson(path, opts = {}){
-    const token = getCookie("vw_token_js");
-    const p = String(path || '');
-    const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
-    const base = isRewards ? REWARDS_ROOT : API_ROOT;
-    const url = base + path;
-   const init = {
-  method: opts.method || 'GET',
-  headers: {
-    'Content-Type': 'application/json',
-    ...(opts.headers || {}),
-    ...(token ? { Authorization: 'Bearer ' + token } : {}),
-  },
-};
+  const p = String(path || '');
+  const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
+  const base = isRewards ? REWARDS_ROOT : API_ROOT;
+  const url = base + path;
 
+  const init = {
+    method: opts.method || 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+    },
+  };
 
-    if (opts.body !== undefined) init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
-
-    const res = await fetch(url, init);
-   
-
-
-    const text = await res.text();
-    let data = null;
-    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
-
-    if (!res.ok){
-      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-      throw new Error(msg);
-    }
-    return data;
+  if (opts.body !== undefined) {
+    init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
   }
 
-  function syncPointsUI(points){
+  const res = await fetch(url, init);
+
+  const text = await res.text();
+  let data = null;
+  try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
+
+  if (!res.ok){
+    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
+}
+
+function syncPointsUI(points){
     const p = document.getElementById('pointsNow');
     if (p) p.textContent = String(points ?? 0);
     const cash = document.getElementById('cashValue');
