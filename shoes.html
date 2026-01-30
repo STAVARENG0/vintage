@@ -2015,7 +2015,10 @@ if (!r.ok){
   try{
     hadAuth = !!(localStorage.getItem(USER_ID_KEY) || sessionStorage.getItem(USER_ID_KEY) || TOKEN_KEYS.some(k => (localStorage.getItem(k) || sessionStorage.getItem(k))));
   }catch(_){}
-  if (hadAuth){
+  let hasUserCart = false;
+  try{ hasUserCart = (typeof listUserCartKeys === 'function' && listUserCartKeys().length > 0); }catch(_){}
+  const shouldClear = hadAuth || hasUserCart;
+  if (shouldClear){
     try { await clearCartOnLogout(); } catch(_){}
     try { TOKEN_KEYS.forEach(k => { try{ localStorage.removeItem(k); }catch(_){ } try{ sessionStorage.removeItem(k); }catch(_){ } }); } catch(_){}
     try { localStorage.removeItem(USER_ID_KEY); } catch(_){}
@@ -2034,7 +2037,10 @@ if (!r.ok){
   try{
     hadAuth = !!(localStorage.getItem(USER_ID_KEY) || sessionStorage.getItem(USER_ID_KEY) || TOKEN_KEYS.some(k => (localStorage.getItem(k) || sessionStorage.getItem(k))));
   }catch(_){}
-  if (hadAuth){
+  let hasUserCart = false;
+  try{ hasUserCart = (typeof listUserCartKeys === 'function' && listUserCartKeys().length > 0); }catch(_){}
+  const shouldClear = hadAuth || hasUserCart;
+  if (shouldClear){
     try { await clearCartOnLogout(); } catch(_){}
     try { TOKEN_KEYS.forEach(k => { try{ localStorage.removeItem(k); }catch(_){ } try{ sessionStorage.removeItem(k); }catch(_){ } }); } catch(_){}
     try { localStorage.removeItem(USER_ID_KEY); } catch(_){}
