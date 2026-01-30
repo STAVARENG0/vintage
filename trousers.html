@@ -882,6 +882,26 @@ background: transparent !important;
 const PUBLIC_JSON = './products.json';
 const grid = document.getElementById('products');
 let currentList = [];
+function escapeHTML(v){
+  const s = (v === undefined || v === null) ? '' : String(v);
+  return s
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+function safeUrl(u){
+  try{
+    const url = new URL(String(u || ''), window.location.origin);
+    if(url.protocol === 'http:' || url.protocol === 'https:') return url.href;
+    return '';
+  }catch(e){
+    return '';
+  }
+}
+
+
 function fmtEUR(n){
   const v = Number(n);
   if(Number.isNaN(v)) return '€ ' + (n ?? '');
@@ -956,10 +976,37 @@ function render(list){
       const badge = document.createElement('div'); badge.className = 'oos-ribbon'; badge.textContent = 'OUT OF STOCK'; el.appendChild(badge);
     }
     const img = document.createElement('img'); img.src = p.image; img.alt = p.title; el.appendChild(img);
-    const body = document.createElement('div'); body.className='product-body';
-    const brand = p.brand ? `<div class="meta">${p.brand}</div>` : '';
-    body.innerHTML = `<h3>${p.title}</h3>${brand}<div class='meta'>Stock: ${p.stock}</div><div class='price'>${fmtEUR(p.price)}</div><div class='description' style='display:none'>${p.description}</div>`;
-    el.appendChild(body);
+    
+const body = document.createElement('div'); body.className='product-body';
+
+const h3 = document.createElement('h3');
+h3.textContent = p.title || '';
+body.appendChild(h3);
+
+if (p.brand) {
+  const b = document.createElement('div');
+  b.className = 'meta';
+  b.textContent = p.brand;
+  body.appendChild(b);
+}
+
+const st = document.createElement('div');
+st.className = 'meta';
+st.textContent = `Stock: ${p.stock}`;
+body.appendChild(st);
+
+const pr = document.createElement('div');
+pr.className = 'price';
+pr.textContent = fmtEUR(p.price);
+body.appendChild(pr);
+
+const desc = document.createElement('div');
+desc.className = 'description';
+desc.style.display = 'none';
+desc.textContent = p.description || '';
+body.appendChild(desc);
+
+el.appendChild(body);
     const cta = document.createElement('div'); cta.className='cta';
     const a = document.createElement('a');
     a.className='btn'; a.href='#'; a.textContent = Number(p.stock) > 0 ? "Add to cart" : "Out of Stock";
@@ -1327,20 +1374,50 @@ function openCart(){
       total += Number(item.price) * item.qty;
       const row = document.createElement('div');
       row.className = 'cart-item';
-      row.innerHTML = `
-        <div class="cart-item-left">
-          <img class="cart-thumb" src="${item.image}" alt="${item.title}">
-          <div>
-            <strong>${item.title}</strong><br>
-            <small>${fmtEUR(item.price)}</small>
-          </div>
-        </div>
-        <div class="cart-qty">
-          <button onclick="changeQty('${item.id}', -1)" style="padding:4px 8px;">−</button>
-          <span>${item.qty}</span>
-          <button onclick="changeQty('${item.id}', 1)" style="padding:4px 8px;">+</button>
-        </div>
-      `;
+
+      // build DOM safely (no innerHTML)
+      const left = document.createElement('div');
+      left.className = 'cart-item-left';
+
+      const imgEl = document.createElement('img');
+      imgEl.className = 'cart-thumb';
+      imgEl.src = safeUrl(item.image) || '';
+      imgEl.alt = item.title || '';
+      left.appendChild(imgEl);
+
+      const info = document.createElement('div');
+      const strong = document.createElement('strong');
+      strong.textContent = item.title || '';
+      info.appendChild(strong);
+      info.appendChild(document.createElement('br'));
+
+      const small = document.createElement('small');
+      small.textContent = fmtEUR(item.price);
+      info.appendChild(small);
+
+      left.appendChild(info);
+      row.appendChild(left);
+
+      const qty = document.createElement('div');
+      qty.className = 'cart-qty';
+
+      const dec = document.createElement('button');
+      dec.style.padding = '4px 8px';
+      dec.textContent = '−';
+      dec.addEventListener('click', () => changeQty(String(item.id), -1));
+      qty.appendChild(dec);
+
+      const span = document.createElement('span');
+      span.textContent = String(item.qty);
+      qty.appendChild(span);
+
+      const inc = document.createElement('button');
+      inc.style.padding = '4px 8px';
+      inc.textContent = '+';
+      inc.addEventListener('click', () => changeQty(String(item.id), 1));
+      qty.appendChild(inc);
+
+      row.appendChild(qty);
       list.appendChild(row);
     });
     if(totalEl){ totalEl.textContent = fmtEUR(total); }
