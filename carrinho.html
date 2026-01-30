@@ -659,7 +659,7 @@
 
   <input id="avatarFileInput" type="file" accept="image/*" class="hidden" />
   <script src="vintage-auth.js"></script>
- <script src="auth-guard.js"></script>
+ <!-- <script src="auth-guard.js"></script> -->
 
 
 
@@ -2225,51 +2225,49 @@ function getCookie(name){
 }
 
     async function apiJson(path, opts = {}){
-  let p = String(path || '');
-  if (!p.startsWith('/')) p = '/' + p;
+    let p = String(path || '');
+    if (!p.startsWith('/')) p = '/' + p;
 
-  const isRewards = (
-    p.startsWith('/rewards/') ||
-    p.startsWith('/checkout/') ||
-    p === '/cart' ||
-    p.startsWith('/cart/')
-  );
+    const isRewards = (
+      p.startsWith('/rewards/') ||
+      p.startsWith('/checkout/') ||
+      p === '/cart' ||
+      p.startsWith('/cart/')
+    );
 
-  const base = isRewards ? REWARDS_ROOT : API_ROOT;
-  const url = base + p;
+    const base = isRewards ? REWARDS_ROOT : API_ROOT;
+    const url = base + p;
 
-  const init = {
-    method: opts.method || 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(opts.headers || {}),
-      ...authHeaders(),
-    },
-    credentials: 'include', // envia cookie HttpOnly (SameSite=None; Secure; Domain=.vintage-clothes.ie)
-  };
+    const init = {
+      method: opts.method || 'GET',
+      credentials: 'include', // envia cookies HttpOnly (vw_token)
+      headers: authHeaders({
+        'Content-Type': 'application/json',
+        ...(opts.headers || {}),
+      }),
+    };
 
-  if (opts.body !== undefined){
-    init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+    if (opts.body !== undefined){
+      init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+    }
+
+    const res = await fetch(url, init);
+
+    if (res.status === 401 || res.status === 403){
+      if (!isRewards) requireTokenOrRedirect();
+      throw new Error('unauthorized');
+    }
+
+    const text = await res.text();
+    let data = null;
+    try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
+
+    if (!res.ok){
+      const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
   }
-
-  const res = await fetch(url, init);
-
-  if (res.status === 401 || res.status === 403){
-    // Se não está logado, manda pro login (serve pros dois backends)
-    requireTokenOrRedirect();
-    throw new Error('unauthorized');
-  }
-
-  const text = await res.text();
-  let data = null;
-  try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
-
-  if (!res.ok){
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-  return data;
-}
 
   function syncPointsUI(points){
     const p = document.getElementById('pointsNow');
