@@ -1900,5 +1900,143 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener("DOMContentLoaded", init);
 })();
 </script>
+
+
+<!-- ==== VModal (clean build) ==== -->
+<div aria-hidden="true" class="vmodal" id="vModal">
+<div aria-labelledby="vmTitle" aria-modal="true" class="vmodal__dialog" role="dialog">
+<button aria-label="Fechar" class="vmodal__close" id="vmClose">✕</button>
+<div class="vmodal__left">
+<div class="vmodal__main"><img alt="" id="vmMain"/></div>
+<div class="vmodal__thumbs" id="vmThumbs"></div>
+</div>
+<div class="vmodal__right">
+<h3 class="vmodal__title" id="vmTitle"></h3>
+<div class="vmodal__price" id="vmPrice"></div>
+<div class="vmodal__meta" id="vmMeta"></div>
+<div class="vmodal__desc" id="vmDesc"></div>
+<div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
+</div>
+</div>
+</div>
+
+<script>
+
+// ==== VModal behavior (clean) ====
+(function(){
+  if (window.__vmodal) return; window.__vmodal = true;
+  const $ = (s, r=document)=> r.querySelector(s);
+  const $$ = (s, r=document)=> Array.from(r.querySelectorAll(s));
+
+  const modal = $('#vModal');
+  const mainImg = $('#vmMain');
+  const thumbs = $('#vmThumbs');
+  const titleEl = $('#vmTitle');
+  const priceEl = $('#vmPrice');
+  const metaEl = $('#vmMeta');
+  const descEl = $('#vmDesc');
+  const btnClose = $('#vmClose');
+  const btnAdd = $('#vmAdd');
+  let card = null;
+  let imgs = [];
+  let idx = 0;
+
+  function renderThumbs(){
+    thumbs.innerHTML = '';
+    imgs.forEach((src, i)=>{
+      const b = document.createElement('button');
+      b.className = 'vmodal__thumb' + (i===idx ? ' is-active' : '');
+      b.innerHTML = `<img src="${src}" alt="">`;
+      b.addEventListener('click', ()=> go(i));
+      thumbs.appendChild(b);
+    });
+  }
+  function go(i){
+    if(!imgs.length) return;
+    idx = (i + imgs.length) % imgs.length;
+    mainImg.src = imgs[idx];
+    $$('.vmodal__thumb', thumbs).forEach((t, j)=> t.classList.toggle('is-active', j===idx));
+  }
+
+  function openFromCard(c){
+    card = c;
+    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
+    const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
+    const meta  = (card.querySelector('.stock')?.textContent?.trim() || card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '');
+    const desc  = card.getAttribute('data-description') || card.querySelector('.description')?.textContent?.trim() || '';
+
+    const dataImgs = (card.getAttribute('data-images') || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const imgsIn = $$('img', card).map(i=>i.src).filter(Boolean);
+    const linkImgs = $$('a', card).map(a=> a.href).filter(h=>/\.(png|jpe?g|webp|gif)(\?.*)?$/i.test(h));
+    imgs = (dataImgs.length ? dataImgs : (imgsIn.length ? imgsIn : linkImgs)).filter((src, idx, arr)=> arr.indexOf(src)===idx);
+    if (!imgs.length) { imgs = ['/assets/placeholder.png']; }
+
+    titleEl.textContent = title.toUpperCase();
+    priceEl.textContent = price;
+    metaEl.textContent = meta;
+    descEl.textContent = desc;
+
+    
+    // sync CTA with site cart handler
+    try {
+      const ctaBtn = card.querySelector('[data-action="add-to-cart"]');
+      const pidFromBtn = ctaBtn?.dataset?.id;
+      const pidGuess = pidFromBtn || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
+      if (pidGuess) btnAdd.dataset.id = String(pidGuess);
+    } catch(e) {}
+    renderThumbs(); go(0);
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal(){
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden','true');
+    document.body.style.overflow = '';
+  }
+
+  // Delegated open on img/title click
+  document.addEventListener('click', (e)=>{
+    const img = e.target.closest('.product img');
+    const title = e.target.closest('.product h3');
+    const clickable = img || title;
+    if (clickable){
+      const c = clickable.closest('.product');
+      if (c){ e.preventDefault?.(); openFromCard(c); }
+    }
+  });
+
+  // Close
+  btnClose?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e)=>{
+    if (modal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeModal();
+  });
+
+  // Add to Cart — robust integration
+  btnAdd?.addEventListener('click', (e)=>{
+  e?.preventDefault?.();
+  e?.stopPropagation?.();
+  if (!card) return idx;
+  const pid =
+    btnAdd.dataset?.id ||
+    card.getAttribute('data-id') ||
+    card.getAttribute('data-product-id') ||
+    card.dataset?.productId;
+  if (pid) {
+  let did = false;
+  try { if (typeof addToCart === 'function') { addToCart(pid); did = true; } } catch (_) {}
+  if (!did) {
+    try { if (typeof window.addToCart === 'function') { window.addToCart(pid); did = true; } } catch (_) {}
+  }
+}
+  try {
+    btnAdd.dispatchEvent(new CustomEvent('vmodal:add', { bubbles: false, detail: { index: idx } }));
+  } catch (_) {}
+  return idx;
+});})();
+
+</script>
+
 </body>
 </html>
