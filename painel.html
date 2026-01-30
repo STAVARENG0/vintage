@@ -1115,7 +1115,6 @@ function escAttr(v){
         const res = await fetch(base + "/user/me/avatar", {
           method: "POST",
           headers,
-          credentials: 'include',
           body: fd
         });
 
@@ -1777,25 +1776,40 @@ function authHeaders(extra){
 
 
     async function apiJson(path, opts = {}){
-  const p = String(path || '');
-  const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
+  let p = String(path || '');
+  if (!p.startsWith('/')) p = '/' + p;
+
+  const isRewards = (
+    p.startsWith('/rewards/') ||
+    p.startsWith('/checkout/') ||
+    p === '/cart' ||
+    p.startsWith('/cart/')
+  );
+
   const base = isRewards ? REWARDS_ROOT : API_ROOT;
-  const url = base + path;
+  const url = base + p;
 
   const init = {
     method: opts.method || 'GET',
-    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(opts.headers || {}),
+      ...authHeaders(),
     },
+    credentials: 'include', // envia cookie HttpOnly (SameSite=None; Secure; Domain=.vintage-clothes.ie)
   };
 
-  if (opts.body !== undefined) {
+  if (opts.body !== undefined){
     init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
   }
 
   const res = await fetch(url, init);
+
+  if (res.status === 401 || res.status === 403){
+    // Se não está logado, manda pro login (serve pros dois backends)
+    requireTokenOrRedirect();
+    throw new Error('unauthorized');
+  }
 
   const text = await res.text();
   let data = null;
@@ -1808,7 +1822,7 @@ function authHeaders(extra){
   return data;
 }
 
-function syncPointsUI(points){
+  function syncPointsUI(points){
     const p = document.getElementById('pointsNow');
     if (p) p.textContent = String(points ?? 0);
     const cash = document.getElementById('cashValue');
