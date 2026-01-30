@@ -94,5 +94,17 @@
     "gallery": [],
     "createdAt": 1768983633175,
     "status": "published"
+  },
+  {
+    "id": "1769783500080",
+    "title": "OLHA O OVO",
+    "price": 999,
+    "description": "OVO DE OUROS FAMOSO MEU BAGO",
+    "category": "Dresses & Skirts",
+    "stock": 2,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1769783500080/1769783500518_0_OVO.jpg",
+    "gallery": [],
+    "createdAt": 1769783502084,
+    "status": "published"
   }
 ]
