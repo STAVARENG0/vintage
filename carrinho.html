@@ -818,32 +818,17 @@ if (!suppressCartSync){
       }
     }
 
-    function _getCookie(name){
-      try{
-        const m = document.cookie.match(
-          new RegExp('(?:^|; )' + String(name).replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)')
-        );
-        return m ? decodeURIComponent(m[1]) : null;
-      }catch(_){ return null; }
-    }
-
     function isLoggedInForCart(){
-      // Cross-device cart needs an authenticated session.
-      try{
-        const tok = getToken();
-        if (tok) return true;
-
-        // Some deployments store auth in HttpOnly cookies (no token in JS)
-        const cookieTok = _getCookie('vw_token') || _getCookie('token') || _getCookie('auth_token');
-        if (cookieTok) return true;
-      }catch(_){ }
-
-      // Legacy session flag fallback
-      return !!(sessionStorage.getItem(USER_ID_KEY) || sessionStorage.getItem('vw_user_id'));
-    }
+  // Robust login detection: token + user id OR legacy session flag
+  try{
+    const tok = getToken();
+    const uid = getUserId();
+    if (tok && uid) return true;
+  }catch(_){}
+  return !!sessionStorage.getItem('vw_user_id');
+}
 
 async function syncCartToBackend(){
-
       if (!isLoggedInForCart()) return;
       if (!window.VW_API || !window.VW_API.apiJson) return;
 
@@ -2018,9 +2003,6 @@ function statusToStepIndex(status){
       // Cart comes from the Store localStorage (it must transit between pages).
       loadLocalCart();
 
-      // Cross-device: sync with backend once the page loads (pull + merge local additions).
-      try{ syncCartFromBackend(); }catch(_){ }
-
       state.orders = state.orders || [];
       state.addresses = state.addresses || [];
       state.cashbackHistory = state.cashbackHistory || [];
@@ -2259,10 +2241,11 @@ function getCookie(name){
     const init = {
       method: opts.method || 'GET',
       credentials: 'include', // envia cookies HttpOnly (vw_token)
-      headers: authHeaders({
+      headers: {
         'Content-Type': 'application/json',
         ...(opts.headers || {}),
-      }),
+        ...authHeaders(),
+      },
     };
 
     if (opts.body !== undefined){
@@ -2272,7 +2255,7 @@ function getCookie(name){
     const res = await fetch(url, init);
 
     if (res.status === 401 || res.status === 403){
-      if (!isRewards) requireTokenOrRedirect();
+      if (!isRewards) requireTokenOrRedirect(); // só redireciona se for o backend de conta
       throw new Error('unauthorized');
     }
 
@@ -2286,6 +2269,7 @@ function getCookie(name){
     }
     return data;
   }
+}
 
   function syncPointsUI(points){
     const p = document.getElementById('pointsNow');
