@@ -94,17 +94,5 @@
     "gallery": [],
     "createdAt": 1769783502084,
     "status": "published"
-  },
-  {
-    "id": "1769857949164",
-    "title": "70 70 SE NAO DER 70 DE NOVO",
-    "price": 1,
-    "description": "VOCE TENTA",
-    "category": "Dresses & Skirts",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1769857949164/1769857948631_0_Gemini_Generated_Image_al5zqal5zqal5zqa.png",
-    "gallery": [],
-    "createdAt": 1769857951766,
-    "status": "published"
   }
 ]
