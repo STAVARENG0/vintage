@@ -1202,20 +1202,57 @@ async function syncCartToBackend(){
       }
     }
 
-    function determineLevel(spentMonth){
-      const v = Number(spentMonth) || 0;
-      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
-      if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
-      return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
-    }
+        function determineLevel(spentTotal){
+      const v = Number(spentTotal) || 0;
 
-    function levelProgress(spentMonth){
-      const v = Number(spentMonth) || 0;
-      // Bronze: 0-300, Silver: 300-800, Gold: >=800
-      if (v < 300) return { pct: (v/300)*100, text: `€${v.toFixed(0)} this month` };
-      if (v < 800) return { pct: ((v-300)/(800-300))*100, text: `€${v.toFixed(0)} this month` };
-      return { pct: 100, text: `€${v.toFixed(0)} this month` };
+      // Levels by total spent
+      if (v >= 800){
+        return {
+          key:'GOLD',
+          label:'Gold',
+          dot:'var(--gold2)',
+          fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'],
+          spinsPerDay: 3,
+          hint: v >= 1200
+            ? 'Gold completed. +300 pts earned.'
+            : `€${Math.max(0, 1200 - v).toFixed(0)} to complete Gold (target €1200) and earn +300 pts.`,
+        };
+      }
+      if (v >= 300){
+        return {
+          key:'SILVER',
+          label:'Silver',
+          dot:'var(--silver)',
+          fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
+          spinsPerDay: 2,
+          hint: `€${Math.max(0, 800 - v).toFixed(0)} to reach Gold (target €800).`,
+        };
+      }
+      return {
+        key:'BRONZE',
+        label:'Bronze',
+        dot:'var(--bronze)',
+        fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
+        spinsPerDay: 1,
+        hint: `€${Math.max(0, 300 - v).toFixed(0)} to reach Silver (target €300).`,
+      };
     }
+    
+
+
+        function levelProgress(spentTotal){
+      const v = Number(spentTotal) || 0;
+      if (v >= 800){
+        const pct = v >= 1200 ? 100 : ((v - 800) / (1200 - 800)) * 100;
+        return { pct, text: `€${v.toFixed(0)} spent` };
+      }
+      if (v >= 300){
+        return { pct: ((v - 300) / (800 - 300)) * 100, text: `€${v.toFixed(0)} spent` };
+      }
+      return { pct: (v / 300) * 100, text: `€${v.toFixed(0)} spent` };
+    }
+    
+
 
     function $(id){ return document.getElementById(id); }
 
@@ -1267,8 +1304,8 @@ async function syncCartToBackend(){
       setText('cashValue', `= ${fmtEUR(pointsToCash(state.points || 0))}`);
 
       // level
-      const lvl = determineLevel(state.spentMonth);
-      const prog = levelProgress(state.spentMonth);
+      const lvl = determineLevel(state.spentTotal ?? state.spentMonth);
+      const prog = levelProgress(state.spentTotal ?? state.spentMonth);
 
       setText('levelLabel', lvl.label);
       const dot = $('levelDot');
@@ -2341,6 +2378,13 @@ function getCookie(name){
       syncPointsUI(points);
       if (typeof renderAll === 'function') renderAll();
       if (typeof renderCart === 'function') renderCart();
+
+
+      // ---- Rewards core fields (levels/progress) ----
+      state.points = Number(data?.points ?? data?.user?.points ?? state.points ?? 0) || 0;
+      state.spentTotal = Number(data?.spentTotal ?? data?.spent_total ?? data?.user?.spentTotal ?? data?.user?.spent_total ?? 0) || 0;
+      state.spentMonth = state.spentTotal;
+      try{ renderHero(); }catch(_){ }
 
       return data;
     } catch(err){

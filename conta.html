@@ -731,6 +731,89 @@ function authHeaders(extra){
         const eur = (Number(points||0) * 0.5);
         cash.textContent = '= € ' + eur.toFixed(2);
       }
+
+    function determineLevel(spentTotal){
+      const v = Number(spentTotal) || 0;
+      if (v >= 800){
+        return {
+          key:'GOLD',
+          label:'Gold',
+          dot:'var(--gold2)',
+          fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'],
+          hint: v >= 1200
+            ? 'Gold completed. +300 pts earned.'
+            : `€${Math.max(0, 1200 - v).toFixed(0)} to complete Gold (target €1200) and earn +300 pts.`,
+        };
+      }
+      if (v >= 300){
+        return {
+          key:'SILVER',
+          label:'Silver',
+          dot:'var(--silver)',
+          fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
+          hint: `€${Math.max(0, 800 - v).toFixed(0)} to reach Gold (target €800).`,
+        };
+      }
+      return {
+        key:'BRONZE',
+        label:'Bronze',
+        dot:'var(--bronze)',
+        fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
+        hint: `€${Math.max(0, 300 - v).toFixed(0)} to reach Silver (target €300).`,
+      };
+    }
+
+    function levelProgress(spentTotal){
+      const v = Number(spentTotal) || 0;
+      if (v >= 800){
+        const pct = v >= 1200 ? 100 : ((v - 800) / (1200 - 800)) * 100;
+        return { pct, text: `€${v.toFixed(0)} spent` };
+      }
+      if (v >= 300){
+        return { pct: ((v - 300) / (800 - 300)) * 100, text: `€${v.toFixed(0)} spent` };
+      }
+      return { pct: (v / 300) * 100, text: `€${v.toFixed(0)} spent` };
+    }
+
+    function syncLevelUI(spentTotal){
+      const lvl = determineLevel(spentTotal);
+      const prog = levelProgress(spentTotal);
+
+      const label = document.getElementById('levelLabel');
+      if (label) label.textContent = lvl.label;
+
+      const dot = document.getElementById('levelDot');
+      if (dot){
+        dot.style.background = lvl.dot;
+        dot.style.boxShadow = `0 0 0 4px rgba(0,0,0,.08)`;
+      }
+
+      const fill = document.getElementById('levelFill');
+      if (fill){
+        fill.style.width = Math.max(0, Math.min(100, prog.pct)) + '%';
+        fill.style.background = `linear-gradient(90deg, ${lvl.fill[0]}, ${lvl.fill[1]})`;
+      }
+
+      const progText = document.getElementById('levelProgressText');
+      if (progText) progText.textContent = prog.text;
+
+      const hint = document.getElementById('levelHint');
+      if (hint) hint.textContent = lvl.hint;
+
+      // highlight splits
+      document.getElementById('lvlBronze')?.classList.add('on');
+      document.getElementById('lvlSilver')?.classList.remove('on','silver');
+      document.getElementById('lvlGold')?.classList.remove('on','gold');
+
+      if (lvl.key === 'SILVER'){
+        document.getElementById('lvlSilver')?.classList.add('on','silver');
+      } else if (lvl.key === 'GOLD'){
+        document.getElementById('lvlSilver')?.classList.add('on','silver');
+        document.getElementById('lvlGold')?.classList.add('on','gold');
+      }
+    }
+    
+
     }
 
     async function loadRewardsStatus(){
@@ -738,7 +821,10 @@ function authHeaders(extra){
         const data = await apiJson('/rewards/status', { method:'GET' });
         const points = Number(data?.points ?? data?.user?.points ?? 0);
         syncPointsUI(points);
-        return data;
+        
+        const spentTotal = Number(data?.spentTotal ?? data?.spent_total ?? data?.user?.spentTotal ?? data?.user?.spent_total ?? 0) || 0;
+        syncLevelUI(spentTotal);
+return data;
       } catch(err){
         console.warn('Rewards status not loaded:', err?.message || err);
         return null;
@@ -1200,7 +1286,7 @@ async function logout() {
       attachEvents();
       await loadProfile();
       await loadSettings();
-     // await loadRewardsStatus();
+     await loadRewardsStatus();
     }
 
     document.addEventListener("DOMContentLoaded", initPage);
