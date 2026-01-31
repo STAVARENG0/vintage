@@ -1205,30 +1205,72 @@ async function syncCartToBackend(){
       }
     }
 
-    function determineLevel(spentMonth){
-      // Prefer explicit tier coming from backend (/rewards/status). Fallback to spending thresholds.
-      let forced = '';
-      try{
-        forced = String((typeof state !== 'undefined' && state && state.level) ? state.level : '').toUpperCase().trim();
-      }catch(_){ forced = ''; }
+    function determineLevel(spentTotal){
+      const v = Number(spentTotal) || 0;
 
-      if (forced === 'GOLD')   return { key:'GOLD',   label:'Gold',   dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
-      if (forced === 'SILVER') return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
-      if (forced === 'BRONZE') return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
+      // thresholds:
+      // Bronze -> Silver unlock at 300
+      // Silver -> Gold unlock at 800
+      // Gold completes at 1200 (+300 points)
+      const T_SILVER = 300;
+      const T_GOLD   = 800;
+      const T_GOLD_COMPLETE = 1200;
 
-      const v = Number(spentMonth) || 0;
-      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
-      if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
-      return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
+      if (v >= T_GOLD){
+        const rem = Math.max(0, T_GOLD_COMPLETE - v);
+        return {
+          key:'GOLD',
+          label:'Gold',
+          dot:'var(--gold2)',
+          fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'],
+          spinsPerDay: 5,
+          hint: (v >= T_GOLD_COMPLETE)
+            ? 'Gold completed ✅ You earned +300 points.'
+            : `€${rem.toFixed(0)} to complete Gold (earn +300 points). Target: €${T_GOLD_COMPLETE}.`,
+        };
+      }
+
+      if (v >= T_SILVER){
+        const rem = Math.max(0, T_GOLD - v);
+        return {
+          key:'SILVER',
+          label:'Silver',
+          dot:'var(--silver)',
+          fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
+          spinsPerDay: 3,
+          hint: `€${rem.toFixed(0)} to reach Gold. Target: €${T_GOLD}.`,
+        };
+      }
+
+      const rem = Math.max(0, T_SILVER - v);
+      return {
+        key:'BRONZE',
+        label:'Bronze',
+        dot:'var(--bronze)',
+        fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
+        spinsPerDay: 2,
+        hint: `€${rem.toFixed(0)} to reach Silver. Target: €${T_SILVER}.`,
+      };
     }
 
+    function levelProgress(spentTotal){
+      const v = Number(spentTotal) || 0;
+      const T_SILVER = 300;
+      const T_GOLD   = 800;
+      const T_GOLD_COMPLETE = 1200;
 
-    function levelProgress(spentMonth){
-      const v = Number(spentMonth) || 0;
-      // Bronze: 0-300, Silver: 300-800, Gold: >=800
-      if (v < 300) return { pct: (v/300)*100, text: `€${v.toFixed(0)} this month` };
-      if (v < 800) return { pct: ((v-300)/(800-300))*100, text: `€${v.toFixed(0)} this month` };
-      return { pct: 100, text: `€${v.toFixed(0)} this month` };
+      if (v >= T_GOLD){
+        const pct = (v >= T_GOLD_COMPLETE) ? 100 : ((v - T_GOLD) / (T_GOLD_COMPLETE - T_GOLD)) * 100;
+        return { pct, text: `€${v.toFixed(0)} / €${T_GOLD_COMPLETE}` };
+      }
+
+      if (v >= T_SILVER){
+        const pct = ((v - T_SILVER) / (T_GOLD - T_SILVER)) * 100;
+        return { pct, text: `€${v.toFixed(0)} / €${T_GOLD}` };
+      }
+
+      const pct = (v / T_SILVER) * 100;
+      return { pct, text: `€${v.toFixed(0)} / €${T_SILVER}` };
     }
 
     function $(id){ return document.getElementById(id); }
@@ -1281,8 +1323,9 @@ async function syncCartToBackend(){
       setText('cashValue', `= ${fmtEUR(pointsToCash(state.points || 0))}`);
 
       // level
-      const lvl = determineLevel(state.spentMonth);
-      const prog = levelProgress(state.spentMonth);
+      const spend = (Number(state.spentTotal)||0) || (Number(state.spentMonth)||0) || 0;
+      const lvl = determineLevel(spend);
+      const prog = levelProgress(spend);
 
       setText('levelLabel', lvl.label);
       const dot = $('levelDot');
@@ -2349,6 +2392,23 @@ function getCookie(name){
 
       const points = Number(data?.points ?? data?.user?.points ?? 0);
       if (typeof state !== 'undefined') state.points = points;
+
+      // Total/monthly spend (used for level progress)
+      const spentTotal = Number(
+        data?.spentTotal ?? data?.spent_total ??
+        data?.totalSpent ?? data?.total_spent ??
+        data?.spent ?? data?.total ?? 0
+      ) || 0;
+
+      const spentMonth = Number(
+        data?.spentMonth ?? data?.spent_month ??
+        data?.monthSpent ?? data?.month_spent ?? 0
+      ) || 0;
+
+      try{
+        state.spentTotal = spentTotal;
+        state.spentMonth = spentMonth;
+      }catch(_){ }
 
       const ad = data?.activeDiscount || data?.active_discount || null;
       if (typeof state !== 'undefined'){
