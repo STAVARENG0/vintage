@@ -1206,11 +1206,22 @@ async function syncCartToBackend(){
     }
 
     function determineLevel(spentMonth){
+      // Prefer explicit tier coming from backend (/rewards/status). Fallback to spending thresholds.
+      let forced = '';
+      try{
+        forced = String((typeof state !== 'undefined' && state && state.level) ? state.level : '').toUpperCase().trim();
+      }catch(_){ forced = ''; }
+
+      if (forced === 'GOLD')   return { key:'GOLD',   label:'Gold',   dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
+      if (forced === 'SILVER') return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
+      if (forced === 'BRONZE') return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
+
       const v = Number(spentMonth) || 0;
       if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
       if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
       return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
     }
+
 
     function levelProgress(spentMonth){
       const v = Number(spentMonth) || 0;
