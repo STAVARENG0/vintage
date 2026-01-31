@@ -560,7 +560,7 @@
             <div class="level-wrap" aria-label="Customer level">
               <div class="level-head">
                 <div class="badge"><span class="badge-dot" id="levelDot"></span> <span id="levelLabel">Bronze</span></div>
-                <span class="pill"><strong id="levelProgressText">€0</strong> this month</span>
+                <span class="pill"><strong id="levelProgressText">€0</strong></span>
               </div>
 
               <div class="level-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
@@ -738,12 +738,115 @@ function authHeaders(extra){
         const data = await apiJson('/rewards/status', { method:'GET' });
         const points = Number(data?.points ?? data?.user?.points ?? 0);
         syncPointsUI(points);
+
+        const spentTotal = Number(
+          data?.spentTotal ?? data?.spent_total ??
+          data?.totalSpent ?? data?.total_spent ??
+          data?.spent ?? data?.total ?? 0
+        ) || 0;
+        updateLevelUI(spentTotal);
+
         return data;
       } catch(err){
         console.warn('Rewards status not loaded:', err?.message || err);
         return null;
       }
     }
+
+function computeLevelMeta(spentTotal){
+  const v = Number(spentTotal) || 0;
+  const T_SILVER = 300;
+  const T_GOLD = 800;
+  const T_GOLD_COMPLETE = 1200;
+
+  if (v >= T_GOLD){
+    return {
+      key:'GOLD',
+      label:'Gold',
+      pct: (v >= T_GOLD_COMPLETE) ? 100 : ((v - T_GOLD)/(T_GOLD_COMPLETE - T_GOLD))*100,
+      progressText: `€${v.toFixed(0)} / €${T_GOLD_COMPLETE}`,
+      remaining: Math.max(0, T_GOLD_COMPLETE - v),
+      target: T_GOLD_COMPLETE,
+      goldComplete: (v >= T_GOLD_COMPLETE),
+    };
+  }
+  if (v >= T_SILVER){
+    return {
+      key:'SILVER',
+      label:'Silver',
+      pct: ((v - T_SILVER)/(T_GOLD - T_SILVER))*100,
+      progressText: `€${v.toFixed(0)} / €${T_GOLD}`,
+      remaining: Math.max(0, T_GOLD - v),
+      target: T_GOLD,
+      goldComplete: false,
+    };
+  }
+  return {
+    key:'BRONZE',
+    label:'Bronze',
+    pct: (v / T_SILVER) * 100,
+    progressText: `€${v.toFixed(0)} / €${T_SILVER}`,
+    remaining: Math.max(0, T_SILVER - v),
+    target: T_SILVER,
+    goldComplete: false,
+  };
+}
+
+function updateLevelUI(spentTotal){
+  const meta = computeLevelMeta(spentTotal);
+
+  const label = document.getElementById('levelLabel');
+  const dot = document.getElementById('levelDot');
+  const fill = document.getElementById('levelFill');
+
+  if (label) label.textContent = meta.label;
+
+  if (dot){
+    dot.style.background = (meta.key === 'GOLD') ? 'var(--gold2)' : (meta.key === 'SILVER') ? 'var(--silver)' : 'var(--bronze)';
+  }
+
+  if (fill){
+    fill.style.width = Math.max(0, Math.min(100, meta.pct)) + '%';
+    if (meta.key === 'GOLD'){
+      fill.style.background = 'linear-gradient(90deg, rgba(212,175,55,.95), rgba(240,180,59,.95))';
+    } else if (meta.key === 'SILVER'){
+      fill.style.background = 'linear-gradient(90deg, rgba(192,192,192,.95), rgba(192,192,192,.75))';
+    } else {
+      fill.style.background = 'linear-gradient(90deg, rgba(205,127,50,.95), rgba(205,127,50,.78))';
+    }
+  }
+
+  const ptxt = document.getElementById('levelProgressText');
+  if (ptxt) ptxt.textContent = meta.progressText;
+
+  const hint = document.getElementById('levelHint');
+  if (hint){
+    if (meta.key === 'GOLD'){
+      hint.textContent = meta.goldComplete
+        ? 'Gold completed ✅ You earned +300 points.'
+        : `€${meta.remaining.toFixed(0)} to complete Gold (earn +300 points). Target: €${meta.target.toFixed(0)}.`;
+    } else if (meta.key === 'SILVER'){
+      hint.textContent = `€${meta.remaining.toFixed(0)} to reach Gold. Target: €${meta.target.toFixed(0)}.`;
+    } else {
+      hint.textContent = `€${meta.remaining.toFixed(0)} to reach Silver. Target: €${meta.target.toFixed(0)}.`;
+    }
+  }
+
+  const b = document.getElementById('lvlBronze');
+  const s = document.getElementById('lvlSilver');
+  const g = document.getElementById('lvlGold');
+  if (b) b.classList.add('on');
+  if (s) s.classList.remove('on','silver');
+  if (g) g.classList.remove('on','gold');
+
+  if (meta.key === 'SILVER'){
+    if (s) s.classList.add('on','silver');
+  } else if (meta.key === 'GOLD'){
+    if (s) s.classList.add('on','silver');
+    if (g) g.classList.add('on','gold');
+  }
+}
+
 
     window.VW_API = window.VW_API || {};
     window.VW_API.root = API_ROOT;
@@ -1200,8 +1303,8 @@ async function logout() {
       attachEvents();
       await loadProfile();
       await loadSettings();
-     // await loadRewardsStatus();
-    }
+     await loadRewardsStatus();
+}
 
     document.addEventListener("DOMContentLoaded", initPage);
   </script>

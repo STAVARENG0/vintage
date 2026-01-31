@@ -551,7 +551,7 @@
             <div class="level-wrap" aria-label="Customer level">
               <div class="level-head">
                 <div class="badge"><span class="badge-dot" id="levelDot"></span> <span id="levelLabel">Bronze</span></div>
-                <span class="pill"><strong id="levelProgressText">€0</strong> this month</span>
+                <span class="pill"><strong id="levelProgressText">€0</strong></span>
               </div>
 
               <div class="level-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
@@ -1202,20 +1202,32 @@ async function syncCartToBackend(){
       }
     }
 
-    function determineLevel(spentMonth){
-      const v = Number(spentMonth) || 0;
-      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 5, hint:"You're at the top of the leaderboard." };
-      if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 3, hint:'Fill the bar to reach Gold.' };
-      return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 2, hint:'Fill the bar to reach Silver.' };
+    function determineLevel(spentTotal){
+      const v = Number(spentTotal) || 0;
+      if (v >= 800) return { key:'GOLD', label:'Gold', dot:'var(--gold2)', fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'], spinsPerDay: 3, hint:'Gold: free shipping (orders > €40), 3 spins/day, +100 points.' };
+      if (v >= 300) return { key:'SILVER', label:'Silver', dot:'var(--silver)', fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'], spinsPerDay: 2, hint:'Silver: 5 free shippings (orders > €40), 2 spins/day, +40 points.' };
+      return { key:'BRONZE', label:'Bronze', dot:'var(--bronze)', fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'], spinsPerDay: 1, hint:'Bronze: 1 spin/day.' };
     }
 
-    function levelProgress(spentMonth){
-      const v = Number(spentMonth) || 0;
-      // Bronze: 0-300, Silver: 300-800, Gold: >=800
-      if (v < 300) return { pct: (v/300)*100, text: `€${v.toFixed(0)} this month` };
-      if (v < 800) return { pct: ((v-300)/(800-300))*100, text: `€${v.toFixed(0)} this month` };
-      return { pct: 100, text: `€${v.toFixed(0)} this month` };
+
+    function levelProgress(spentTotal){
+      const v = Number(spentTotal) || 0;
+      const T_SILVER = 300;
+      const T_GOLD = 800;
+      const T_GOLD_COMPLETE = 1200;
+
+      if (v < T_SILVER){
+        return { pct: (v/T_SILVER)*100, text: `€${v.toFixed(0)} / €${T_SILVER}` };
+      }
+      if (v < T_GOLD){
+        return { pct: ((v-T_SILVER)/(T_GOLD-T_SILVER))*100, text: `€${v.toFixed(0)} / €${T_GOLD}` };
+      }
+      if (v < T_GOLD_COMPLETE){
+        return { pct: ((v-T_GOLD)/(T_GOLD_COMPLETE-T_GOLD))*100, text: `€${v.toFixed(0)} / €${T_GOLD_COMPLETE}` };
+      }
+      return { pct: 100, text: `€${v.toFixed(0)} / €${T_GOLD_COMPLETE}` };
     }
+
 
     function $(id){ return document.getElementById(id); }
 
@@ -1267,8 +1279,8 @@ async function syncCartToBackend(){
       setText('cashValue', `= ${fmtEUR(pointsToCash(state.points || 0))}`);
 
       // level
-      const lvl = determineLevel(state.spentMonth);
-      const prog = levelProgress(state.spentMonth);
+      const lvl = determineLevel(state.spentTotal);
+      const prog = levelProgress(state.spentTotal);
 
       setText('levelLabel', lvl.label);
       const dot = $('levelDot');
@@ -1995,7 +2007,7 @@ function statusToStepIndex(status){
       };
 
       state.spentTotal = state.spentTotal || 0;
-      state.spentMonth = state.spentMonth || 0;
+      state.spentTotal = state.spentTotal || 0;
 
       // Load shared rewards (points + wheel rewards)
       loadSharedRewards();
@@ -2286,6 +2298,22 @@ function getCookie(name){
 
       const points = Number(data?.points ?? data?.user?.points ?? 0);
       if (typeof state !== 'undefined') state.points = points;
+
+const spentTotal = Number(
+  data?.spentTotal ?? data?.spent_total ??
+  data?.totalSpent ?? data?.total_spent ??
+  data?.spent ?? data?.total ?? 0
+) || 0;
+
+const spentMonth = Number(
+  data?.spentMonth ?? data?.spent_month ??
+  data?.monthSpent ?? data?.month_spent ?? 0
+) || 0;
+
+try{
+  state.spentTotal = spentTotal;
+  state.spentMonth = spentMonth;
+}catch(_){}
 
       const ad = data?.activeDiscount || data?.active_discount || null;
       if (typeof state !== 'undefined'){
