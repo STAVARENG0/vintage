@@ -604,10 +604,11 @@
                   <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
                     <input type="checkbox" id="benefitPoints" />
                     <span>
-                      <div style="font-weight:900;">Use points (use full balance)</div>
+                      <div style="font-weight:900;">Use points</div>
                       <div class="muted" style="margin-top:2px; font-weight:700;">
                         Balance: <strong><span id="pointsBalanceCart">0</span> pts</strong> (<span id="pointsCashCart">€ 0.00</span>)
-                      </div>
+                                            <div class="muted" style="margin-top:6px; font-weight:800;" id="pointsRuleCart">Available on orders €50+. Max usable now: <strong><span id="pointsMaxCart">0</span> pts</strong> (40 pts per €50).</div>
+</div>
                     </span>
                   </label>
 
@@ -630,6 +631,7 @@
                       <span>
                         <div style="font-weight:900;" id="shippingLabel">Free shipping</div>
                         <div class="muted" style="margin-top:6px; font-weight:700;" id="shippingExpires"></div>
+                      <div class="muted" style="margin-top:6px; font-weight:800;" id="shippingRuleCart">Available on orders €40+.</div>
                       </span>
                     </label>
                   </div>
@@ -1094,6 +1096,7 @@ async function syncCartToBackend(){
     };
 
     const pointsToCash = (points) => Number(points || 0) * 0.5; // 10 pts = €5
+const calcPointsUseCap = (subtotal) => Math.floor(Math.max(0, Number(subtotal)||0) / 50) * 40; // each €50 unlocks 40 pts
     const calcPointsEarned = (totalSpent) => Math.floor((Number(totalSpent) || 0) / 55) * 10;
 
 
@@ -1376,9 +1379,15 @@ async function syncCartToBackend(){
       const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
       const hasShipping = isValidReward(state.activeShipping);
 
-      const pointsAmount = (selPts && Number(state.points||0) > 0) ? pointsToCash(state.points) : 0;
-      const discountAmount = (selDis && hasDiscount) ? subtotal * (Number(state.activeDiscount.percent||0) / 100) : 0;
-      const freeShipping = (selShip && hasShipping);
+      const capPts = calcPointsUseCap(subtotal);
+      const eligiblePts = (subtotal >= 50) && (capPts > 0) && (Number(state.points||0) > 0);
+      const pointsUsed = (selPts && eligiblePts) ? Math.min(Number(state.points||0), capPts) : 0;
+      const pointsAmount = pointsToCash(pointsUsed);
+
+      const discountAmount = (selDis && hasDiscount) ? (subtotal * (Number(state.activeDiscount.percent||0) / 100)) : 0;
+
+      // Free shipping only if order subtotal >= €40
+      const freeShipping = (selShip && hasShipping && subtotal >= 40);
 
       const total = Math.max(0, subtotal - pointsAmount - discountAmount);
 
@@ -1389,7 +1398,10 @@ async function syncCartToBackend(){
         discountAmount,
         total,
         freeShipping,
-        pointsUsed: (selPts && Number(state.points||0) > 0) ? Number(state.points||0) : 0,
+        pointsUsed,
+        pointsCap: capPts,
+        pointsEligible: eligiblePts,
+        shippingEligible: (subtotal >= 40) && hasShipping,
         discountPercent: (selDis && hasDiscount) ? Number(state.activeDiscount.percent||0) : 0,
       };
     }
@@ -1518,6 +1530,36 @@ cart: compact,
       $('pointsBalanceCart') && ($('pointsBalanceCart').textContent = String(pts));
       $('pointsCashCart') && ($('pointsCashCart').textContent = fmtEUR(pointsToCash(pts)));
 
+      // Points rule: only usable on orders €50+ and max 40 pts per €50
+      const totalsNow = computeCartTotals();
+      const subtotalNow = Number(totalsNow.subtotal || 0);
+      const capPts = Number(totalsNow.pointsCap ?? calcPointsUseCap(subtotalNow)) || 0;
+      const maxUsablePts = Math.max(0, Math.min(pts, capPts));
+      const eligiblePts = (subtotalNow >= 50) && (maxUsablePts > 0);
+
+      const ptsChk = $('benefitPoints');
+      if (ptsChk){
+        ptsChk.disabled = !eligiblePts;
+        if (!eligiblePts && ptsChk.checked){
+          ptsChk.checked = false;
+          try{ saveBenefitSelection(); }catch(_){}
+        }
+      }
+      if ($('pointsMaxCart')) $('pointsMaxCart').textContent = String(maxUsablePts);
+
+      const ruleEl = $('pointsRuleCart');
+      if (ruleEl){
+        if (subtotalNow < 50){
+          const missing = 50 - subtotalNow;
+          ruleEl.innerHTML = `Available on orders €50+. Add <strong>${fmtEUR(missing)}</strong> to unlock.`;
+        } else if (pts <= 0){
+          ruleEl.innerHTML = `You have <strong>0 pts</strong> available.`;
+        } else {
+          ruleEl.innerHTML = `Max usable now: <strong>${maxUsablePts} pts</strong> (40 pts per €50).`;
+        }
+      }
+
+
       // Discount
       const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
       const discountWrap = $('discountOption');
@@ -1560,14 +1602,32 @@ cart: compact,
       }
 
       if (chkShip){
-        if (!hasShipping) chkShip.checked = false;
-        chkShip.disabled = !hasShipping;
+        const eligibleShip = hasShipping && (subtotalNow >= 40);
+        if (!eligibleShip && chkShip.checked){
+          chkShip.checked = false;
+          try{ saveBenefitSelection(); }catch(_){}
+        }
+        chkShip.disabled = !eligibleShip;
+
+        const shipRuleEl = $('shippingRuleCart');
+        if (shipRuleEl){
+          if (!hasShipping){
+            shipRuleEl.textContent = 'No free shipping available.';
+          } else if (subtotalNow < 40){
+            shipRuleEl.innerHTML = `Available on orders €40+. Add <strong>${fmtEUR(40 - subtotalNow)}</strong> to unlock.`;
+          } else {
+            shipRuleEl.textContent = 'Available — order subtotal €40+.';
+          }
+        }
       }
 
       // Points checkbox
       if (chkPts){
-        if (pts <= 0) chkPts.checked = false;
-        chkPts.disabled = pts <= 0;
+        if (!eligiblePts && chkPts.checked){
+          chkPts.checked = false;
+          try{ saveBenefitSelection(); }catch(_){}
+        }
+        chkPts.disabled = !eligiblePts;
       }
       // Mutual exclusion: points vs discount
       if (chkPts && !chkPts.dataset.boundChange){
