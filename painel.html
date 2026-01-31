@@ -650,57 +650,24 @@
     const pointsToCash = (points) => Number(points || 0) * 0.5; // 10 pts = €5
     const calcPointsEarned = (totalSpent) => Math.floor((Number(totalSpent) || 0) / 55) * 10;
 
-        function getLevelMeta(spentTotal){
-      const v = Number(spentTotal) || 0;
-      const progressText = `€${v.toFixed(0)} spent`;
-      // Tiers:
-      // Bronze: 0 -> 300
-      // Silver: 300 -> 800
-      // Gold: 800 -> 1200 (completion)
+    function getLevelMeta(spentMonth){
+      const v = Number(spentMonth) || 0;
+      const progressText = `€${v.toFixed(0)} this month`;
+
+      // Bronze: 0-300, Silver: 300-800, Gold: >=800
       if (v >= 800){
-        const pct = v >= 1200 ? 100 : ((v - 800) / (1200 - 800)) * 100;
         return {
           key:'GOLD',
           label:'Gold',
           dot:'var(--gold2)',
           fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'],
-          pct,
+          pct: 100,
           progressText,
-          nextLabel: v >= 1200 ? null : 'Gold (complete)',
-          remaining: v >= 1200 ? 0 : (1200 - v),
-          target: 1200,
-          note: v >= 1200 ? 'Gold completed. +300 pts.' : 'Complete Gold to earn +300 pts.',
-        };
-      }
-      if (v >= 300){
-        return {
-          key:'SILVER',
-          label:'Silver',
-          dot:'var(--silver)',
-          fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
-          pct: ((v-300)/(800-300))*100,
-          progressText,
-          nextLabel:'Gold',
-          remaining: 800 - v,
+          nextLabel: null,
+          remaining: 0,
           target: 800,
-          note: 'Reach €800 to unlock Gold rewards.',
         };
       }
-      return {
-        key:'BRONZE',
-        label:'Bronze',
-        dot:'var(--bronze)',
-        fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
-        pct: (v/300)*100,
-        progressText,
-        nextLabel:'Silver',
-        remaining: 300 - v,
-        target: 300,
-        note: 'Reach €300 to unlock Silver rewards.',
-      };
-    }
-    
-
       if (v >= 300){
         return {
           key:'SILVER',
@@ -860,7 +827,7 @@ function escAttr(v){
       setText('cashValue', `= ${fmtEUR(pointsToCash(state.points || 0))}`);
 
       // level (progresso por gasto)
-      const meta = getLevelMeta(state.spentTotal ?? state.spentMonth);
+      const meta = getLevelMeta(state.spentMonth);
 
       setText('levelLabel', meta.label);
       const dot = $('levelDot');
@@ -877,13 +844,9 @@ function escAttr(v){
 
       setText('levelProgressText', meta.progressText);
       if (meta.nextLabel){
-        if (meta.key === 'GOLD'){
-          setText('levelHint', `€${Math.max(0, meta.remaining).toFixed(0)} to complete Gold (target €${Number(meta.target||0).toFixed(0)}). ${meta.note}`);
-        } else {
-          setText('levelHint', `€${Math.max(0, meta.remaining).toFixed(0)} to reach ${meta.nextLabel}. Target: €${Number(meta.target||0).toFixed(0)}.`);
-        }
+        setText('levelHint', `€${Math.max(0, meta.remaining).toFixed(0)} to reach ${meta.nextLabel}. Target: €${Number(meta.target||0).toFixed(0)}.`);
       } else {
-        setText('levelHint', meta.note || 'Top level reached.');
+        setText('levelHint', 'Top level reached. Keep earning cashback.');
       }
 
       // highlight splits
@@ -1975,16 +1938,6 @@ function syncPointsUI(points){
       syncPointsUI(points);
       if (typeof renderAll === 'function') renderAll();
       if (typeof renderCart === 'function') renderCart();
-
-
-      // ---- Rewards core fields (levels/progress) ----
-      state.points = Number(data?.points ?? data?.user?.points ?? state.points ?? 0) || 0;
-      state.spentTotal = Number(data?.spentTotal ?? data?.spent_total ?? data?.user?.spentTotal ?? data?.user?.spent_total ?? 0) || 0;
-      // keep legacy name for older UI code
-      state.spentMonth = state.spentTotal;
-
-      // refresh level/points UI on this page
-      try{ renderHero(); }catch(_){ }
 
       return data;
     } catch(err){
