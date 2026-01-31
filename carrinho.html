@@ -604,7 +604,8 @@
                   <label style="display:flex; gap:10px; align-items:flex-start; cursor:pointer;">
                     <input type="checkbox" id="benefitPoints" />
                     <span>
-                      <div style="font-weight:900;" id="pointsRuleTitle">Use points</div>
+                      <div style="font-weight:900;" id="pointsTitle">Use points</div>
+          <div class="muted" style="margin-top:4px; font-weight:700;" id="pointsRuleHint"></div>
                       <div class="muted" style="margin-top:2px; font-weight:700;">
                         Balance: <strong><span id="pointsBalanceCart">0</span> pts</strong> (<span id="pointsCashCart">€ 0.00</span>)
                       </div>
@@ -1349,52 +1350,7 @@ async function syncCartToBackend(){
       `).join('');
     }
 
-    
-  // ===== Regras do carrinho =====
-  // Pontos só podem ser usados em compras >= €50.
-  // Para cada €50 no subtotal, libera até 40 pontos para usar nessa compra.
-  function getPointsCapForSubtotal(subtotal){
-    const s = Number(subtotal || 0);
-    if (s < 50) return 0;
-    const blocks = Math.floor(s / 50);
-    return Math.max(0, blocks * 40);
-  }
-
-  function updateRewardsEligibilityUI(subtotal){
-    const chkPoints = document.getElementById('benefitPoints');
-    const title = document.getElementById('pointsRuleTitle');
-    const bal = document.getElementById('pointsBalanceText');
-    const msg = document.getElementById('rewardAppliedMsg');
-
-    const cap = getPointsCapForSubtotal(subtotal);
-    const userPts = Number(state.points || 0);
-    const canUse = (cap > 0 && userPts > 0);
-
-    const maxUse = Math.min(userPts, cap);
-    const maxUseEur = pointsToCash(maxUse);
-
-    if (title){
-      if (cap <= 0){
-        title.textContent = 'Use points (available on orders ≥ €50)';
-      } else {
-        title.textContent = `Use points (max ${cap} pts for this cart)`;
-      }
-    }
-
-    if (bal){
-      bal.textContent = `Balance: ${userPts} pts (${fmtEUR(pointsToCash(userPts))}) • Can use now: ${maxUse} pts (${fmtEUR(maxUseEur)})`;
-    }
-
-    if (chkPoints){
-      chkPoints.disabled = !canUse;
-      if (!canUse && chkPoints.checked){
-        chkPoints.checked = false;
-        if (msg) msg.textContent = 'Points are only available on orders of €50 or more.';
-      }
-    }
-  }
-
-function computeCartTotals(){
+    function computeCartTotals(){
       const cart = Array.isArray(state.cart) ? state.cart : [];
       const subtotal = cart.reduce((s, it) => s + (Number(it.price||0) * Number(it.qty||1)), 0);
 
@@ -1409,10 +1365,17 @@ function computeCartTotals(){
       const selShip = !!(chkShip && chkShip.checked);
 
       const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
-      const hasShippingReward = isValidReward(state.activeShipping) || (Number(state.freeShippingUses||0) > 0);
-      const hasShipping = (subtotal >= 40) || hasShippingReward;
+      const hasShipping = (subtotal >= 40) && (isValidReward(state.activeShipping) || Number(state.freeShippingUses||0) > 0);
 
-      const pointsAmount = (selPts && Number(state.points||0) > 0) ? pointsToCash(state.points) : 0;
+            // Points rule: only unlock above €50. For each €50, user can spend up to 40 points (40 pts = €20).
+      const POINTS_MIN_SUBTOTAL = 50;
+      const POINTS_PER_BLOCK = 40;
+      const BLOCK_EUR = 50;
+      const blocks = Math.floor(Number(subtotal || 0) / BLOCK_EUR);
+      const maxPointsAllowed = Math.max(0, blocks * POINTS_PER_BLOCK);
+      const pointsEligible = maxPointsAllowed > 0;
+      const pointsUsed = (selPts && pointsEligible) ? Math.min(Number(state.points||0), maxPointsAllowed) : 0;
+      const pointsAmount = pointsUsed ? pointsToCash(pointsUsed) : 0;
       const discountAmount = (selDis && hasDiscount) ? subtotal * (Number(state.activeDiscount.percent||0) / 100) : 0;
       const freeShipping = (selShip && hasShipping);
 
@@ -1425,7 +1388,11 @@ function computeCartTotals(){
         discountAmount,
         total,
         freeShipping,
-        pointsUsed: (selPts && Number(state.points||0) > 0) ? Number(state.points||0) : 0,
+                pointsUsed,
+        maxPointsAllowed,
+        pointsEligible,
+        pointsBlocks: blocks,
+        pointsMinSubtotal: POINTS_MIN_SUBTOTAL,
         discountPercent: (selDis && hasDiscount) ? Number(state.activeDiscount.percent||0) : 0,
       };
     }
@@ -1556,6 +1523,26 @@ cart: compact,
       const pts = Number(state.points || 0);
       $('pointsBalanceCart') && ($('pointsBalanceCart').textContent = String(pts));
       $('pointsCashCart') && ($('pointsCashCart').textContent = fmtEUR(pointsToCash(pts)));
+
+      // Points rule (UI): min €50, 40 pts per €50 block
+      const ptTitle = $('pointsTitle');
+      const ptHint = $('pointsRuleHint');
+      const blocks = Math.floor(subtotal / 50);
+      const maxPts = Math.max(0, blocks * 40);
+      const canUsePts = (maxPts > 0 && pts > 0);
+      if (chkPts){
+        chkPts.disabled = !canUsePts;
+        if (!canUsePts) chkPts.checked = false;
+      }
+      if (ptTitle){
+        ptTitle.textContent = canUsePts ? `Use points (max ${maxPts} pts)` : 'Use points (min €50)';
+      }
+      if (ptHint){
+        if (pts <= 0) ptHint.textContent = 'You have 0 points.';
+        else if (maxPts > 0) ptHint.textContent = `Unlocked: ${blocks}×€50 → up to ${maxPts} pts (${fmtEUR(pointsToCash(maxPts))}).`;
+        else ptHint.textContent = `Spend ${fmtEUR(Math.max(0, 50 - subtotal))} more to unlock points (each €50 unlocks 40 pts).`;
+      }
+
 
       // Discount
       const hasDiscount = isValidReward(state.activeDiscount) && Number(state.activeDiscount?.percent||0) > 0;
@@ -2345,54 +2332,72 @@ function getCookie(name){
     }
   }
 
-  async async function loadRewardsStatus(){
+  async function loadRewardsStatus(){
     try{
       const data = await apiJson('/rewards/status', { method:'GET' });
 
-      // Points
-      const points = Number(data?.points ?? data?.user?.points ?? 0) || 0;
-      state.points = points;
+      const points = Number(data?.points ?? data?.user?.points ?? 0);
+      if (typeof state !== 'undefined') state.points = points;
 
-      // Spend totals (for level bar)
-      state.spentTotal = Number(
-        data?.spentTotal ?? data?.spent_total ??
-        data?.totalSpent ?? data?.total_spent ??
-        data?.spent ?? data?.total ?? 0
-      ) || 0;
-
-      state.spentMonth = Number(
-        data?.spentMonth ?? data?.spent_month ??
-        data?.monthSpent ?? data?.month_spent ?? 0
-      ) || 0;
-
-      // Level (optional server field; UI computes from spentTotal)
-      state.level = String(data?.level ?? data?.user?.level ?? state.level ?? '').toUpperCase() || state.level;
-
-      // Active discount (24h)
       const ad = data?.activeDiscount || data?.active_discount || null;
-      state.activeDiscount = ad ? {
-        id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
-        percent: Number(ad.percent ?? ad.value ?? 0),
-        expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
-      } : null;
+      if (typeof state !== 'undefined'){
+        state.activeDiscount = ad ? {
+          id: ad.id ?? ad.discount_id ?? ad.discountId ?? null,
+          percent: Number(ad.percent ?? ad.value ?? 0),
+          expiresAt: ad.expiresAt || ad.expires_at || ad.expires || null,
+        } : null;
+      }
 
-      // Active shipping (24h) + remaining uses (if you use a "uses" model)
       const sh = data?.activeShipping || data?.active_shipping || null;
-      state.activeShipping = sh ? {
-        id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
-        expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
-      } : null;
+      if (typeof state !== 'undefined'){
+        state.activeShipping = sh ? {
+          id: sh.id ?? sh.shipping_id ?? sh.shippingId ?? null,
+          expiresAt: sh.expiresAt || sh.expires_at || sh.expires || null,
+        } : null;
+      
+      // Free shipping from levels (Silver uses / Gold unlimited)
+      state.freeShippingUses = Number(data?.freeShippingUses ?? data?.free_shipping_uses ?? data?.freeShipping ?? 0) || 0;
+      state.level = String(data?.level ?? data?.tier ?? state.level ?? 'BRONZE').toUpperCase();
+}
 
-      state.freeShippingUses = Number(
-        data?.freeShippingUses ?? data?.free_shipping_uses ??
-        data?.free_shipping_left ?? data?.shipping_uses ?? 0
-      ) || 0;
+      // aplicados (opcional; depende do teu backend)
+      let main = data?.appliedValueReward || data?.appliedReward || data?.applied_redemption || data?.redemption || null;
+      let shipRed = data?.appliedShipping || data?.applied_shipping || data?.shippingRedemption || data?.shipping_redemption || null;
 
-      // Render UI
+      const arr = data?.appliedRewards || data?.applied_rewards || data?.redemptions || null;
+      if (Array.isArray(arr)){
+        for (const r of arr){
+          const t = String(r?.type || '');
+          if (!main && (t === 'points' || t === 'discount')) main = r;
+          if (!shipRed && (t === 'shipping' || t === 'free_shipping')) shipRed = r;
+        }
+      }
+
+      if (typeof state !== 'undefined'){
+        state.appliedValueReward = null;
+        if (main && (main.type === 'points' || main.type === 'discount')){
+          state.appliedValueReward = {
+            id: main.id ?? main.redemption_id ?? main.redemptionId ?? null,
+            type: main.type || null,
+            amountEUR: Number(main.amountEUR ?? main.amount_eur ?? 0),
+            pointsUsed: Number(main.pointsUsed ?? main.points_used ?? 0),
+            percent: Number(main.percent ?? main.discount_percent ?? 0),
+          };
+        }
+
+        state.appliedShippingReward = null;
+        if (shipRed){
+          state.appliedShippingReward = {
+            id: shipRed.id ?? shipRed.redemption_id ?? shipRed.redemptionId ?? shipRed.shipping_id ?? shipRed.shippingId ?? null,
+            type: 'shipping',
+          };
+        }
+      }
+
       syncPointsUI(points);
-      if (typeof renderHero === 'function') renderHero();
+      if (typeof renderAll === 'function') renderAll();
       if (typeof renderCart === 'function') renderCart();
-      if (typeof renderRewards === 'function') renderRewards();
+
       return data;
     } catch(err){
       console.warn('Rewards status not loaded:', err?.message || err);
