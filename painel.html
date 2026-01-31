@@ -552,7 +552,7 @@
             <div class="level-wrap" aria-label="Customer level">
               <div class="level-head">
                 <div class="badge"><span class="badge-dot" id="levelDot"></span> <span id="levelLabel">Bronze</span></div>
-                <span class="pill"><strong id="levelProgressText">€0</strong> this month</span>
+                <span class="pill"><strong id="levelProgressText">€0</strong></span>
               </div>
 
               <div class="level-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
@@ -1932,6 +1932,23 @@ function syncPointsUI(points){
       }catch(_){}
 
       const points = Number(data?.points ?? data?.user?.points ?? 0);
+      // Total/monthly spend (used for level progress)
+      const spentTotal = Number(
+        data?.spentTotal ?? data?.spent_total ??
+        data?.totalSpent ?? data?.total_spent ??
+        data?.spent ?? data?.total ?? 0
+      ) || 0;
+
+      const spentMonth = Number(
+        data?.spentMonth ?? data?.spent_month ??
+        data?.monthSpent ?? data?.month_spent ?? 0
+      ) || 0;
+
+      try{
+        state.spentTotal = spentTotal;
+        state.spentMonth = spentMonth;
+      }catch(_){}
+
       if (typeof state !== 'undefined') state.points = points;
 
       const ad = data?.activeDiscount || data?.active_discount || null;
