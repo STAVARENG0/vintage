@@ -1325,6 +1325,7 @@ async function syncCartToBackend(){
       // level
       const spend = (Number(state.spentTotal)||0) || (Number(state.spentMonth)||0) || 0;
       const lvl = determineLevel(spend);
+      state.level = lvl.key;
       const prog = levelProgress(spend);
 
       setText('levelLabel', lvl.label);
