@@ -356,25 +356,28 @@ function commonConfig(){
         payload = null;
       }
 
-      // 2) Use payload.user_id as reference_id (fallback for static checkout)
-let userRefId = 'guest';
+      // 2) Identify buyer for rewards (logged-in -> user id, guest -> email if available)
+let userRefId = 'guest:' + Date.now();
 
-if (payload && payload.user_id) {
-  userRefId = String(payload.user_id);
-} else {
-  // cria um id anônimo só pra referência
-  userRefId = 'guest_' + Date.now();
+if (payload) {
+  if (payload.user_id) {
+    userRefId = 'user:' + String(payload.user_id);
+  } else if (payload.email) {
+    userRefId = 'email:' + String(payload.email).trim().toLowerCase();
+  } else if (payload.user_email) {
+    userRefId = 'email:' + String(payload.user_email).trim().toLowerCase();
+  } else if (payload.customer_email) {
+    userRefId = 'email:' + String(payload.customer_email).trim().toLowerCase();
+  }
 }
 
-
-
-      // 3) Build items[] with custom_id = product id
+      // 3) Build items[] with sku = product id
       const toCents = (v) => Math.round(Number(v || 0) * 100);
       const items = cart.map(i => {
         const qty = parseInt(i.qty, 10) || 1;
         const unitCents = toCents(i.price);
         return {
-          custom_id: String(i.id),
+          sku: String(i.id),
           name: String(i.title || 'Product'),
           unit_amount: { currency_code: 'EUR', value: (unitCents / 100).toFixed(2) },
           quantity: String(qty)
@@ -410,6 +413,7 @@ if (payload && payload.user_id) {
         },
         purchase_units: [{
           reference_id: userRefId,
+          custom_id: userRefId,
           description: cart[0].title,
           amount: {
             currency_code: 'EUR',
