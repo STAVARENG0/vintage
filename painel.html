@@ -676,6 +676,7 @@
           goldComplete: (v >= T_GOLD_COMPLETE),
         };
       }
+
       if (v >= T_SILVER){
         return {
           key:'SILVER',
@@ -690,6 +691,7 @@
           goldComplete: false,
         };
       }
+
       return {
         key:'BRONZE',
         label:'Bronze',
@@ -701,32 +703,6 @@
         remaining: Math.max(0, T_SILVER - v),
         target: T_SILVER,
         goldComplete: false,
-      };
-    }
-
-      if (v >= 300){
-        return {
-          key:'SILVER',
-          label:'Silver',
-          dot:'var(--silver)',
-          fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
-          pct: ((v-300)/(800-300))*100,
-          progressText,
-          nextLabel:'Gold',
-          remaining: 800 - v,
-          target: 800,
-        };
-      }
-      return {
-        key:'BRONZE',
-        label:'Bronze',
-        dot:'var(--bronze)',
-        fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
-        pct: (v/300)*100,
-        progressText,
-        nextLabel:'Silver',
-        remaining: 300 - v,
-        target: 300,
       };
     }
 
@@ -880,20 +856,19 @@ function escAttr(v){
 
       setText('levelProgressText', meta.progressText);
 
-if (meta.key === 'GOLD'){
-  if (meta.goldComplete){
-    setText('levelHint', 'Gold completed ✅ You earned +300 points.');
-  } else {
-    setText('levelHint', `€${Math.max(0, meta.remaining).toFixed(0)} to complete Gold (earn +300 points). Target: €${Number(meta.target||0).toFixed(0)}.`);
-  }
-} else if (meta.nextLabel){
-  setText('levelHint', `€${Math.max(0, meta.remaining).toFixed(0)} to reach ${meta.nextLabel}. Target: €${Number(meta.target||0).toFixed(0)}.`);
-} else {
-  setText('levelHint', 'Top level reached.');
-}
+      if (meta.key === 'GOLD'){
+        if (meta.goldComplete){
+          setText('levelHint', 'Gold completed ✅ You earned +300 points.');
+        } else {
+          setText('levelHint', `€${Math.max(0, meta.remaining).toFixed(0)} to complete Gold (earn +300 points). Target: €${Number(meta.target||0).toFixed(0)}.`);
+        }
+      } else if (meta.nextLabel){
+        setText('levelHint', `€${Math.max(0, meta.remaining).toFixed(0)} to reach ${meta.nextLabel}. Target: €${Number(meta.target||0).toFixed(0)}.`);
+      } else {
+        setText('levelHint', 'Top level reached.');
+      }
 
-
-      // highlight splits
+// highlight splits
       $('lvlBronze')?.classList.add('on');
       $('lvlSilver')?.classList.remove('on','silver');
       $('lvlGold')?.classList.remove('on','gold');
@@ -1802,6 +1777,11 @@ async function spin(){
   function getToken(){
       return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
+function getToken(){
+  return (window.VintageAuth && typeof window.VintageAuth.getToken==="function") ? window.VintageAuth.getToken() : null;
+}
+
+
 function getCookie(name){
   const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
   return m ? decodeURIComponent(m[1]) : null;
@@ -1816,36 +1796,25 @@ function authHeaders(extra){
 
 
     async function apiJson(path, opts = {}){
-  let p = String(path || '');
-  if (!p.startsWith('/')) p = '/' + p;
-
-  const isRewards = (
-    p.startsWith('/rewards/') ||
-    p.startsWith('/checkout/') ||
-    p === '/cart' ||
-    p.startsWith('/cart/')
-  );
-
+  const p = String(path || '');
+  const isRewards = p.startsWith('/rewards/') || p.startsWith('/checkout/');
   const base = isRewards ? REWARDS_ROOT : API_ROOT;
-  const url = base + p;
+  const url = base + path;
 
   const init = {
     method: opts.method || 'GET',
     credentials: 'include',
-    headers: authHeaders({ 'Content-Type': 'application/json', ...(opts.headers||{}) }),
+    headers: {
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+    },
   };
 
-  if (opts.body !== undefined){
+  if (opts.body !== undefined) {
     init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
   }
 
   const res = await fetch(url, init);
-
-  if (res.status === 401 || res.status === 403){
-    // only auth backend needs redirect
-    if (!isRewards && typeof requireTokenOrRedirect === 'function') requireTokenOrRedirect();
-    throw new Error('unauthorized');
-  }
 
   const text = await res.text();
   let data = null;
@@ -1857,7 +1826,6 @@ function authHeaders(extra){
   }
   return data;
 }
-
 
 function syncPointsUI(points){
     const p = document.getElementById('pointsNow');
@@ -1965,22 +1933,6 @@ function syncPointsUI(points){
 
       const points = Number(data?.points ?? data?.user?.points ?? 0);
       if (typeof state !== 'undefined') state.points = points;
-
-const spentTotal = Number(
-  data?.spentTotal ?? data?.spent_total ??
-  data?.totalSpent ?? data?.total_spent ??
-  data?.spent ?? data?.total ?? 0
-) || 0;
-
-const spentMonth = Number(
-  data?.spentMonth ?? data?.spent_month ??
-  data?.monthSpent ?? data?.month_spent ?? 0
-) || 0;
-
-try{
-  state.spentTotal = spentTotal;
-  state.spentMonth = spentMonth;
-}catch(_){}
 
       const ad = data?.activeDiscount || data?.active_discount || null;
       if (typeof state !== 'undefined'){
