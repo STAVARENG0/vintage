@@ -337,7 +337,7 @@ function commonConfig(){
       }
       return actions.resolve();
     },
-    createOrder: function(data, actions){
+    createOrder: async function(data, actions){
       const { subtotal, shipping, total } = renderSummary();
       if(subtotal <= 0){ throw new Error('Empty subtotal'); }
 
@@ -357,21 +357,29 @@ function commonConfig(){
       }
 
       // 2) Identify buyer for rewards (logged-in -> user id, guest -> email if available)
-let userRefId = 'guest:' + Date.now();
+      let userRefId = 'guest:' + Date.now();
 
-if (payload) {
-  if (payload.user_id) {
-    userRefId = 'user:' + String(payload.user_id);
-  } else if (payload.email) {
-    userRefId = 'email:' + String(payload.email).trim().toLowerCase();
-  } else if (payload.user_email) {
-    userRefId = 'email:' + String(payload.user_email).trim().toLowerCase();
-  } else if (payload.customer_email) {
-    userRefId = 'email:' + String(payload.customer_email).trim().toLowerCase();
-  }
-}
+      try{
+        const r = await fetch('https://clientes.vintage-clothes.ie/rewards/status', { credentials: 'include' });
+        if(r.ok){
+          const me = await r.json();
+          if(me && me.user && me.user.id){
+            userRefId = 'user:' + String(me.user.id);
+          }else if(me && me.user && me.user.email){
+            userRefId = 'email:' + String(me.user.email).trim().toLowerCase();
+          }
+        }
+      }catch(e){}
 
-      // 3) Build items[] with sku = product id
+      // fallback pro payload
+      if(userRefId.startsWith('guest:') && payload){
+        if(payload.user_id) userRefId = 'user:' + String(payload.user_id);
+        else if(payload.email) userRefId = 'email:' + String(payload.email).trim().toLowerCase();
+        else if(payload.user_email) userRefId = 'email:' + String(payload.user_email).trim().toLowerCase();
+        else if(payload.customer_email) userRefId = 'email:' + String(payload.customer_email).trim().toLowerCase();
+      }
+
+// 3) Build items[] with sku = product id
       const toCents = (v) => Math.round(Number(v || 0) * 100);
       const items = cart.map(i => {
         const qty = parseInt(i.qty, 10) || 1;
