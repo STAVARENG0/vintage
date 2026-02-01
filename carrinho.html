@@ -1580,7 +1580,7 @@ cart: compact,
       $('pointsBalanceCart') && ($('pointsBalanceCart').textContent = String(pts));
       $('pointsCashCart') && ($('pointsCashCart').textContent = fmtEUR(pointsToCash(pts)));
 
-      // Points rule (UI): min €60, 40 pts per €50 block
+      // Points rule (UI): min €60, 40 pts per €60 block
       const ptTitle = $('pointsTitle');
       const ptHint = $('pointsRuleHint');
       const blocks = Math.floor(subtotal / 60);
