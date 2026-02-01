@@ -1422,9 +1422,9 @@ async function syncCartToBackend(){
       const hasShipping = (subtotal >= 40) && (isValidReward(state.activeShipping) || Number(state.freeShippingUses||0) > 0);
 
             // Points rule: only unlock above €50. For each €50, user can spend up to 40 points (40 pts = €20).
-      const POINTS_MIN_SUBTOTAL = 50;
+      const POINTS_MIN_SUBTOTAL = 60;
       const POINTS_PER_BLOCK = 40;
-      const BLOCK_EUR = 50;
+      const BLOCK_EUR = 60;
       const blocks = Math.floor(Number(subtotal || 0) / BLOCK_EUR);
       const maxPointsAllowed = Math.max(0, blocks * POINTS_PER_BLOCK);
       const pointsEligible = maxPointsAllowed > 0;
