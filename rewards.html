@@ -537,90 +537,174 @@
       }
     }
 
-    // ===== User + data bootstrap =====
-    function getLoggedUser(){
+        // ===== User + rewards bootstrap (same logic style as Account/Dashboard) =====
+    const USER_CACHE_KEY = 'vw_user_cache';
+    const REWARDS_STATUS_CACHE_KEY = 'vw_rewards_status_cache';
+
+    const API_ROOT = "https://auth.vintage-clothes.ie";
+    const REWARDS_ROOT = "https://clientes.vintage-clothes.ie";
+
+    function requireTokenOrRedirect(){
+      return (window.VintageAuth && typeof window.VintageAuth.requireTokenOrRedirect === "function")
+        ? window.VintageAuth.requireTokenOrRedirect()
+        : null;
+    }
+
+    function authHeaders(extra){
+      return (window.VintageAuth && typeof window.VintageAuth.authHeaders === "function")
+        ? window.VintageAuth.authHeaders(extra)
+        : (extra || {});
+    }
+
+    async function apiJson(path, opts = {}){
+      let p = String(path || '');
+      if (!p.startsWith('/')) p = '/' + p;
+
+      const isRewards = (p.startsWith('/rewards/') || p.startsWith('/checkout/'));
+      const base = isRewards ? REWARDS_ROOT : API_ROOT;
+      const url = base + p;
+
+      const init = {
+        method: opts.method || 'GET',
+        credentials: 'include',
+        headers: authHeaders({ 'Content-Type': 'application/json', ...(opts.headers||{}) }),
+      };
+
+      if (opts.body !== undefined){
+        init.body = (typeof opts.body === 'string') ? opts.body : JSON.stringify(opts.body);
+      }
+
+      const res = await fetch(url, init);
+
+      if (res.status === 401 || res.status === 403){
+        if (!isRewards) requireTokenOrRedirect();
+        throw new Error('unauthorized');
+      }
+
+      const text = await res.text();
+      let data = null;
+      try{ data = text ? JSON.parse(text) : null; } catch(_){ data = text; }
+
+      if (!res.ok){
+        const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    function defaultAvatarDataUri(){
+      const svg = encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+              <stop stop-color="#D4AF37" stop-opacity="0.35"/>
+              <stop stop-color="#f0b43b" stop-opacity="0.18" offset="1"/>
+            </linearGradient>
+          </defs>
+          <rect width="240" height="240" rx="120" fill="url(#g)"/>
+          <circle cx="120" cy="92" r="44" fill="rgba(43,39,35,0.16)"/>
+          <path d="M48 212c14-46 50-68 72-68s58 22 72 68" fill="rgba(43,39,35,0.14)"/>
+        </svg>
+      `);
+      return `data:image/svg+xml;charset=utf-8,${svg}`;
+    }
+
+    function readUserCache(){
       try{
-        return (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function')
-          ? window.VintageAuth.getLoggedUser()
+        const raw = sessionStorage.getItem(USER_CACHE_KEY) || localStorage.getItem(USER_CACHE_KEY);
+        if (raw) return JSON.parse(raw);
+      }catch(_){}
+      try{
+        // Fallback: auth library (same as account page)
+        return (window.VintageAuth && typeof window.VintageAuth.getLoggedUser === 'function')
+          ? (window.VintageAuth.getLoggedUser()?.user || window.VintageAuth.getLoggedUser() || null)
           : null;
       }catch(_){ return null; }
     }
 
-    function pickSpentTotal(){
-      // Try to reuse totals already saved by other dashboard pages (best-effort).
-      const keys = [
-        'vwi_painel_v3_en',
-        'vwi_account_v3_en',
-        'vwi_cart_v3_en',
-        'vwi_orders_v3_en'
-      ];
-      for(const k of keys){
-        try{
-          const raw = localStorage.getItem(k);
-          if(!raw) continue;
-          const obj = JSON.parse(raw);
-          const st = obj && (obj.spentTotal ?? obj.totalSpent ?? obj.spent_total ?? obj.total_spent);
-          if(st !== undefined && st !== null && !Number.isNaN(Number(st))) return Number(st);
-        }catch(_){}
+    function normalizeUser(raw){
+      if (!raw) return {};
+      return raw.user || raw.data || raw.profile || raw.account || raw;
+    }
+
+    function pickName(u){
+      return u.name || u.fullName || u.fullname || u.username || u.userName || '';
+    }
+    function pickEmail(u){
+      return u.email || u.mail || u.userEmail || '';
+    }
+    function pickAvatar(u){
+      return u.avatar_url || u.avatarUrl || u.avatar || u.photo_url || u.photo || u.photoURL || u.photoUrl || '';
+    }
+
+    function fillProfileUI(){
+      const u = normalizeUser(readUserCache()) || {};
+      setText('userName', pickName(u) || 'Customer');
+      setText('userEmail', pickEmail(u) || '—');
+
+      const img = $('avatar');
+      if (img){
+        const av = pickAvatar(u);
+        img.src = av ? String(av) : defaultAvatarDataUri();
       }
-      // Fallback: try common single keys
-      const fallbacks = ['vw_spentTotal','spentTotal','vwi_spentTotal'];
-      for(const k of fallbacks){
-        try{
-          const v = localStorage.getItem(k);
-          if(v !== null && !Number.isNaN(Number(v))) return Number(v);
-        }catch(_){}
+    }
+
+    function readRewardsStatusCache(){
+      try{
+        const raw = localStorage.getItem(REWARDS_STATUS_CACHE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      }catch(_){ return null; }
+    }
+
+    function writeRewardsStatusCache(data){
+      try{
+        localStorage.setItem(REWARDS_STATUS_CACHE_KEY, JSON.stringify({
+          ...(data || {}),
+          updatedAt: new Date().toISOString(),
+        }));
+      }catch(_){}
+    }
+
+    async function loadRewardsStatus(){
+      try{
+        const data = await apiJson('/rewards/status', { method:'GET' });
+
+        const spentTotal = Number(
+          data?.spentTotal ?? data?.spent_total ??
+          data?.totalSpent ?? data?.total_spent ??
+          data?.spent ?? data?.total ?? 0
+        ) || 0;
+
+        applyLevel(spentTotal);
+        writeRewardsStatusCache({ spentTotal });
+
+        return data;
+      }catch(err){
+        // If API fails, fall back to cached spentTotal (so UI still shows something)
+        const cached = readRewardsStatusCache();
+        const spentTotal = Number(
+          cached?.spentTotal ?? cached?.totalSpent ?? cached?.spent_total ?? cached?.total_spent ?? 0
+        ) || 0;
+        applyLevel(spentTotal);
+        return null;
       }
-      return 0;
     }
 
     function init(){
       setText('year', String(new Date().getFullYear()));
+      fillProfileUI();
 
-      const uwrap = getLoggedUser();
-      const u = uwrap && (uwrap.user || uwrap.me || uwrap.profile || uwrap);
-      if(u){
-        setText('userName', u.name || u.fullName || u.username || 'Customer');
-        setText('userEmail', u.email || u.mail || '—');
-        const img = $('avatar');
-        if(img){
-          img.src = u.avatar || u.photo || u.photoURL || u.photoUrl || 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="320">
-              <defs>
-                <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="#D4AF37" stop-opacity=".35"/>
-                  <stop offset="1" stop-color="#ffffff" stop-opacity=".75"/>
-                </linearGradient>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#g)"/>
-              <circle cx="160" cy="135" r="58" fill="rgba(43,39,35,.22)"/>
-              <rect x="70" y="205" width="180" height="90" rx="45" fill="rgba(43,39,35,.18)"/>
-            </svg>
-          `);
-        }
-      } else {
-        const img = $('avatar');
-        if(img){
-          img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="320">
-              <defs>
-                <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="#D4AF37" stop-opacity=".35"/>
-                  <stop offset="1" stop-color="#ffffff" stop-opacity=".75"/>
-                </linearGradient>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#g)"/>
-              <circle cx="160" cy="135" r="58" fill="rgba(43,39,35,.22)"/>
-              <rect x="70" y="205" width="180" height="90" rx="45" fill="rgba(43,39,35,.18)"/>
-            </svg>
-          `);
-        }
-      }
+      // First paint level from cache, then refresh from API.
+      const cached = readRewardsStatusCache();
+      const cachedSpent = Number(
+        cached?.spentTotal ?? cached?.totalSpent ?? cached?.spent_total ?? cached?.total_spent ?? 0
+      ) || 0;
+      applyLevel(cachedSpent);
 
-      applyLevel(pickSpentTotal());
+      loadRewardsStatus();
     }
 
     document.addEventListener('DOMContentLoaded', init);
-  </script>
+</script>
 </body>
 </html>
