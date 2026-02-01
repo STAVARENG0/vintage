@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en-IE">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Customer Dashboard - Rewards & Rules</title>
+
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <style>
+    :root{
+      --cream:#f6f1e7;
+      --cream-2:#f3e9d8;
+      --text:#2b2723;
+      --muted:#7c6f63;
+      --card:#ffffff;
+
+      --gold:#D4AF37;
+      --gold-soft: rgba(212,175,55,.55);
+
+      --border:#e0d5c2;
+      --shadow:0 18px 42px rgba(0,0,0,.32);
+      --radius:22px;
+
+      --btn-bg: rgba(255,255,255,.88);
+      --btn-text: #3b2206;
+
+      --bronze:#cd7f32;
+      --silver:#c0c0c0;
+      --gold2:#D4AF37;
+
+      /* Policy accent (green title + black text, like your policy page) */
+      --olive:#6b7b2a;
+    }
+
+    *{ box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{
+      margin:0;
+      font-family: Poppins, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      background: linear-gradient(135deg,#fdf4e3,#f1dfc2,#e3c395);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: 22px 10px 40px;
+    }
+
+    /* Reactive background */
+    #reactiveField{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+    .wrap{
+      position:relative; z-index:1;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .glass{
+      background: linear-gradient(135deg,rgba(253,244,227,0.10),rgba(241,223,194,0.08),rgba(227,195,149,0.14));
+      backdrop-filter: saturate(120%) blur(6px);
+      -webkit-backdrop-filter: saturate(120%) blur(6px);
+      border:1px solid rgba(212,175,55,.55);
+      border-radius: 28px;
+      box-shadow: var(--shadow), 0 0 26px rgba(212,175,55,.22);
+    }
+
+    header{
+      padding: 16px 18px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+
+    .top-left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width: 180px;
+    }
+    .top-left small{
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing:.04em;
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid var(--gold-soft);
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 900;
+      cursor:pointer;
+      box-shadow: 0 10px 26px rgba(0,0,0,.10);
+      transition: transform .15s ease, filter .15s ease, background .15s ease, border-color .15s ease;
+      text-decoration:none;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255,255,255,.95), transparent 60%),
+        linear-gradient(120deg, rgba(212,175,55,.22), rgba(240,180,59,.22));
+      border-color: rgba(212,175,55,.75);
+    }
+    .btn:active{ transform: translateY(0); filter: brightness(.99); }
+    .btn.small{ padding: 8px 12px; font-weight: 900; }
+    .btn.primary{ background: linear-gradient(120deg, rgba(212,175,55,.25), rgba(240,180,59,.25)); }
+
+    .divider{
+      height:2px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,.95), transparent);
+      border-radius: 999px;
+      box-shadow: 0 10px 22px rgba(212,175,55,.20);
+      margin: 0 18px;
+    }
+
+    .page{ padding: 14px; }
+
+    .hero{ padding: 16px; border-radius: var(--radius); }
+
+    .hero-center{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 12px;
+      text-align:center;
+      padding: 10px 10px 6px;
+    }
+
+    .hero-title{
+      margin:0;
+      font-family: Orbitron, Poppins, system-ui, sans-serif;
+      font-weight: 900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size: 20px;
+    }
+
+    .avatar-wrap{
+      width: 160px; height: 160px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255,255,255,.92), rgba(255,255,255,.55));
+      border: 2px solid rgba(212,175,55,.92);
+      box-shadow: 0 18px 40px rgba(0,0,0,.18), 0 0 20px rgba(212,175,55,.18);
+      display:flex; align-items:center; justify-content:center;
+      position: relative;
+      overflow:hidden;
+    }
+    .avatar-wrap img{
+      width: 144px; height: 144px;
+      border-radius: 999px;
+      object-fit: cover;
+      display:block;
+      background: linear-gradient(135deg, rgba(212,175,55,.20), rgba(240,180,59,.15));
+      border: 1px solid rgba(0,0,0,.05);
+    }
+
+    .name{ margin: 0; font-weight: 900; font-size: 18px; }
+    .sub{ margin: 0; font-size: 12px; color: var(--muted); }
+
+    /* Level bar */
+    .level-wrap{ width: min(520px, 94%); margin-top: 2px; }
+
+    .level-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.06);
+      background: rgba(255,255,255,.76);
+      box-shadow: 0 10px 22px rgba(0,0,0,.08);
+      font-weight: 900;
+      letter-spacing:.06em;
+      text-transform: uppercase;
+      color: #3b2206;
+    }
+    .badge-dot{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: var(--bronze);
+      box-shadow: 0 0 0 4px rgba(205,127,50,.12);
+    }
+
+    .level-bar{
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.06);
+      border: 1px solid rgba(0,0,0,.06);
+      overflow:hidden;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.08);
+      position:relative;
+    }
+    .level-fill{
+      height:100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(205,127,50,.95), rgba(205,127,50,.78));
+      transition: width .35s ease, filter .35s ease;
+    }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.02);
+      border: 1px solid rgba(0,0,0,.06);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .pill strong{ color: var(--text); }
+
+    .muted{ color: var(--muted); }
+
+    /* Nav */
+    .nav{
+      margin: 14px auto 0;
+      width: min(900px, 100%);
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content:center;
+    }
+
+    /* Policy single-text card */
+    section{
+      width: min(980px, 100%);
+      margin: 14px auto 0;
+      scroll-margin-top: 90px;
+    }
+    .section-title{
+      margin: 0 0 10px;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .04em;
+    }
+
+    .card{
+      border: 1px solid rgba(224,213,194,.9);
+      background: rgba(255,255,255,.78);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.08);
+    }
+
+    .policy h3{
+      margin: 18px 0 8px;
+      color: var(--olive);
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .policy p{
+      margin: 10px 0;
+      line-height: 1.75;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .policy ul{
+      margin: 8px 0 10px 18px;
+      line-height: 1.75;
+    }
+    .policy li{ margin: 6px 0; }
+
+    code{
+      background: rgba(0,0,0,.04);
+      border: 1px solid rgba(0,0,0,.06);
+      border-radius: 10px;
+      padding: 2px 8px;
+      font-weight: 800;
+    }
+
+    footer{
+      margin-top: 16px;
+      text-align:center;
+      color: var(--muted);
+      font-size: 12px;
+      padding-bottom: 6px;
+    }
+    .page-title{
+      margin: 6px 0 0;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      text-align: center;
+      color: var(--olive);
+    }
+
+  </style>
+</head>
+
+<body>
+  <canvas id="reactiveField" aria-hidden="true"></canvas>
+
+  <div class="wrap">
+    <div class="glass">
+      <header>
+        <div class="top-left">
+          <small></small>
+        </div>
+      </header>
+
+      <div class="divider"></div>
+
+      <div class="page">
+        <!-- HERO -->
+        <div class="hero glass">
+          <div class="hero-center">
+            <h1 class="hero-title">Customer Dashboard</h1>
+
+            <!-- Nav buttons (same dashboard layout) -->
+            <div class="nav" aria-label="Shortcuts">
+              <a class="btn small" href="painel.html">🏠 Dashboard</a>
+              <a class="btn small" href="index.html">🛍️ Shop</a>
+              <a class="btn small" href="conta.html">👤 Account</a>
+              <a class="btn small" href="carrinho.html">🛒 My cart</a>
+              <a class="btn small" href="pedidos.html">📦 Orders</a>
+              <a class="btn small primary" href="rewards.html">🎁 Rewards & Rules</a>
+            </div>
+
+            <div class="avatar-wrap" aria-label="Profile photo (circular)">
+              <img id="avatar" alt="User photo" />
+            </div>
+
+            <p class="name" id="userName">Your Name</p>
+            <p class="sub" id="userEmail">email@example.com</p>
+
+            <!-- Level bar -->
+            <div class="level-wrap" aria-label="Customer level">
+              <div class="level-head">
+                <div class="badge"><span class="badge-dot" id="levelDot"></span> <span id="levelLabel">Bronze</span></div>
+                <span class="pill"><strong id="levelProgressText">€0 / €300</strong></span>
+              </div>
+
+              <div class="level-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <div class="level-fill" id="levelFill"></div>
+              </div>
+
+              <div class="muted" style="margin-top:8px; font-weight:700;" id="levelHint">Spend more to reach the next tier.</div>
+            </div>
+            <h2 class="page-title">Rewards &amp; Rules</h2>
+
+          </div>
+        </div>
+
+        <!-- SINGLE-TEXT CONTENT (panel layout, policy text style) -->
+        <section id="rules">
+<div class="card policy">
+            <p>Your level increases based on your <strong>total (lifetime) spend</strong> in the store. The progress bar above shows: <strong>how much you already spent</strong>, <strong>how much is left</strong> to the next level, and your <strong>current level</strong>.</p>
+
+            <h3>1) Customer Levels (Bronze, Silver, Gold)</h3>
+            <p><strong>Bronze</strong> (default) starts with <strong>1 Lucky Wheel spin per day</strong>.</p>
+            <p><strong>Bronze → Silver</strong> when you reach <strong>€300</strong> total spend: you unlock <strong>5× Free Shipping</strong> + <strong>2 spins per day</strong> + <strong>60 points</strong>.</p>
+            <p><strong>Silver → Gold</strong> when you reach <strong>€800</strong> total spend: you get <strong>Unlimited Free Shipping</strong> + <strong>3 spins per day</strong>.</p>
+            <p><strong>Gold Complete</strong> when you reach <strong>€1200</strong> total spend: you receive <strong>300 points</strong> + all Gold benefits.</p>
+
+            <h3>Level validity (42-day rule)</h3>
+            <p>If you go <strong>42 days without a purchase</strong>, your level may drop by <strong>1 tier</strong> (example: <code>Gold → Silver</code>, <code>Silver → Bronze</code>). Keeping regular purchases helps you maintain your level.</p>
+
+            <h3>2) Cashback in points (and € value)</h3>
+            <p>You earn points and can redeem them as a discount in the cart. Conversion: <strong>10 points = €5.00</strong> (so <strong>1 point = €0.50</strong>).</p>
+
+            <h3>Rule to unlock point redemption in the cart</h3>
+            <p>You can use points only if your order total is at least <strong>€60</strong>. For every <strong>€60 in the cart</strong>, you unlock <strong>40 points</strong> to redeem.</p>
+            <ul>
+              <li>Cart <strong>€59</strong> → points redemption not available</li>
+              <li>Cart <strong>€60</strong> → redeem up to <strong>40 points</strong></li>
+              <li>Cart <strong>€120</strong> → redeem up to <strong>80 points</strong></li>
+              <li>Cart <strong>€180</strong> → redeem up to <strong>120 points</strong>, and so on</li>
+            </ul>
+            <p>This prevents misuse and keeps the program fair for everyone.</p>
+
+            <h3>Points validity (42-day rule)</h3>
+            <p>If you go <strong>42 days without a purchase</strong>, your points may expire (reset to <strong>0</strong>) automatically. The best practice is to use points or keep purchasing within that period.</p>
+
+            <h3>3) Free Shipping</h3>
+            <p>Free Shipping is available when you have the benefit active (tier benefit or prize). To apply Free Shipping, the cart must have a minimum of <strong>€40</strong>.</p>
+
+            <h3>4) Lucky Wheel</h3>
+            <p>All customers can spin the wheel and win prizes such as: points, coupons, free shipping, or extra spin. You have <strong>1 spin every 24 hours</strong>. If you win <strong>EXTRA SPIN</strong>, it adds to your available spins.</p>
+
+            <h3>5) Coupon and Free Shipping prize validity</h3>
+            <p>When you win a coupon (5% / 10%) or Free Shipping, it is valid for <strong>24 hours</strong>. The 24 hours starts counting <strong>exactly at the moment you win it</strong>. If you don’t use it within that time, it expires automatically and disappears from the cart/account.</p>
+
+          </div>
+        </section>
+
+        <footer>© <span id="year"></span> Vintage Wear Ireland</footer>
+      </div>
+    </div>
+  </div>
+
+  <script src="vintage-auth.js"></script>
+  <script src="auth-guard.js"></script>
+
+  <script>
+    // ===== Helpers =====
+    function $(id){ return document.getElementById(id); }
+    function setText(id, t){ const el=$(id); if(el) el.textContent = t; }
+
+    // ===== Reactive background (lightweight) =====
+    (function reactiveBg(){
+      const c = document.getElementById('reactiveField');
+      if(!c) return;
+      const ctx = c.getContext('2d');
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      let W=0,H=0;
+      const dots = Array.from({length: 48}, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        r: 0.6 + Math.random()*1.6,
+        vx: (Math.random()*2-1) * 0.00035,
+        vy: (Math.random()*2-1) * 0.00035
+      }));
+      function resize(){
+        W = c.width = Math.floor(window.innerWidth * dpr);
+        H = c.height = Math.floor(window.innerHeight * dpr);
+        c.style.width = window.innerWidth + 'px';
+        c.style.height = window.innerHeight + 'px';
+      }
+      window.addEventListener('resize', resize, {passive:true});
+      resize();
+
+      function step(){
+        ctx.clearRect(0,0,W,H);
+        ctx.globalAlpha = 0.55;
+        for(const p of dots){
+          p.x += p.vx; p.y += p.vy;
+          if(p.x<0) p.x=1; if(p.x>1) p.x=0;
+          if(p.y<0) p.y=1; if(p.y>1) p.y=0;
+          const x = p.x*W, y=p.y*H;
+          ctx.beginPath();
+          ctx.arc(x,y,p.r*dpr,0,Math.PI*2);
+          ctx.fillStyle = 'rgba(212,175,55,.55)';
+          ctx.fill();
+        }
+        requestAnimationFrame(step);
+      }
+      step();
+    })();
+
+    // ===== Level computation (based on lifetime spend) =====
+    const T_SILVER = 300;
+    const T_GOLD = 800;
+    const T_GOLD_COMPLETE = 1200;
+
+    function getLevelMeta(spentTotal){
+      const v = Number(spentTotal) || 0;
+
+      if (v >= T_GOLD){
+        const pct = (v >= T_GOLD_COMPLETE) ? 100 : ((v - T_GOLD) / (T_GOLD_COMPLETE - T_GOLD)) * 100;
+        return {
+          key:'GOLD',
+          label: (v >= T_GOLD_COMPLETE) ? 'Gold (Complete)' : 'Gold',
+          dot:'var(--gold2)',
+          fill:['rgba(212,175,55,.95)','rgba(240,180,59,.95)'],
+          pct,
+          progressText: `€${v.toFixed(0)} / €${T_GOLD_COMPLETE}`,
+          nextLabel: (v >= T_GOLD_COMPLETE) ? null : 'Gold Complete',
+          remaining: Math.max(0, T_GOLD_COMPLETE - v)
+        };
+      }
+
+      if (v >= T_SILVER){
+        return {
+          key:'SILVER',
+          label:'Silver',
+          dot:'var(--silver)',
+          fill:['rgba(192,192,192,.95)','rgba(192,192,192,.75)'],
+          pct: ((v - T_SILVER) / (T_GOLD - T_SILVER)) * 100,
+          progressText: `€${v.toFixed(0)} / €${T_GOLD}`,
+          nextLabel:'Gold',
+          remaining: Math.max(0, T_GOLD - v)
+        };
+      }
+
+      return {
+        key:'BRONZE',
+        label:'Bronze',
+        dot:'var(--bronze)',
+        fill:['rgba(205,127,50,.95)','rgba(205,127,50,.78)'],
+        pct: (v / T_SILVER) * 100,
+        progressText: `€${v.toFixed(0)} / €${T_SILVER}`,
+        nextLabel:'Silver',
+        remaining: Math.max(0, T_SILVER - v)
+      };
+    }
+
+    function applyLevel(spentTotal){
+      const m = getLevelMeta(spentTotal);
+
+      setText('levelLabel', m.label);
+      setText('levelProgressText', m.progressText);
+
+      const dot = $('levelDot');
+      if(dot){
+        dot.style.background = m.dot;
+        dot.style.boxShadow =
+          m.key === 'GOLD' ? '0 0 0 4px rgba(212,175,55,.12)'
+          : (m.key === 'SILVER' ? '0 0 0 4px rgba(192,192,192,.12)'
+          : '0 0 0 4px rgba(205,127,50,.12)');
+      }
+
+      const fill = $('levelFill');
+      if(fill){
+        fill.style.width = `${Math.max(0, Math.min(100, m.pct)).toFixed(1)}%`;
+        fill.style.background = `linear-gradient(90deg, ${m.fill[0]}, ${m.fill[1]})`;
+      }
+
+      const hint = $('levelHint');
+      if(hint){
+        if(m.nextLabel){
+          hint.textContent = `Next: ${m.nextLabel} — €${m.remaining.toFixed(0)} left.`;
+        }else{
+          hint.textContent = `You reached Gold Complete. 🎉`;
+        }
+      }
+    }
+
+    // ===== User + data bootstrap =====
+    function getLoggedUser(){
+      try{
+        return (window.VintageAuth && typeof window.VintageAuth.getLoggedUser==='function')
+          ? window.VintageAuth.getLoggedUser()
+          : null;
+      }catch(_){ return null; }
+    }
+
+    function pickSpentTotal(){
+      // Try to reuse totals already saved by other dashboard pages (best-effort).
+      const keys = [
+        'vwi_painel_v3_en',
+        'vwi_account_v3_en',
+        'vwi_cart_v3_en',
+        'vwi_orders_v3_en'
+      ];
+      for(const k of keys){
+        try{
+          const raw = localStorage.getItem(k);
+          if(!raw) continue;
+          const obj = JSON.parse(raw);
+          const st = obj && (obj.spentTotal ?? obj.totalSpent ?? obj.spent_total ?? obj.total_spent);
+          if(st !== undefined && st !== null && !Number.isNaN(Number(st))) return Number(st);
+        }catch(_){}
+      }
+      // Fallback: try common single keys
+      const fallbacks = ['vw_spentTotal','spentTotal','vwi_spentTotal'];
+      for(const k of fallbacks){
+        try{
+          const v = localStorage.getItem(k);
+          if(v !== null && !Number.isNaN(Number(v))) return Number(v);
+        }catch(_){}
+      }
+      return 0;
+    }
+
+    function init(){
+      setText('year', String(new Date().getFullYear()));
+
+      const uwrap = getLoggedUser();
+      const u = uwrap && (uwrap.user || uwrap.me || uwrap.profile || uwrap);
+      if(u){
+        setText('userName', u.name || u.fullName || u.username || 'Customer');
+        setText('userEmail', u.email || u.mail || '—');
+        const img = $('avatar');
+        if(img){
+          img.src = u.avatar || u.photo || u.photoURL || u.photoUrl || 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="320">
+              <defs>
+                <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#D4AF37" stop-opacity=".35"/>
+                  <stop offset="1" stop-color="#ffffff" stop-opacity=".75"/>
+                </linearGradient>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#g)"/>
+              <circle cx="160" cy="135" r="58" fill="rgba(43,39,35,.22)"/>
+              <rect x="70" y="205" width="180" height="90" rx="45" fill="rgba(43,39,35,.18)"/>
+            </svg>
+          `);
+        }
+      } else {
+        const img = $('avatar');
+        if(img){
+          img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="320" height="320">
+              <defs>
+                <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#D4AF37" stop-opacity=".35"/>
+                  <stop offset="1" stop-color="#ffffff" stop-opacity=".75"/>
+                </linearGradient>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#g)"/>
+              <circle cx="160" cy="135" r="58" fill="rgba(43,39,35,.22)"/>
+              <rect x="70" y="205" width="180" height="90" rx="45" fill="rgba(43,39,35,.18)"/>
+            </svg>
+          `);
+        }
+      }
+
+      applyLevel(pickSpentTotal());
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
