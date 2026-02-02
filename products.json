@@ -72,18 +72,6 @@
     "status": "published"
   },
   {
-    "id": "1768941833308",
-    "title": "PROMOCAO",
-    "price": 1,
-    "description": "OLHA PROMO",
-    "category": "Coats & Outerwear",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1768941833308/1768941835368_0_Gemini_Generated_Image_wxqpa9wxqpa9wxqp.png",
-    "gallery": [],
-    "createdAt": 1768941837401,
-    "status": "published"
-  },
-  {
     "id": "1769783500080",
     "title": "OLHA O OVO",
     "price": 999,
