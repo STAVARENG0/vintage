@@ -223,7 +223,7 @@ function computeShipping(fulfilment){
   if(fulfilment === 'pickup'){
     return { amount: 0, label: 'Pickup (Free)' };
   }
-  return { amount: 9, label: 'Shipping (€9)' };
+  return { amount: 9, label: 'Shipping (€1)' };
 }
 
 // Normalize cart items and PRESERVE the product id so PayPal/webhook can remove the correct product
