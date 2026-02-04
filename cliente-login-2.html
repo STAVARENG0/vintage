@@ -293,6 +293,30 @@
 }
 .linkBtn:hover{ filter: brightness(1.08); }
 
+
+    /* Login loading indicator */
+    .loadingDots{
+      display:inline-flex;
+      gap: 5px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    .loadingDots span{
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2ecc71; /* green */
+      opacity: .25;
+      animation: dotPulse 1s infinite ease-in-out;
+    }
+    .loadingDots span:nth-child(2){ animation-delay: .15s; }
+    .loadingDots span:nth-child(3){ animation-delay: .30s; }
+
+    @keyframes dotPulse{
+      0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+      40% { opacity: 1; transform: translateY(-2px); }
+    }
+
     @media (max-width:520px){
       .twoBtns{ flex-direction:column; }
     }
@@ -492,8 +516,14 @@ function normalizePhone(v){
   const raw = (v || "").trim();
   let out = raw.replace(/[^0-9+]/g, "");
   if(out.includes("+")) out = "+" + out.replace(/\+/g, "");
+
+  // Ireland only: require +353
+  if(!out.startsWith("+353")){
+    throw new Error("Phone must start with +353");
+  }
   return out;
 }
+
 
 function maskContact(v){
   const s = (v || "").trim();
@@ -609,7 +639,22 @@ $("loginForm").addEventListener("submit", async (e) => {
   const user = $("loginUser").value.trim();
   const password = $("loginPassword").value;
 
+  const loginBtn = $("loginBtn");
+  const originalBtnHTML = loginBtn.innerHTML;
+
+  function setLoginLoading(on){
+    if(on){
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = 'LOADING <span class="loadingDots"><span></span><span></span><span></span></span>';
+    }else{
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = originalBtnHTML;
+    }
+  }
+
   try{
+    setLoginLoading(true);
+
     const isEmail = looksLikeEmail(user);
     const payload = isEmail ? { email: user, password } : { phone: normalizePhone(user), password };
 
@@ -632,6 +677,7 @@ $("loginForm").addEventListener("submit", async (e) => {
     showMsg($("loginMsg"), "✅ Logged in successfully!", "ok");
     setTimeout(redirectAfterLogin, 600);
   }catch(err){
+    setLoginLoading(false);
     showMsg($("loginMsg"), "❌ " + err.message, "bad");
   }
 });
@@ -708,9 +754,13 @@ function validateRegisterForm(){
   const p2 = $("regPassword2").value;
 
   const v = validatePassword(p1);
-  const ok = !!name && !!contact && v.ok && p1 === p2;
+
+  const contactOk = looksLikeEmail(contact) ? true : contact.startsWith("+353");
+  const ok = !!name && !!contact && contactOk && v.ok && p1 === p2;
+
   $("startRegisterBtn").disabled = !ok;
 }
+
 
 $("regName").addEventListener("input", validateRegisterForm);
 $("regPassword").addEventListener("input", () => { updatePwUI(); validateRegisterForm(); });
@@ -842,10 +892,17 @@ $("fpStartForm").addEventListener("submit", async (e) => {
   const raw = $("fpContact").value.trim();
   if(!raw) return showMsg($("fpMsg1"), "❌ Enter your email or phone.", "bad");
 
+  let contact = null;
   try{
-    await api("/auth/password/reset/start", { method:"POST", body: { contact: raw } });
+    contact = looksLikeEmail(raw) ? raw.trim() : normalizePhone(raw);
+  }catch(err){
+    return showMsg($("fpMsg1"), "❌ " + err.message, "bad");
+  }
 
-    lastForgotContact = looksLikeEmail(raw) ? raw.trim() : normalizePhone(raw);
+  try{
+    await api("/auth/password/reset/start", { method:"POST", body: { contact } });
+
+    lastForgotContact = contact;
     $("fpCodeSentTo").innerHTML = `We sent a code to <b>${maskContact(lastForgotContact)}</b>.`;
 
     fpSwitchStep(2);
@@ -855,6 +912,7 @@ $("fpStartForm").addEventListener("submit", async (e) => {
     showMsg($("fpMsg1"), "❌ " + err.message, "bad");
   }
 });
+
 
 $("fpFinishForm").addEventListener("submit", async (e) => {
   e.preventDefault();
