@@ -1,19 +1,5 @@
 [
   {
-    "id": "1770372236710",
-    "title": "teste",
-    "price": 1,
-    "description": "123 eja",
-    "category": "Dresses & Skirts",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770372236710/1770372239620_1_Gemini_Generated_Image_al5zqal5zqal5zqa.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770372236710/1770372238198_0_Gemini_Generated_Image_bdjm0wbdjm0wbdjm.png"
-    ],
-    "createdAt": 1770372241311,
-    "status": "published"
-  },
-  {
     "id": "1770372293175",
     "title": "teste 2",
     "price": 1,
