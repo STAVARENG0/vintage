@@ -10,5 +10,19 @@
     "gallery": [],
     "createdAt": 1770390381064,
     "status": "published"
+  },
+  {
+    "id": "1770391609439",
+    "title": "Vintage Camouflage Military Denim Jacket",
+    "price": 45,
+    "description": "Original vintage military jacket with camouflage pattern, made of soft cotton-blend denim. Authentic, well-crafted, and visually striking.\nSize M/L",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770391609439/1770391613407_0_946B6C06-C81E-45FE-B9A5-81F6CA758989.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770391609439/1770391615043_1_22D19A79-6CC2-40CC-BA83-27636D7BC5FC.png"
+    ],
+    "createdAt": 1770391616946,
+    "status": "published"
   }
 ]
