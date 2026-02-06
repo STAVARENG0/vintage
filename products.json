@@ -24,5 +24,17 @@
     ],
     "createdAt": 1770391616946,
     "status": "published"
+  },
+  {
+    "id": "1770392593360",
+    "title": "Vintage Tommy Hilfiger Lightweight Puffer-Style Jacket",
+    "price": 35,
+    "description": "Vintage Tommy Hilfiger Lightweight Puffer-Style Jacket – Size L",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770392593360/1770392597087_0_946D88D9-24D4-452F-866D-DCFDB3234E60.png",
+    "gallery": [],
+    "createdAt": 1770392598957,
+    "status": "published"
   }
 ]
