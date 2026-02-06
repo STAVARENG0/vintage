@@ -36,5 +36,19 @@
     "gallery": [],
     "createdAt": 1770392598957,
     "status": "published"
+  },
+  {
+    "id": "1770395962171",
+    "title": "Vintage Columbia Puffer Jacket",
+    "price": 45,
+    "description": "Vintage Columbia puffer jacket with a classic, comfortable design. Original, versatile, and timeless piece. Size L",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770395962171/1770395966119_1_7E494946-9021-425D-8487-54DB7AF85AA6.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770395962171/1770395964417_0_9CAAA69A-AB5F-4616-BAF9-0D5D5470E496.png"
+    ],
+    "createdAt": 1770395967798,
+    "status": "published"
   }
 ]
