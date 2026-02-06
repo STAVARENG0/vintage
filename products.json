@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "1770390372098",
+    "title": "Vintage flannel blazer",
+    "price": 35,
+    "description": "Vintage flannel blazer with a warm-toned plaid pattern and gold buttons. Size M.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770390372098/1770390378973_0_AB443371-F859-415B-AF82-63EEC50AC528.png",
+    "gallery": [],
+    "createdAt": 1770390381064,
+    "status": "published"
+  }
+]
