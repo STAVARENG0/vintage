@@ -50,5 +50,19 @@
     ],
     "createdAt": 1770395967798,
     "status": "published"
+  },
+  {
+    "id": "1770556241592",
+    "title": "Vintage Pink Tweed Blazer",
+    "price": 35,
+    "description": "Vintage tweed blazer with gold-tone buttons and a classic silhouette.\nSize: M",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770556241592/1770556250958_0_6F393F68-676A-47B5-AAFE-3BCDCFEA6F08.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770556241592/1770556252517_1_IMG_6986.jpeg"
+    ],
+    "createdAt": 1770556255047,
+    "status": "published"
   }
 ]
