@@ -64,5 +64,20 @@
     ],
     "createdAt": 1770556255047,
     "status": "published"
+  },
+  {
+    "id": "1770560010039",
+    "title": "Black Leather Coat with Waist Adjustment ID: 6",
+    "price": 55,
+    "description": "Genuine leather coat, pre-owned and in excellent condition. Classic style with an adjustable waist, perfect for timeless everyday wear. Size L",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770560010039/1770560020624_0_C8FDE0FB-7489-44D4-A022-4FCE36CDC3A9.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770560010039/1770560022170_1_E044DC40-5686-41D6-BEA5-000CAECAC6BE.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770560010039/1770560023757_2_IMG_6990.jpeg"
+    ],
+    "createdAt": 1770560025398,
+    "status": "published"
   }
 ]
