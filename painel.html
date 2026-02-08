@@ -346,34 +346,145 @@
   text-align:center;
 }
 
+/* Caixa da roleta + aro neon */
 .wheel-box{
   position:relative;
-  width: min(340px, 82vw);
+  width: min(360px, 86vw);
   aspect-ratio: 1 / 1;
   margin: 0 auto;
+  filter: drop-shadow(0 18px 40px rgba(0,0,0,.18));
 }
 
+/* Aro colorido (atrás da roleta) */
+.wheel-box::before{
+  content:"";
+  position:absolute;
+  inset:-14px;
+  border-radius: 999px;
+  background:
+    conic-gradient(
+      from 0deg,
+      rgba(255,76,76,.95),
+      rgba(255,214,77,.95),
+      rgba(77,255,160,.95),
+      rgba(77,210,255,.95),
+      rgba(140,100,255,.95),
+      rgba(255,77,216,.95),
+      rgba(255,76,76,.95)
+    );
+  filter: blur(.6px);
+  opacity: .95;
+  z-index: 0;
+}
+
+/* Luzes (bulbs) em volta */
+.wheel-lights{
+  position:absolute;
+  inset:-26px;
+  border-radius: 999px;
+  pointer-events:none;
+  z-index: 1;
+}
+
+.wheel-lights::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:
+    /* bulbs */
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(255,255,255,.92) 0 6deg,
+      rgba(255,255,255,.10) 6deg 12deg
+    );
+  -webkit-mask: radial-gradient(circle, transparent 0 66%, #000 67% 74%, transparent 75% 100%);
+          mask: radial-gradient(circle, transparent 0 66%, #000 67% 74%, transparent 75% 100%);
+  filter:
+    drop-shadow(0 0 10px rgba(255,255,255,.45))
+    drop-shadow(0 0 18px rgba(255,77,216,.25))
+    drop-shadow(0 0 18px rgba(77,210,255,.22));
+  animation: bulbsSpin 3.8s linear infinite;
+  opacity: .95;
+}
+
+.wheel-lights::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:
+    conic-gradient(
+      from 180deg,
+      rgba(255,77,216,.35),
+      rgba(140,100,255,.30),
+      rgba(77,210,255,.32),
+      rgba(77,255,160,.30),
+      rgba(255,214,77,.32),
+      rgba(255,76,76,.32),
+      rgba(255,77,216,.35)
+    );
+  -webkit-mask: radial-gradient(circle, transparent 0 58%, #000 59% 64%, transparent 65% 100%);
+          mask: radial-gradient(circle, transparent 0 58%, #000 59% 64%, transparent 65% 100%);
+  filter: blur(1.2px);
+  opacity: .85;
+  animation: haloPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes bulbsSpin{
+  to{ transform: rotate(360deg); }
+}
+@keyframes haloPulse{
+  0%,100%{ opacity:.70; transform: scale(1); }
+  50%{ opacity:1; transform: scale(1.01); }
+}
+
+/* Disco da roleta */
 .wheel-rotate{
   width:100%;
   height:100%;
   border-radius: 999px;
   overflow:hidden;
-  box-shadow: 0 22px 60px rgba(0,0,0,.16), 0 0 20px rgba(212,175,55,.12);
-  border: 2px solid rgba(212,175,55,.85);
-  background: rgba(255,255,255,.35);
+  position: relative;
+  z-index: 2;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,.65), rgba(255,255,255,.18) 55%, rgba(0,0,0,.04) 100%);
+  border: 2px solid rgba(255,255,255,.55);
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.22),
+    0 0 28px rgba(255,77,216,.12),
+    0 0 24px rgba(77,210,255,.10);
   transform: rotate(0deg);
 }
 
+/* brilho fino na borda */
+.wheel-rotate::after{
+  content:"";
+  position:absolute;
+  inset: 6px;
+  border-radius: 999px;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 62%, rgba(255,255,255,.28) 63%, transparent 70%),
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.30), transparent 55%);
+  mix-blend-mode: screen;
+  opacity: .9;
+}
+
+/* Tampa central */
 .wheel-box::after{
   content:"";
   position:absolute;
   inset: 20%;
   border-radius: 999px;
-  background: rgba(255,255,255,.70);
-  border: 1px solid rgba(0,0,0,.06);
-  box-shadow: inset 0 4px 18px rgba(0,0,0,.10);
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,.92), rgba(255,255,255,.62) 55%, rgba(0,0,0,.06) 100%);
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow:
+    inset 0 8px 22px rgba(0,0,0,.10),
+    0 0 20px rgba(255,255,255,.10);
   pointer-events:none;
-  z-index: 2;
+  z-index: 4;
 }
 
 #wheelCanvas{
@@ -381,29 +492,46 @@
   height:100%;
   display:block;
   position:relative;
-  z-index: 1;
+  z-index: 3;
 }
 
+/* Ponteiro com neon */
 .pointer{
   position:absolute;
-  top: -12px;
+  top: -18px;
   left: 50%;
   transform: translateX(-50%);
   width: 0; height: 0;
-  border-left: 14px solid transparent;
-  border-right: 14px solid transparent;
-  border-bottom: 22px solid rgba(255,122,26,.92);
-  filter: drop-shadow(0 8px 14px rgba(0,0,0,.18));
-  z-index: 3;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-bottom: 26px solid rgba(255,76,76,.96);
+  filter:
+    drop-shadow(0 10px 16px rgba(0,0,0,.22))
+    drop-shadow(0 0 12px rgba(255,76,76,.25));
+  z-index: 5;
   pointer-events:none;
 }
 
+.pointer::after{
+  content:"";
+  position:absolute;
+  left:-7px; top: 14px;
+  width: 14px; height: 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+  box-shadow:
+    0 0 0 6px rgba(255,76,76,.18),
+    0 0 18px rgba(255,76,76,.22),
+    0 6px 16px rgba(0,0,0,.18);
+}
+
+/* Texto abaixo */
 .wheel-instructions{
   max-width: 680px;
   line-height: 1.7;
 }
 
-    /* Seções */
+/* Seções */
     section{
       width: min(980px, 100%);
       margin: 14px auto 0;
@@ -591,6 +719,7 @@
             
 <div class="wheel-stack">
   <div class="wheel-box" aria-label="Prize wheel">
+    <div class="wheel-lights" aria-hidden="true"></div>
     <div class="pointer" aria-hidden="true"></div>
     <div class="wheel-rotate" id="wheelRotate">
       <canvas id="wheelCanvas" width="640" height="640" aria-label="Wheel"></canvas>
