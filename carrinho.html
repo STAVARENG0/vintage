@@ -508,7 +508,66 @@
     }
 
     .hidden{ display:none !important; }
-  </style>
+  
+
+    /* ===== Mobile cart fixes (layout only) ===== */
+    /* Prevent any horizontal scroll on small screens */
+    html, body{ max-width:100%; overflow-x:hidden; }
+
+    /* Make grid/cards breathe on mobile */
+    @media (max-width: 540px){
+      body{ padding: 16px 8px 28px; }
+      header{ padding: 14px 14px 8px; }
+      .divider{ margin: 0 14px; }
+      .page{ padding: 12px; }
+      .hero{ padding: 14px; }
+      .avatar-wrap{ width: 132px; height: 132px; }
+      .avatar-wrap img{ width: 118px; height: 118px; }
+      .grid{ gap: 10px; }
+      .card{ padding: 10px; }
+    }
+
+    /* Cart list: keep everything inside the viewport */
+    #cartList, #cartList *{ min-width:0; }
+    #cartList .card{ max-width:100%; }
+
+    /* Cart item row: allow wrapping on mobile so it never overflows */
+    @media (max-width: 540px){
+      #cartList .card .row{
+        flex-wrap: wrap !important;   /* overrides inline nowrap */
+        align-items: flex-start !important;
+      }
+
+      /* Place the remove button below, full width */
+      #cartList .js-cart-action{
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* Allow product title to wrap instead of forcing one line */
+      #cartList .card div[style*="white-space:nowrap"]{
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+      }
+
+      /* Meta line can wrap too */
+      #cartList .muted{
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      /* Reduce thumbnail a bit */
+      #cartList .card div[style*="width:54px"]{
+        width: 46px !important;
+        height: 46px !important;
+        border-radius: 14px !important;
+      }
+    }
+
+</style>
 </head>
 
 <body>
