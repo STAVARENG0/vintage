@@ -275,7 +275,7 @@ function commonConfig(){
       return actions.resolve();
     },
     createOrder: async function(data, actions){
-      const { subtotal, shipping, total } = renderSummary();
+      const { subtotal, shipping, total, rewards } = renderSummary();
       if(subtotal <= 0){ throw new Error('Empty subtotal'); }
 
       // Safety: ensure every cart item has an id
