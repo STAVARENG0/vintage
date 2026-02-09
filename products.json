@@ -172,17 +172,5 @@
     ],
     "createdAt": 1770638459443,
     "status": "published"
-  },
-  {
-    "id": "1770642953953",
-    "title": "OVO DO TESTE",
-    "price": 1,
-    "description": "OLHA O OVO",
-    "category": "Dresses & Skirts",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770642953953/1770642954359_0_depositphotos_9126387-stock-photo-golden-egg-isolated-on-white.jpg",
-    "gallery": [],
-    "createdAt": 1770642955094,
-    "status": "published"
   }
 ]
