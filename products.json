@@ -131,20 +131,6 @@
     "status": "published"
   },
   {
-    "id": "1770636453613",
-    "title": "Columbia Blue Sportswear ID: 11",
-    "price": 45,
-    "description": "Jacket made of synthetic fabric (polyester), lightweight and comfortable. Pre-owned, in excellent condition, size XL.",
-    "category": "Coats & Outerwear",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770636453613/1770636469261_0_IMG_7016.jpeg",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770636453613/1770636471755_1_IMG_7017.jpeg"
-    ],
-    "createdAt": 1770636474920,
-    "status": "published"
-  },
-  {
     "id": "1770637250476",
     "title": "Reebok Black Puffer Jacket ID:13",
     "price": 35,
