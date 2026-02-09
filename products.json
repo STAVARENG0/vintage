@@ -79,5 +79,17 @@
     ],
     "createdAt": 1770560025398,
     "status": "published"
+  },
+  {
+    "id": "1770630460194",
+    "title": "Diadora Black Puffer Jacket ID: 07",
+    "price": 40,
+    "description": "Black Diadora puffer jacket made of polyester. Pre-owned, in excellent condition, size M.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770630460194/1770630462737_0_879F21C3-EDA8-48DC-BB1C-CCFB546231E3.png",
+    "gallery": [],
+    "createdAt": 1770630464625,
+    "status": "published"
   }
 ]
