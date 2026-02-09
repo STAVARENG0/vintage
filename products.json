@@ -117,5 +117,17 @@
     ],
     "createdAt": 1770633596061,
     "status": "published"
+  },
+  {
+    "id": "1770635863914",
+    "title": "McKinley Black and Pink Outdoor Jacket ID:10",
+    "price": 25,
+    "description": "Outdoor jacket made of synthetic fabric (polyester), with hood. Pre-owned, in excellent condition, size M/L.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770635863914/1770635866012_0_CF871079-2D2B-4881-85A8-C5AD7BA35F75.png",
+    "gallery": [],
+    "createdAt": 1770635867797,
+    "status": "published"
   }
 ]
