@@ -143,5 +143,19 @@
     ],
     "createdAt": 1770636474920,
     "status": "published"
+  },
+  {
+    "id": "1770637250476",
+    "title": "Reebok Black Puffer Jacket ID:13",
+    "price": 35,
+    "description": "Puffer jacket made of synthetic fabric (polyester), lightweight and warm. Pre-owned, in excellent condition, size M.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637250476/1770637261903_0_C7FEA432-AB65-4D5B-926E-04F762F640D5.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637250476/1770637263533_1_IMG_7019.jpeg"
+    ],
+    "createdAt": 1770637265752,
+    "status": "published"
   }
 ]
