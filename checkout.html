@@ -52,40 +52,23 @@ h1{ color:var(--terracotta); font-size:22px; margin-bottom:12px; text-transform:
 footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 .hidden{ display:none !important; }
 
-/* Fulfilment options */
-.fulfilment{
-  margin-top:10px;
-  border:1px dashed rgba(0,0,0,.1);
-  border-radius:14px;
-  padding:14px;
-  text-align:left;
-}
-.fulfilment h2{
-  font-size:14px; letter-spacing:.04em; text-transform:uppercase;
-  color:var(--olive);
-  margin-bottom:10px;
-}
-.opts{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
-.opt{
-  border:1px solid rgba(0,0,0,.08);
+.discount-note{
+  margin:6px 0 0;
+  padding:10px 12px;
   border-radius:12px;
-  padding:10px;
-  display:flex; align-items:flex-start; gap:8px;
-  cursor:pointer;
-}
-.opt input{ margin-top:2px; }
-.opt .label{ font-weight:700; font-size:14px; }
-.opt .sub{ font-size:12px; color:var(--muted); }
-.badge{
-  display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:var(--cream-2); border:1px solid rgba(0,0,0,.06); margin-left:6px;
-}
-.info{
-  font-size:13px; color:var(--muted);
+  border:1px solid rgba(0,0,0,.06);
   background: #fff9f4;
-  border:1px solid rgba(0,0,0,.05);
-  padding:10px 12px; border-radius:12px;
+  font-size:13px;
+  color:var(--text);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
 }
-.addr{ font-weight:600; color:var(--text); }
+.discount-note .left{ font-weight:700; }
+.discount-note .right{ font-weight:900; color:var(--terracotta); white-space:nowrap; }
+.discount-note .meta{ font-weight:600; color:var(--muted); font-size:12px; margin-left:8px; }
+
 </style>
 </head>
 <body>
@@ -96,30 +79,7 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
   <a class="policy-btn" href="return-refund-policy.html" aria-label="Return & Refund Policy" style="display:inline-block;margin:6px 0 16px;background: var(--terracotta);color:#fff;padding:8px 12px;border-radius:999px;font-weight:700;font-size:13px;text-decoration:none;box-shadow: 0 6px 16px rgba(0,0,0,.12);">Return Policy</a>
 
   <div class="items" id="cartList"></div>
-
-  <!-- Fulfilment Options -->
-  <div class="fulfilment" id="fulfilmentBox">
-    <h2>Delivery / Pickup</h2>
-    <div class="opts">
-      <label class="opt" for="opt-delivery">
-        <input type="radio" name="fulfilment" id="opt-delivery" value="delivery">
-        <div>
-          <div class="label">Delivery <span class="badge">Shipping (€9)</span></div>
-          <div class="sub">Estimated delivery time: 7 to 10 business days.</div>
-        </div>
-      </label>
-      <label class="opt" for="opt-pickup">
-        <input type="radio" name="fulfilment" id="opt-pickup" value="pickup">
-        <div>
-          <div class="label">Pickup <span class="badge">Free</span></div>
-          <div class="sub">Shopping Centre Athenry Prospect Unit 11B - H65 VA48</div>
-        </div>
-      </label>
-    </div>
-    <div class="info" id="fulfilmentInfo">
-      Estimated delivery time: 7 to 10 business days.
-    </div>
-  </div>
+  <div id="discountBox"></div>
 
   <div class="summary">
     <div class="row"><span class="label">Products Subtotal</span><span class="value" id="subtotalValue">€ 0.00</span></div>
@@ -140,7 +100,7 @@ footer{ margin-top:16px; color:var(--muted); font-size:12px; }
 <script>
 // ===== Keys used by the site =====
 const CART_KEYS_ORDER = ['vw_cart','hs_cart','cart','v_cart','cartItems','cart_items','cartData'];
-const FULFILMENT_KEY = 'fulfilment_mode'; // 'delivery' | 'pickup'
+const BASE_SHIPPING_EUR = 9;
 const CHECKOUT_PAYLOAD_KEY = 'vw_checkout_payload';
 
 // Rewards: dados enviados pelo carrinho (localStorage + URL)
@@ -211,19 +171,9 @@ function readCart(){
   return [];
 }
 
-// Read fulfilment (default: delivery)
-function readFulfilment(){
-  const v = localStorage.getItem(FULFILMENT_KEY);
-  if(v === 'pickup' || v === 'delivery') return v;
-  return 'delivery';
-}
-
-// Shipping: fixed by fulfilment selection. Delivery = €9; Pickup = €0
-function computeShipping(fulfilment){
-  if(fulfilment === 'pickup'){
-    return { amount: 0, label: 'Pickup (Free)' };
-  }
-  return { amount: 9, label: 'Shipping (€9)' };
+// Shipping: fixed (Delivery only)
+function computeShipping(){
+  return { amount: BASE_SHIPPING_EUR, label: `Shipping (€${BASE_SHIPPING_EUR})` };
 }
 
 // Normalize cart items and PRESERVE the product id so PayPal/webhook can remove the correct product
@@ -238,41 +188,10 @@ function normalizeCart(arr){
 }
 
 let cart = normalizeCart(readCart());
-let fulfilment = readFulfilment();
-
-// Initialize UI radios and info panel
-function initFulfilmentUI(){
-  const radioDelivery = document.getElementById('opt-delivery');
-  const radioPickup = document.getElementById('opt-pickup');
-  const info = document.getElementById('fulfilmentInfo');
-
-  if(fulfilment === 'pickup'){ radioPickup.checked = true; }
-  else { radioDelivery.checked = true; }
-
-  function updateInfo(){
-    info.textContent = (fulfilment === 'pickup')
-      ? 'Pickup at: Shopping Centre Athenry Prospect Unit 11B - H65 VA48'
-      : 'Estimated delivery time: 7 to 10 business days.';
-  }
-
-  radioDelivery.addEventListener('change', () => {
-    fulfilment = 'delivery';
-    localStorage.setItem(FULFILMENT_KEY, fulfilment);
-    updateInfo();
-    renderSummary();
-  });
-  radioPickup.addEventListener('change', () => {
-    fulfilment = 'pickup';
-    localStorage.setItem(FULFILMENT_KEY, fulfilment);
-    updateInfo();
-    renderSummary();
-  });
-
-  updateInfo();
-}
 
 function renderSummary(){
   const list = document.getElementById('cartList');
+  const discountBox = document.getElementById('discountBox');
   let baseSubtotal = 0;
   if(!cart.length){
     list.innerHTML = '<p style="color:#6f6f6f;text-align:center;">Your cart is empty.</p>';
@@ -293,10 +212,29 @@ function renderSummary(){
     subtotal = rewards.paySubtotal;
   }
 
-  const shipInfo = computeShipping(fulfilment);
-  let shippingAmount = Number(shipInfo.amount || 0);
+  const shipInfo = computeShipping();
+  const baseShippingAmount = Number(shipInfo.amount || 0);
+  let shippingAmount = baseShippingAmount;
   if (rewards && rewards.freeShipping){
     shippingAmount = 0;
+  }
+
+  // Discount amount (items discount + free shipping) for UI
+  const discountAmount = Math.max(0, (baseSubtotal + baseShippingAmount) - (subtotal + shippingAmount));
+  if(discountBox){
+    if(discountAmount > 0){
+      const parts = [];
+      if(rewards && rewards.discountPercent > 0) parts.push(`${rewards.discountPercent}% off`);
+      if(rewards && rewards.pointsUsed > 0) parts.push(`${rewards.pointsUsed} points`);
+      if(rewards && rewards.freeShipping) parts.push(`free shipping`);
+      const meta = parts.length ? `<span class="meta">(${parts.join(' + ')})</span>` : '';
+      discountBox.innerHTML = `<div class="discount-note">
+        <div class="left">Discount applied ${meta}</div>
+        <div class="right">- ${fmtEUR(discountAmount).replace('€ ','€ ')}</div>
+      </div>`;
+    }else{
+      discountBox.innerHTML = '';
+    }
   }
 
   document.getElementById('subtotalValue').textContent = fmtEUR(subtotal);
@@ -321,11 +259,10 @@ function renderSummary(){
   }
 
   document.getElementById('totalAmount').textContent = effectiveTotal.toFixed(2);
-  return { subtotal, shipping: shippingAmount, total: effectiveTotal, rewards };
+  return { baseSubtotal, baseShippingAmount, subtotal, shipping: shippingAmount, total: effectiveTotal, rewards };
 }
 
 const state = renderSummary();
-initFulfilmentUI();
 
 function commonConfig(){
   return {
@@ -344,8 +281,7 @@ function commonConfig(){
       // Safety: ensure every cart item has an id
       const missingId = cart.find(i => !i.id);
       if(missingId){ throw new Error('Cart item missing id'); }
-
-      const shippingPref = (fulfilment === 'pickup') ? 'NO_SHIPPING' : 'GET_FROM_FILE';
+      const shippingPref = 'GET_FROM_FILE';
 
       // 1) Read vw_checkout_payload from localStorage
       let payload = null;
@@ -392,27 +328,60 @@ function commonConfig(){
         };
       });
 
-      // 4) Keep the total value EXACTLY the same as current logic
-      const itemsTotalCents = items.reduce((sum, it) => {
-        return sum + (toCents(it.unit_amount.value) * (parseInt(it.quantity, 10) || 0));
-      }, 0);
-      const shippingCents = toCents(shipping);
-      const totalCents = toCents(total);
+      
+// 4) Build a PayPal breakdown that EXPLICITLY carries discounts
+// item_total must equal sum(unit_amount * quantity)
+const itemsTotalCents = items.reduce((sum, it) => {
+  return sum + (toCents(it.unit_amount.value) * (parseInt(it.quantity, 10) || 0));
+}, 0);
 
-      // Adjust breakdown so that (items + shipping +/- adjustment) matches the existing total
-      const diffCents = totalCents - (itemsTotalCents + shippingCents);
+// Base shipping (Delivery only) BEFORE free-shipping reward
+const baseShippingCents = toCents(computeShipping().amount || 0);
 
-      const breakdown = {
-        item_total: { currency_code: 'EUR', value: (itemsTotalCents / 100).toFixed(2) },
-        shipping: { currency_code: 'EUR', value: (shippingCents / 100).toFixed(2) }
-      };
-      if(diffCents > 0){
-        breakdown.handling = { currency_code: 'EUR', value: (diffCents / 100).toFixed(2) };
-      }else if(diffCents < 0){
-        breakdown.discount = { currency_code: 'EUR', value: (Math.abs(diffCents) / 100).toFixed(2) };
-      }
+// Applied amounts (after rewards)
+const subtotalCents = toCents(subtotal);
+const shippingAppliedCents = toCents(shipping);
+const totalCents = toCents(total);
 
-      return actions.order.create({
+// Discounts
+let discountCents = Math.max(0, itemsTotalCents - subtotalCents);
+const shippingDiscountCents = Math.max(0, baseShippingCents - shippingAppliedCents);
+
+// Ensure amount.value matches breakdown math (handle rounding edge-cases)
+let calcTotalCents = itemsTotalCents + baseShippingCents - shippingDiscountCents - discountCents;
+const diffCents = totalCents - calcTotalCents;
+if(diffCents > 0){
+  // add a small handling to reconcile
+  // (keeps discount fields as intended)
+}else if(diffCents < 0){
+  // increase discount to reconcile
+  discountCents += Math.abs(diffCents);
+}
+
+const breakdown = {
+  item_total: { currency_code: 'EUR', value: (itemsTotalCents / 100).toFixed(2) },
+  shipping:   { currency_code: 'EUR', value: (baseShippingCents / 100).toFixed(2) }
+};
+if(shippingDiscountCents > 0){
+  breakdown.shipping_discount = { currency_code: 'EUR', value: (shippingDiscountCents / 100).toFixed(2) };
+}
+if(discountCents > 0){
+  breakdown.discount = { currency_code: 'EUR', value: (discountCents / 100).toFixed(2) };
+}
+if(diffCents > 0){
+  breakdown.handling = { currency_code: 'EUR', value: (diffCents / 100).toFixed(2) };
+}
+
+// Compact metadata for webhook/painel (PayPal stores purchase_units.custom_id)
+const totalDiscountCents = discountCents + shippingDiscountCents;
+const meta = [
+  'vw',
+  `d=${(totalDiscountCents/100).toFixed(2)}`,
+  `dp=${(rewards && rewards.discountPercent) ? Number(rewards.discountPercent).toFixed(2) : '0'}`,
+  `pts=${(rewards && rewards.pointsUsed) ? parseInt(rewards.pointsUsed,10) : 0}`,
+  `fs=${(rewards && rewards.freeShipping) ? 1 : 0}`
+].join('|').slice(0,127);
+return actions.order.create({
         intent: 'CAPTURE',
         application_context: {
           shipping_preference: shippingPref,
@@ -421,7 +390,7 @@ function commonConfig(){
         },
         purchase_units: [{
           reference_id: userRefId,
-          custom_id: userRefId,
+          custom_id: meta,
           description: cart[0].title,
           amount: {
             currency_code: 'EUR',
@@ -435,9 +404,8 @@ function commonConfig(){
     onApprove: function(data, actions){
       return actions.order.capture().then(function(details){
         alert('✅ Payment completed by ' + (details?.payer?.name?.given_name || 'customer') + '!');
-        // clear cart + fulfilment
+        // clear cart
         CART_KEYS_ORDER.forEach(k=>localStorage.removeItem(k));
-        localStorage.removeItem(FULFILMENT_KEY);
         document.getElementById('cartList').innerHTML = '<p style="color:var(--olive);text-align:center;">Payment Approved!</p>';
         document.getElementById('subtotalValue').textContent = fmtEUR(0);
         document.getElementById('shippingValue').textContent = fmtEUR(0);
