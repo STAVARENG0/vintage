@@ -79,17 +79,5 @@
     ],
     "createdAt": 1770560025398,
     "status": "published"
-  },
-  {
-    "id": "1770641034202",
-    "title": "OLHA O OVO",
-    "price": 1,
-    "description": "famoso meus bago",
-    "category": "Dresses & Skirts",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770641034202/1770641034899_0_depositphotos_9126387-stock-photo-golden-egg-isolated-on-white.jpg",
-    "gallery": [],
-    "createdAt": 1770641035729,
-    "status": "published"
   }
 ]
