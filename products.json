@@ -143,5 +143,19 @@
     ],
     "createdAt": 1770637265752,
     "status": "published"
+  },
+  {
+    "id": "1770637505847",
+    "title": "Columbia Blue Sportswear ID:11",
+    "price": 45,
+    "description": "Jacket made of synthetic fabric (polyester), lightweight and comfortable. Pre-owned, in excellent condition, size XL.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637505847/1770637517762_0_6636B4E5-936A-4231-B86D-0CEEC863F361.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637505847/1770637519389_1_IMG_7017.jpeg"
+    ],
+    "createdAt": 1770637522477,
+    "status": "published"
   }
 ]
