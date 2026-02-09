@@ -373,13 +373,15 @@ if(diffCents > 0){
 }
 
 // Compact metadata for webhook/painel (PayPal stores purchase_units.custom_id)
+// NOTE: PayPal app may not display discount; we store it here for our webhook/panel.
 const totalDiscountCents = discountCents + shippingDiscountCents;
 const meta = [
   'vw',
   `d=${(totalDiscountCents/100).toFixed(2)}`,
   `dp=${(rewards && rewards.discountPercent) ? Number(rewards.discountPercent).toFixed(2) : '0'}`,
   `pts=${(rewards && rewards.pointsUsed) ? parseInt(rewards.pointsUsed,10) : 0}`,
-  `fs=${(rewards && rewards.freeShipping) ? 1 : 0}`
+  `fs=${(rewards && rewards.freeShipping) ? 1 : 0}`,
+  `sh=${(shippingAppliedCents/100).toFixed(2)}`
 ].join('|').slice(0,127);
 return actions.order.create({
         intent: 'CAPTURE',
