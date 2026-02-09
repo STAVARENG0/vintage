@@ -79,5 +79,98 @@
     ],
     "createdAt": 1770560025398,
     "status": "published"
+  },
+  {
+    "id": "1770630460194",
+    "title": "Diadora Black Puffer Jacket ID: 07",
+    "price": 40,
+    "description": "Black Diadora puffer jacket made of polyester. Pre-owned, in excellent condition, size M.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770630460194/1770630462737_0_879F21C3-EDA8-48DC-BB1C-CCFB546231E3.png",
+    "gallery": [],
+    "createdAt": 1770630464625,
+    "status": "published"
+  },
+  {
+    "id": "1770632309889",
+    "title": "Brown Shearling Coat ID: 08",
+    "price": 45,
+    "description": "Shearling-style coat in synthetic suede with faux shearling lining. Pre-owned, in excellent condition, size M.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770632309889/1770632311588_0_353AB19B-13C0-4E16-833D-A30DC81DD7CF.png",
+    "gallery": [],
+    "createdAt": 1770632313510,
+    "status": "published"
+  },
+  {
+    "id": "1770633586029",
+    "title": "Columbia Gray Fleece Jacket ID: 09",
+    "price": 40,
+    "description": "Fleece jacket made of polyester, soft and warm. Pre-owned, in excellent condition, size L.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770633586029/1770633592458_0_C34D4B0A-3469-426F-BB21-8F317A6CD373.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770633586029/1770633594074_1_58A4C68E-F89D-4FD5-937A-9259C4C8F0DE.png"
+    ],
+    "createdAt": 1770633596061,
+    "status": "published"
+  },
+  {
+    "id": "1770635863914",
+    "title": "McKinley Black and Pink Outdoor Jacket ID:10",
+    "price": 25,
+    "description": "Outdoor jacket made of synthetic fabric (polyester), with hood. Pre-owned, in excellent condition, size M/L.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770635863914/1770635866012_0_CF871079-2D2B-4881-85A8-C5AD7BA35F75.png",
+    "gallery": [],
+    "createdAt": 1770635867797,
+    "status": "published"
+  },
+  {
+    "id": "1770637250476",
+    "title": "Reebok Black Puffer Jacket ID:12",
+    "price": 35,
+    "description": "Puffer jacket made of synthetic fabric (polyester), lightweight and warm. Pre-owned, in excellent condition, size M.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637250476/1770637261903_0_C7FEA432-AB65-4D5B-926E-04F762F640D5.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637250476/1770637263533_1_IMG_7019.jpeg"
+    ],
+    "createdAt": 1770637265752,
+    "status": "published"
+  },
+  {
+    "id": "1770637505847",
+    "title": "Columbia Blue Sportswear ID:11",
+    "price": 45,
+    "description": "Jacket made of synthetic fabric (polyester), lightweight and comfortable. Pre-owned, in excellent condition, size XL.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637505847/1770637517762_0_6636B4E5-936A-4231-B86D-0CEEC863F361.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637505847/1770637519389_1_IMG_7017.jpeg"
+    ],
+    "createdAt": 1770637522477,
+    "status": "published"
+  },
+  {
+    "id": "1770638445481",
+    "title": "Vintage Black Leather Vest ID:13",
+    "price": 25,
+    "description": "Vest made of genuine leather, biker/vintage style with button closure. Pre-owned, in excellent condition, size S.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770638445481/1770638454573_0_C2896119-942E-489C-876E-5D3BEE337F4E.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770638445481/1770638456161_1_93D645D7-E469-4120-8B8B-DD33A8E4DC02.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770638445481/1770638457815_2_CFD5BBBC-E193-41BB-A46E-F1D5C03493BC.png"
+    ],
+    "createdAt": 1770638459443,
+    "status": "published"
   }
 ]
