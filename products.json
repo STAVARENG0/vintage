@@ -81,27 +81,15 @@
     "status": "published"
   },
   {
-    "id": "1770630460194",
-    "title": "Diadora Black Puffer Jacket ID: 07",
-    "price": 40,
-    "description": "Black Diadora puffer jacket made of polyester. Pre-owned, in excellent condition, size M.",
-    "category": "Puffers",
+    "id": "1770633313699",
+    "title": "OLHA O OVO",
+    "price": 1,
+    "description": "famoso meus bago",
+    "category": "Dresses & Skirts",
     "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770630460194/1770630462737_0_879F21C3-EDA8-48DC-BB1C-CCFB546231E3.png",
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770633313699/1770633314540_0_depositphotos_9126387-stock-photo-golden-egg-isolated-on-white.jpg",
     "gallery": [],
-    "createdAt": 1770630464625,
-    "status": "published"
-  },
-  {
-    "id": "1770632309889",
-    "title": "Brown Shearling Coat ID: 08",
-    "price": 45,
-    "description": "Shearling-style coat in synthetic suede with faux shearling lining. Pre-owned, in excellent condition, size M.",
-    "category": "Coats & Outerwear",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770632309889/1770632311588_0_353AB19B-13C0-4E16-833D-A30DC81DD7CF.png",
-    "gallery": [],
-    "createdAt": 1770632313510,
+    "createdAt": 1770633315195,
     "status": "published"
   }
 ]
