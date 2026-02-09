@@ -91,5 +91,17 @@
     "gallery": [],
     "createdAt": 1770630464625,
     "status": "published"
+  },
+  {
+    "id": "1770632309889",
+    "title": "Brown Shearling Coat ID: 08",
+    "price": 45,
+    "description": "Shearling-style coat in synthetic suede with faux shearling lining. Pre-owned, in excellent condition, size M.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770632309889/1770632311588_0_353AB19B-13C0-4E16-833D-A30DC81DD7CF.png",
+    "gallery": [],
+    "createdAt": 1770632313510,
+    "status": "published"
   }
 ]
