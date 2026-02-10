@@ -215,5 +215,19 @@
     ],
     "createdAt": 1770718032287,
     "status": "published"
+  },
+  {
+    "id": "1770718878307",
+    "title": "Converse All Star Camouflage High-Top Sneakers ID 17",
+    "price": 35,
+    "description": "High-top sneakers made of canvas fabric with camouflage print and rubber sole. Pre-owned, in excellent condition. Size UK 8.5.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770718878307/1770718882097_0_4D97CACD-33E3-4755-9606-9ED499F7BF16.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770718878307/1770718883775_1_7CE5BE7E-A0CE-4346-AEE9-2391FB653C68.png"
+    ],
+    "createdAt": 1770718885735,
+    "status": "published"
   }
 ]
