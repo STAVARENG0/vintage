@@ -201,5 +201,19 @@
     ],
     "createdAt": 1770717488699,
     "status": "published"
+  },
+  {
+    "id": "1770718023678",
+    "title": "Suede Ankle Boot with Block Heel ID:16",
+    "price": 20,
+    "description": "Suede ankle boot with block heel and zip closure. Pre-owned, in excellent condition. Size UK 7, River Island.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770718023678/1770718028849_0_CD2AC33C-DEC5-4F9E-83EB-96E79E5AEC8A.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770718023678/1770718030528_1_C2CCB66F-8586-4B2D-9868-38EE8DA2955E.png"
+    ],
+    "createdAt": 1770718032287,
+    "status": "published"
   }
 ]
