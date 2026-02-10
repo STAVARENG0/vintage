@@ -187,5 +187,19 @@
     ],
     "createdAt": 1770716952743,
     "status": "published"
+  },
+  {
+    "id": "1770717481561",
+    "title": "Leather Ankle Boot with Heel ID:15",
+    "price": 30,
+    "description": "Leather ankle boot with high heel and zip closure. Pre-owned item in excellent condition. Size UK 6, made in Brazil.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770717481561/1770717485331_0_93B60872-F58A-4B34-B53D-05F1FE98867A.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770717481561/1770717487028_1_17361AB7-D473-40D9-B598-E5FF0DECCA0E.png"
+    ],
+    "createdAt": 1770717488699,
+    "status": "published"
   }
 ]
