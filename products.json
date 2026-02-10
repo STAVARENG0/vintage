@@ -172,5 +172,20 @@
     ],
     "createdAt": 1770638459443,
     "status": "published"
+  },
+  {
+    "id": "1770716928844",
+    "title": "Vintage Outdoor Color Block Jacket with Hood ID:14",
+    "price": 65,
+    "description": "Outdoor jacket in synthetic fabric with hood and zip and snap-button closure. Pre-owned, in excellent condition. Size M.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770716928844/1770716946343_0_493B2FB5-31E2-42FA-9E13-237FE36989CC.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770716928844/1770716947943_1_4A0DEF60-D31A-4626-AC7A-1F3FB4DE3200.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770716928844/1770716949644_2_IMG_7051.jpeg"
+    ],
+    "createdAt": 1770716952743,
+    "status": "published"
   }
 ]
