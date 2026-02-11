@@ -243,5 +243,19 @@
     ],
     "createdAt": 1770804282616,
     "status": "published"
+  },
+  {
+    "id": "1770804747898",
+    "title": "Black Leather Long Coat ID:19",
+    "price": 55,
+    "description": "Long leather coat, size L. Pre-owned piece in excellent condition, featuring natural signs of wear that make it unique and authentic.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770804747898/1770804757859_0_B8EA4EE6-1795-4552-BC6D-4A59867BE8B6.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770804747898/1770804759478_1_IMG_7095.jpeg"
+    ],
+    "createdAt": 1770804762261,
+    "status": "published"
   }
 ]
