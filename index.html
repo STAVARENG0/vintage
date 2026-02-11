@@ -593,6 +593,33 @@ header{ text-align:center; }
   box-shadow: 0 4px 12px rgba(0,0,0,0.18);
   transform: translateX(2px);
 }
+
+/* Pagination */
+.pagination{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  margin:18px 0 8px;
+}
+.page-btn{
+  padding:10px 16px;
+  border-radius:9999px;
+  background: rgba(255,255,255,.85);
+  border:2px solid rgba(0,0,0,.06);
+  cursor:pointer;
+  font-weight:800;
+  box-shadow:0 6px 18px rgba(0,0,0,0.10);
+  transition: transform .18s ease, filter .18s ease;
+}
+.page-btn:hover{ transform: translateY(-1px); filter: brightness(1.02); }
+.page-btn[disabled]{ opacity:.5; cursor:not-allowed; transform:none; }
+.page-btn.is-active{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color:#2a2a2a;
+}
+
 </style>
 <!-- === Override: replace VINTAGE text with logo image === -->
 <style>
@@ -954,6 +981,7 @@ background: transparent !important;
 </header>
 <div class="divider"></div>
 <section class="grid" id="products"></section>
+<div id="pagination" class="pagination"></div>
 <div class="divider"></div>
 <footer>© <span id="year"></span> Vintage Wear Ireland</footer>
 </div>
@@ -998,6 +1026,106 @@ background: transparent !important;
 const PUBLIC_JSON = './products.json';
 const grid = document.getElementById('products');
 let currentList = [];
+
+const PAGE_SIZE = 10;
+const paginationEl = document.getElementById('pagination');
+let activeList = [];
+let currentPage = 1;
+
+function shuffleArray(arr){
+  const a = Array.isArray(arr) ? arr.slice() : [];
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function goToPage(p){
+  const totalPages = Math.max(1, Math.ceil(activeList.length / PAGE_SIZE));
+  const next = Math.min(totalPages, Math.max(1, Number(p) || 1));
+  currentPage = next;
+  renderPage();
+  renderPagination();
+  // scroll to top of products for better UX
+  try{ document.getElementById('products').scrollIntoView({behavior:'smooth', block:'start'}); }catch(_){}
+}
+
+function renderPage(){
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = activeList.slice(start, start + PAGE_SIZE);
+  render(pageItems);
+}
+
+function renderPagination(){
+  if(!paginationEl) return;
+
+  const total = activeList.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  paginationEl.innerHTML = '';
+  if(totalPages <= 1){
+    return;
+  }
+
+  const makeBtn = (label, page, opts = {}) => {
+    const b = document.createElement('button');
+    b.className = 'page-btn' + (opts.active ? ' is-active' : '');
+    b.type = 'button';
+    b.textContent = label;
+    if(opts.disabled) b.disabled = true;
+    b.addEventListener('click', () => goToPage(page));
+    return b;
+  };
+
+  // Prev
+  paginationEl.appendChild(
+    makeBtn('‹', currentPage - 1, {disabled: currentPage === 1})
+  );
+
+  // Page numbers (windowed if many)
+  const windowSize = 7;
+  let startPage = Math.max(1, currentPage - Math.floor(windowSize / 2));
+  let endPage = Math.min(totalPages, startPage + windowSize - 1);
+  startPage = Math.max(1, endPage - windowSize + 1);
+
+  const addEllipsis = () => {
+    const s = document.createElement('span');
+    s.textContent = '…';
+    s.style.opacity = '.7';
+    s.style.fontWeight = '800';
+    s.style.padding = '0 6px';
+    paginationEl.appendChild(s);
+  };
+
+  if(startPage > 1){
+    paginationEl.appendChild(makeBtn('1', 1, {active: currentPage === 1}));
+    if(startPage > 2) addEllipsis();
+  }
+
+  for(let p = startPage; p <= endPage; p++){
+    paginationEl.appendChild(makeBtn(String(p), p, {active: p === currentPage}));
+  }
+
+  if(endPage < totalPages){
+    if(endPage < totalPages - 1) addEllipsis();
+    paginationEl.appendChild(
+      makeBtn(String(totalPages), totalPages, {active: currentPage === totalPages})
+    );
+  }
+
+  // Next
+  paginationEl.appendChild(
+    makeBtn('›', currentPage + 1, {disabled: currentPage === totalPages})
+  );
+}
+
+function setActiveList(list){
+  activeList = Array.isArray(list) ? list : [];
+  currentPage = 1;
+  renderPage();
+  renderPagination();
+}
 function escapeHTML(v){
   const s = (v === undefined || v === null) ? '' : String(v);
   return s
@@ -1131,13 +1259,17 @@ el.appendChild(body);
   });
 }
 function searchProducts(){
-  const term = document.getElementById('search').value.toLowerCase();
+  const term = (document.getElementById('search').value || '').toLowerCase().trim();
+  if(!term){
+    setActiveList(currentList);
+    return;
+  }
   const filtered = currentList.filter(p =>
-    p.title.toLowerCase().includes(term) ||
+    (p.title || '').toLowerCase().includes(term) ||
     (p.brand && p.brand.toLowerCase().includes(term)) ||
     (p.category && p.category.toLowerCase().includes(term))
   );
-  render(filtered);
+  setActiveList(filtered);
 }
 /* Cart */
 const TOKEN_KEY='vw_token';
@@ -1618,8 +1750,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 (async function init(){
   currentList = await readPublic();
-  currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
-  render(currentList);
+
+  // Random order on every page load (gives chance for all products)
+  currentList = shuffleArray(currentList);
+
+  // Show only 10 items per page with pagination controls
+  setActiveList(currentList);
+
   document.getElementById('year').textContent = new Date().getFullYear();
   updateCartIcon();
 })();
