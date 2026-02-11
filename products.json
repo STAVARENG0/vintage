@@ -257,5 +257,19 @@
     ],
     "createdAt": 1770804762261,
     "status": "published"
+  },
+  {
+    "id": "1770805999476",
+    "title": "Black Coat with Faux Fur Collar and Cuffs ID:20",
+    "price": 35,
+    "description": "Coat made of synthetic fabric with faux fur collar and cuffs, size L. Pre-owned piece in excellent condition, perfect for colder days with style and elegance. Size L",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770805999476/1770806009381_0_2D9D9F0F-F3D1-4443-B8D0-1DBDAB3DCE3D.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770805999476/1770806010928_1_IMG_7101.jpeg"
+    ],
+    "createdAt": 1770806013784,
+    "status": "published"
   }
 ]
