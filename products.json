@@ -271,5 +271,19 @@
     ],
     "createdAt": 1770806013784,
     "status": "published"
+  },
+  {
+    "id": "1770806783140",
+    "title": "Brown Vera Pelle Leather Coat ID:21",
+    "price": 55,
+    "description": "Genuine leather coat (Vera Pelle), size M. Pre-owned piece in excellent condition, featuring natural signs of wear that make it unique and authentic.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770806783140/1770806793592_0_4CFF043E-4571-41B5-A0E0-EE55814FEB42.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770806783140/1770806795229_1_IMG_7104.jpeg"
+    ],
+    "createdAt": 1770806798167,
+    "status": "published"
   }
 ]
