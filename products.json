@@ -337,5 +337,17 @@
     ],
     "createdAt": 1770809930869,
     "status": "published"
+  },
+  {
+    "id": "1770814311756",
+    "title": "Nike Miami White Hoodie ID:26",
+    "price": 12,
+    "description": "Nike cotton hoodie with soft fleece interior, size M/L. Pre-owned in excellent condition, with original color and fabric preserved.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770814311756/1770814313930_0_37BAC8D9-6325-4BD2-911E-530E451EBCEF.png",
+    "gallery": [],
+    "createdAt": 1770814315811,
+    "status": "published"
   }
 ]
