@@ -285,5 +285,19 @@
     ],
     "createdAt": 1770806798167,
     "status": "published"
+  },
+  {
+    "id": "1770807516043",
+    "title": "Adidas Black Sports Leggings ID:22",
+    "price": 15,
+    "description": "Adidas sports leggings made from stretch performance fabric, size L. Pre-owned piece in excellent condition.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770807516043/1770807520079_0_C1150CBD-4C78-452B-80F0-C685E8C8946E.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770807516043/1770807521633_1_48FAFEEF-5D78-49D1-A31C-CA2E0264485F.png"
+    ],
+    "createdAt": 1770807523253,
+    "status": "published"
   }
 ]
