@@ -299,5 +299,17 @@
     ],
     "createdAt": 1770807523253,
     "status": "published"
+  },
+  {
+    "id": "1770807882112",
+    "title": "Nike Black Sports Leggings ID:23",
+    "price": 15,
+    "description": "Nike sports leggings made from stretch performance fabric, size L. Pre-owned piece in excellent condition.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770807882112/1770807883879_0_DE8B2D75-FCF5-4127-AC45-171D2C975D65.png",
+    "gallery": [],
+    "createdAt": 1770807885443,
+    "status": "published"
   }
 ]
