@@ -323,5 +323,19 @@
     "gallery": [],
     "createdAt": 1770808790966,
     "status": "published"
+  },
+  {
+    "id": "1770809922898",
+    "title": "Nike Dri-FIT Pink Printed Leggings ID:25",
+    "price": 15,
+    "description": "Nike Dri-FIT leggings in polyester with elastane, breathable and quick-drying fabric. Size XS, pre-owned in excellent condition.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770809922898/1770809927578_0_106A0CE5-135F-47B7-BC2A-2E806C32A084.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770809922898/1770809929147_1_261DC1FE-535B-444F-A885-204A517E2A63.png"
+    ],
+    "createdAt": 1770809930869,
+    "status": "published"
   }
 ]
