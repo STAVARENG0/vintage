@@ -229,5 +229,19 @@
     ],
     "createdAt": 1770718885735,
     "status": "published"
+  },
+  {
+    "id": "1770804275260",
+    "title": "Lacoste White Sneakers with Green Detail ID:18",
+    "price": 35,
+    "description": "Lacoste casual sneakers, size UK 6. Pre-owned piece in excellent condition, perfect for versatile and modern outfits.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770804275260/1770804279047_0_C037C766-AF69-44F4-B812-C64EEA4D0CD5.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770804275260/1770804280863_1_13B4A3A3-8DE0-42C9-8A7B-229DB89BDE8E.png"
+    ],
+    "createdAt": 1770804282616,
+    "status": "published"
   }
 ]
