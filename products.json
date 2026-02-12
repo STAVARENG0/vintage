@@ -411,5 +411,19 @@
     ],
     "createdAt": 1770895949046,
     "status": "published"
+  },
+  {
+    "id": "1770897304739",
+    "title": "Under Armour Grey Hoodie with Blue Logo ID:32",
+    "price": 25,
+    "description": "Polyester hoodie, size M, featuring a hood and kangaroo pocket.\nPre-owned item in excellent condition, original Under Armour.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770897304739/1770897310909_0_AFB0879F-75A1-4134-8EB3-DD111F865AD8.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770897304739/1770897312625_1_IMG_7145.jpeg"
+    ],
+    "createdAt": 1770897314889,
+    "status": "published"
   }
 ]
