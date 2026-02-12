@@ -361,5 +361,17 @@
     "gallery": [],
     "createdAt": 1770815923897,
     "status": "published"
+  },
+  {
+    "id": "1770893481654",
+    "title": "Black Champion Logo Sweatshirt ID:28",
+    "price": 15,
+    "description": "Champion cotton sweatshirt with soft fleece lining, size XL. Pre-owned piece in excellent condition, comfortable and perfect for everyday wear.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770893481654/1770893485085_0_96C12DB7-0551-4C70-81A3-D453E873A32F.png",
+    "gallery": [],
+    "createdAt": 1770893486870,
+    "status": "published"
   }
 ]
