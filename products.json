@@ -373,5 +373,17 @@
     "gallery": [],
     "createdAt": 1770893486870,
     "status": "published"
+  },
+  {
+    "id": "1770893940786",
+    "title": "Black Nike Swoosh Jogger Pants ID:29",
+    "price": 25,
+    "description": "Nike jogger pants made of lightweight polyester (nylon-style synthetic fabric), size XL. Pre-owned piece in excellent condition, featuring an elastic waistband and comfortable fit.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770893940786/1770893943300_0_0DE678E5-034E-4ECF-9B76-5E13E7A860A7.png",
+    "gallery": [],
+    "createdAt": 1770893944937,
+    "status": "published"
   }
 ]
