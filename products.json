@@ -397,5 +397,19 @@
     "gallery": [],
     "createdAt": 1770894464396,
     "status": "published"
+  },
+  {
+    "id": "1770895937825",
+    "title": "Calvin Klein Jeans Pink Wool Peacoat Jacket ID:31",
+    "price": 40,
+    "description": "Women’s wool peacoat featuring a classic double-breasted design with zip pockets by Calvin Klein Jeans.\nSize M, pre-owned piece in excellent condition.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770895937825/1770895944085_0_C8AC7063-2E1E-4AA1-BEA4-CCD6DFA486BB.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770895937825/1770895946519_1_IMG_7142.jpeg"
+    ],
+    "createdAt": 1770895949046,
+    "status": "published"
   }
 ]
