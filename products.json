@@ -461,5 +461,20 @@
     "gallery": [],
     "createdAt": 1770899922799,
     "status": "published"
+  },
+  {
+    "id": "1770900981574",
+    "title": "Vintage Leather Belt with Braided Detail ID:36",
+    "price": 35,
+    "description": "Genuine leather vintage belt, 87 cm in length.\nPre-owned piece in excellent condition.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770900981574/1770900983013_0_4DAF9C49-F5ED-4FB3-A901-84EB66105D65.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770900981574/1770900984437_1_0C9441FD-7779-4465-880F-72673C72088C.jpeg",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770900981574/1770900985545_2_8A7619C6-6CB8-4540-A3BA-986007954DE6.jpeg"
+    ],
+    "createdAt": 1770900986729,
+    "status": "published"
   }
 ]
