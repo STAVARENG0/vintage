@@ -476,5 +476,19 @@
     ],
     "createdAt": 1770900986729,
     "status": "published"
+  },
+  {
+    "id": "1770901677526",
+    "title": "Leather Belt with Metal Buckle ID:37",
+    "price": 20,
+    "description": "Genuine leather belt, 93 cm in length.\nPre-owned piece in excellent condition.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770901677526/1770901680793_0_8D5A063B-C60C-4260-A7FA-B9EF4F1EA6AE.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770901677526/1770901682915_1_A2C920CD-5F68-438D-9335-26CB419D133E.png"
+    ],
+    "createdAt": 1770901684578,
+    "status": "published"
   }
 ]
