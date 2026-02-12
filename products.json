@@ -385,5 +385,17 @@
     "gallery": [],
     "createdAt": 1770893944937,
     "status": "published"
+  },
+  {
+    "id": "1770894461081",
+    "title": "Lotto Track Jogger Pants ID:30",
+    "price": 15,
+    "description": "Lotto jogger pants made of polyester, size L. Pre-owned piece in excellent condition, featuring an elastic waistband and comfortable fit for casual or athletic wear.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770894461081/1770894462686_0_98941D62-F133-4C58-B691-CA6609DB63CD.png",
+    "gallery": [],
+    "createdAt": 1770894464396,
+    "status": "published"
   }
 ]
