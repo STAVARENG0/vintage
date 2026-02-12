@@ -449,5 +449,17 @@
     "gallery": [],
     "createdAt": 1770899276045,
     "status": "published"
+  },
+  {
+    "id": "1770899919173",
+    "title": "Champion Black Hoodie with Animal Print Logo ID:35",
+    "price": 25,
+    "description": "Champion cotton and polyester hoodie, size S.\nPre-owned in excellent condition.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770899919173/1770899921211_0_D2B828F5-13E2-4F70-A7B7-72EA97231077.png",
+    "gallery": [],
+    "createdAt": 1770899922799,
+    "status": "published"
   }
 ]
