@@ -425,5 +425,17 @@
     ],
     "createdAt": 1770897314889,
     "status": "published"
+  },
+  {
+    "id": "1770898387920",
+    "title": "The North Face Kids DryVent Hooded Jacket ID:33",
+    "price": 35,
+    "description": "Kids’ waterproof polyester jacket with DryVent technology, size S (7/8), featuring a hood and full-zip closure.\nPre-owned item in excellent condition, authentic The North Face.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770898387920/1770898390860_0_6A38B3F5-923A-4568-B8E1-87706EEAE68D.png",
+    "gallery": [],
+    "createdAt": 1770898392544,
+    "status": "published"
   }
 ]
