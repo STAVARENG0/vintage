@@ -571,5 +571,17 @@
     ],
     "createdAt": 1770986735154,
     "status": "published"
+  },
+  {
+    "id": "1770987241287",
+    "title": "Vintage Mustard Merino Wool Cardigan ID:44",
+    "price": 40,
+    "description": "Knit cardigan made from 100% extra fine merino wool, featuring textured cable detailing and button-front closure. Vintage pre-owned piece in excellent condition, Size M/L",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770987241287/1770987243745_0_7053ACD9-0CB4-4148-8C79-09F88C459965.png",
+    "gallery": [],
+    "createdAt": 1770987245514,
+    "status": "published"
   }
 ]
