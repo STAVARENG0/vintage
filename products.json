@@ -556,5 +556,20 @@
     "gallery": [],
     "createdAt": 1770986326826,
     "status": "published"
+  },
+  {
+    "id": "1770986725073",
+    "title": "Jaeger Brown Tote Bag with Crossbody Strap ID:42",
+    "price": 55,
+    "description": "Tote bag made of smooth synthetic material, featuring braided top handles and an adjustable long strap. Brand new item, one size.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770986725073/1770986730916_0_682A7714-6A0E-45C5-B231-A8686289F4A2.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770986725073/1770986732432_1_8EDDF45D-9214-4FF4-AA84-81740653BEFB.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770986725073/1770986733798_2_C5FC06F7-E711-4D57-A11B-63FB5F697C22.png"
+    ],
+    "createdAt": 1770986735154,
+    "status": "published"
   }
 ]
