@@ -544,5 +544,20 @@
     ],
     "createdAt": 1770983496467,
     "status": "published"
+  },
+  {
+    "id": "1770984679318",
+    "title": "JAEGER Brown Faux Leather Tote Bag with Braided Handle ID:42",
+    "price": 55,
+    "description": "Brown faux leather (PU) tote bag with braided top handle and adjustable/removable shoulder strap; medium size.\nBrand new, featuring gold-tone hardware and inner drawstring pouch.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770984679318/1770984684870_0_9A5E5524-1CA5-4821-AE1F-D2E86E9CFF5A.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770984679318/1770984686252_1_8EDDF45D-9214-4FF4-AA84-81740653BEFB.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770984679318/1770984687840_2_C5FC06F7-E711-4D57-A11B-63FB5F697C22.png"
+    ],
+    "createdAt": 1770984689217,
+    "status": "published"
   }
 ]
