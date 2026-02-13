@@ -583,5 +583,17 @@
     "gallery": [],
     "createdAt": 1770987245514,
     "status": "published"
+  },
+  {
+    "id": "1770988245940",
+    "title": "Zara Basic Black Midi Dress with Ruffled Hem ID:45",
+    "price": 12,
+    "description": "Zara Basic midi dress in polyester with a subtle satin finish, fitted style with wide straps and ruffled hem. Pre-owned piece, size 38, in excellent condition.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770988245940/1770988247618_0_12D80EFA-659B-471E-9F53-AC74916717FC.png",
+    "gallery": [],
+    "createdAt": 1770988249347,
+    "status": "published"
   }
 ]
