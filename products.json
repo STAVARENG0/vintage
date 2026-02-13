@@ -559,5 +559,17 @@
     ],
     "createdAt": 1770984689217,
     "status": "published"
+  },
+  {
+    "id": "1770986323356",
+    "title": "Puma Lime Green Puffer Jacket ID:43",
+    "price": 30,
+    "description": "Puffer jacket made of quilted synthetic fabric (100% polyester), lightweight and insulated, with full front zipper closure. Pre-owned in excellent condition, size M.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770986323356/1770986325100_0_252F1421-D58B-4A86-906C-0C19D2DD8902.png",
+    "gallery": [],
+    "createdAt": 1770986326826,
+    "status": "published"
   }
 ]
