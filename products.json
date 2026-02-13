@@ -490,5 +490,17 @@
     ],
     "createdAt": 1770901684578,
     "status": "published"
+  },
+  {
+    "id": "1770982537497",
+    "title": "Zara Basic Floral Blouse with Tie Detail ID:38",
+    "price": 10,
+    "description": "Zara Basic polyester blouse with floral print and tie detail.\nSize XS, pre-owned in excellent condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770982537497/1770982541141_0_11397AFF-E495-4CFC-B26A-048999FA9FA6.png",
+    "gallery": [],
+    "createdAt": 1770982543029,
+    "status": "published"
   }
 ]
