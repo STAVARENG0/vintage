@@ -502,5 +502,19 @@
     "gallery": [],
     "createdAt": 1770978852858,
     "status": "published"
+  },
+  {
+    "id": "1770980009294",
+    "title": "Dolce & Gabbana Cropped Low-Rise Denim Jeans ID:39",
+    "price": 20,
+    "description": "Denim (cotton) low-rise cropped jeans, mid-calf length.\nSize 42, pre-owned in excellent condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770980009294/1770980024161_0_IMG_7173.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770980009294/1770980026563_1_IMG_7174.jpeg"
+    ],
+    "createdAt": 1770980029122,
+    "status": "published"
   }
 ]
