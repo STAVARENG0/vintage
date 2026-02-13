@@ -530,19 +530,5 @@
     ],
     "createdAt": 1770980504914,
     "status": "published"
-  },
-  {
-    "id": "1770981742069",
-    "title": "Carrera Corduroy Pants ID:41",
-    "price": 25,
-    "description": "Corduroy (cotton) classic straight-leg pants.\nSize 34, pre-owned in excellent condition.",
-    "category": "Trousers",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770981742069/1770981766713_0_IMG_7177.jpeg",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770981742069/1770981768837_1_IMG_7178.jpeg"
-    ],
-    "createdAt": 1770981771003,
-    "status": "published"
   }
 ]
