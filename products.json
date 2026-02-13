@@ -502,5 +502,19 @@
     "gallery": [],
     "createdAt": 1770982543029,
     "status": "published"
+  },
+  {
+    "id": "1770982895896",
+    "title": "Dolce & Gabbana Cropped Denim Jeans ID:39",
+    "price": 20,
+    "description": "Denim (cotton) cropped jeans with washed finish and distressed details.\nSize 42, pre-owned in excellent condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770982895896/1770982901065_0_748C03BA-D621-424F-A3BE-78256631D460.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770982895896/1770982902844_1_63765F3D-1F0F-4349-978F-060106219740.png"
+    ],
+    "createdAt": 1770982904496,
+    "status": "published"
   }
 ]
