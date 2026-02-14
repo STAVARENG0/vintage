@@ -631,5 +631,20 @@
     "gallery": [],
     "createdAt": 1771069819968,
     "status": "published"
+  },
+  {
+    "id": "1771071012302",
+    "title": "Vintage Genuine Leather Handbag ID:49",
+    "price": 55,
+    "description": "Medium-sized women’s handbag crafted from genuine leather, pre-owned in excellent condition (no long strap).\nFeatures natural signs of wear consistent with age, enhancing its authentic vintage character.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771071012302/1771071017611_0_C42D9E40-1F0D-4D7E-BE75-812B12E8C214.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771071012302/1771071019466_1_CC598616-8263-4DE7-8D13-83E052844E09.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771071012302/1771071020874_2_B2FE94A3-31D8-4E87-B3D7-28571472C5A1.png"
+    ],
+    "createdAt": 1771071022342,
+    "status": "published"
   }
 ]
