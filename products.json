@@ -607,5 +607,17 @@
     "gallery": [],
     "createdAt": 1770988705425,
     "status": "published"
+  },
+  {
+    "id": "1771067794418",
+    "title": "Cocomore Blue Ruffled Strap Dress ID:47",
+    "price": 15,
+    "description": "Cocomore Blue 100% nylon dress with ruffles and adjustable straps. Size 38, pre-owned in excellent condition.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771067794418/1771067795684_0_31018316-DAAE-42DC-87C8-85D526E80E16.jpeg",
+    "gallery": [],
+    "createdAt": 1771067796965,
+    "status": "published"
   }
 ]
