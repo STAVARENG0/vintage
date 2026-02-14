@@ -619,5 +619,17 @@
     "gallery": [],
     "createdAt": 1771069264147,
     "status": "published"
+  },
+  {
+    "id": "1771069816700",
+    "title": "Blue Ruffled Strap Dress ID:47",
+    "price": 15,
+    "description": "Blue 100% nylon dress with ruffles and adjustable straps. Size 38, pre-owned in excellent condition.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771069816700/1771069818478_0_21C86BAD-2C68-40B4-832F-8C67C8DEFDA8.png",
+    "gallery": [],
+    "createdAt": 1771069819968,
+    "status": "published"
   }
 ]
