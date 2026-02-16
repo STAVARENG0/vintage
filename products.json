@@ -646,5 +646,17 @@
     ],
     "createdAt": 1771071022342,
     "status": "published"
+  },
+  {
+    "id": "1771239055752",
+    "title": "Tommy Hilfiger Denim Plaid Cotton Shirt ID:50",
+    "price": 20,
+    "description": "Men’s long-sleeve cotton plaid shirt in blue and white.\nPre-owned in excellent condition, size XL.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771239055752/1771239059704_0_85BC281C-E1F2-4335-94C8-13B184399022.png",
+    "gallery": [],
+    "createdAt": 1771239061606,
+    "status": "published"
   }
 ]
