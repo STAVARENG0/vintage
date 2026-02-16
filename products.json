@@ -720,5 +720,17 @@
     "gallery": [],
     "createdAt": 1771242874045,
     "status": "published"
+  },
+  {
+    "id": "1771243676327",
+    "title": "Vintage Embroidered Clutch Bag with Metal Handle ID:56",
+    "price": 55,
+    "description": "Vendula London \nClutch bag crafted in satin fabric with floral embroidery and bead embellishments, featuring a metal frame and chain strap.\nPre-owned in excellent condition",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771243676327/1771243678700_0_41D21E41-124C-4115-88F0-ACD715621DCE.png",
+    "gallery": [],
+    "createdAt": 1771243680337,
+    "status": "published"
   }
 ]
