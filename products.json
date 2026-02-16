@@ -732,5 +732,17 @@
     "gallery": [],
     "createdAt": 1771243680337,
     "status": "published"
+  },
+  {
+    "id": "1771244321483",
+    "title": "Brown Puffer Fabric Bucket Bag ID:57",
+    "price": 15,
+    "description": "Bucket-style bag crafted in padded (puffer) fabric with a woven textile strap. Pre-owned piece in excellent condition.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771244321483/1771244322711_0_F0826BB3-00F1-4106-B365-DA36DEC7CE4A.jpeg",
+    "gallery": [],
+    "createdAt": 1771244323912,
+    "status": "published"
   }
 ]
