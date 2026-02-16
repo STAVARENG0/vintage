@@ -694,5 +694,19 @@
     "gallery": [],
     "createdAt": 1771241451711,
     "status": "published"
+  },
+  {
+    "id": "1771242254664",
+    "title": "Polo Ralph Lauren Striped Dress Shirt ID:54",
+    "price": 25,
+    "description": "Men’s cotton dress shirt in blue and white stripes, Custom Fit model.\nPre-owned in excellent condition, size 17½ (44).",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771242254664/1771242261639_0_384C9ED0-6830-419F-9717-C49F49292967.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771242254664/1771242263229_1_IMG_7275.jpeg"
+    ],
+    "createdAt": 1771242265887,
+    "status": "published"
   }
 ]
