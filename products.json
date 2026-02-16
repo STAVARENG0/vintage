@@ -708,5 +708,17 @@
     ],
     "createdAt": 1771242265887,
     "status": "published"
+  },
+  {
+    "id": "1771242870118",
+    "title": "Hugo Boss Striped Dress Shirt ID:55",
+    "price": 12,
+    "description": "Men’s long-sleeve cotton striped dress shirt.\nPre-owned in excellent condition\nSize XL",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771242870118/1771242872318_0_08B85BDC-2547-45D8-9308-3E58F3EE3119.png",
+    "gallery": [],
+    "createdAt": 1771242874045,
+    "status": "published"
   }
 ]
