@@ -782,5 +782,17 @@
     "gallery": [],
     "createdAt": 1771325249341,
     "status": "published"
+  },
+  {
+    "id": "1771325972305",
+    "title": "Privilegi Classic Originale Leather Coat ID:64",
+    "price": 65,
+    "description": "Genuine leather (Vera Pelle) coat with polyester inner lining, pre-owned in excellent condition. Size 46.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771325972305/1771325974466_0_A942F521-11EA-45CE-BCBB-1D9AEB7F3AE6.png",
+    "gallery": [],
+    "createdAt": 1771325975966,
+    "status": "published"
   }
 ]
