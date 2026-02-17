@@ -770,5 +770,17 @@
     ],
     "createdAt": 1771324438135,
     "status": "published"
+  },
+  {
+    "id": "1771325245780",
+    "title": "Vera Pelle Leather Coat with Quilted Lining ID:63",
+    "price": 65,
+    "description": "Genuine leather (Vera Pelle) coat with quilted polyester inner lining, pre-owned in excellent condition. Size 46.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771325245780/1771325247765_0_FD3883E7-54BC-4C97-8239-DD1F3D59C247.png",
+    "gallery": [],
+    "createdAt": 1771325249341,
+    "status": "published"
   }
 ]
