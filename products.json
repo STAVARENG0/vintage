@@ -794,5 +794,19 @@
     "gallery": [],
     "createdAt": 1771325975966,
     "status": "published"
+  },
+  {
+    "id": "1771326755910",
+    "title": "Stefanel  Black Tailored Coat ID:65",
+    "price": 40,
+    "description": "Structured coat in polyester and wool blend with polyester lining, pre-owned in excellent condition. Size 40.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771326755910/1771326759209_0_9096E4DF-2C77-4161-96BE-FB8CD050EBC0.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771326755910/1771326760435_1_A40B6249-2143-46C8-B139-2E707387CA7A.png"
+    ],
+    "createdAt": 1771326761883,
+    "status": "published"
   }
 ]
