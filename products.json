@@ -770,15 +770,17 @@
     "status": "published"
   },
   {
-    "id": "1771323756430",
-    "title": "Avirex Yellow Graphic T-Shirt ID:61",
-    "price": 12,
-    "description": "Short-sleeve cotton T-shirt with AVX/Avirex Dept. print.\nPre-owned in excellent condition, size L.",
-    "category": "Shirts & Tees",
+    "id": "1771324426985",
+    "title": "Scotch & Soda Grey Sweatshirt ID:62",
+    "price": 25,
+    "description": "Cotton sweatshirt with brushed inner lining, classic crewneck style.\nPre-owned in excellent condition, size S",
+    "category": "Curated Pieces",
     "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771323756430/1771323757831_0_C2C0FA54-8EA9-4E5D-BE47-220081DF0CE5.png",
-    "gallery": [],
-    "createdAt": 1771323759632,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771324426985/1771324434896_0_B29CE6FA-FCCF-4325-91C7-AA97AC266561.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771324426985/1771324436518_1_300A711A-15DF-42A6-A7C2-A1B5BF72D463.png"
+    ],
+    "createdAt": 1771324438135,
     "status": "published"
   }
 ]
