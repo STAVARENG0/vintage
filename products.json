@@ -768,5 +768,17 @@
     "gallery": [],
     "createdAt": 1771323436868,
     "status": "published"
+  },
+  {
+    "id": "1771323756430",
+    "title": "Avirex Yellow Graphic T-Shirt ID:61",
+    "price": 12,
+    "description": "Short-sleeve cotton T-shirt with AVX/Avirex Dept. print.\nPre-owned in excellent condition, size L.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771323756430/1771323757831_0_C2C0FA54-8EA9-4E5D-BE47-220081DF0CE5.png",
+    "gallery": [],
+    "createdAt": 1771323759632,
+    "status": "published"
   }
 ]
