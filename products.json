@@ -844,5 +844,19 @@
     "gallery": [],
     "createdAt": 1771409823052,
     "status": "published"
+  },
+  {
+    "id": "1771410193645",
+    "title": "Levi’s 311 Shaping Skinny Jeans ID:71",
+    "price": 30,
+    "description": "Levi’s 311 Shaping Skinny jeans made from stretch denim fabric (cotton with elastane).\nPre-owned piece in excellent condition, size 30.",
+    "category": "Trousers",
+    "stock": 10,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771410193645/1771410203348_0_198034E3-924C-41B2-9553-D31B409495B8.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771410193645/1771410204976_1_IMG_7353.jpeg"
+    ],
+    "createdAt": 1771410207970,
+    "status": "published"
   }
 ]
