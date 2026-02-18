@@ -808,5 +808,17 @@
     ],
     "createdAt": 1771326761883,
     "status": "published"
+  },
+  {
+    "id": "1771408263357",
+    "title": "Reebok Navy Blue Sweatpants ID:66",
+    "price": 15,
+    "description": "Reebok fleece sweatpants in cotton and polyester sweatshirt fabric, jogger style.\nPre-owned piece in excellent condition, size M.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771408263357/1771408266080_0_37977AD9-F778-4C21-8628-45C7C6373CCD.png",
+    "gallery": [],
+    "createdAt": 1771408268013,
+    "status": "published"
   }
 ]
