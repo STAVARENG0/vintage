@@ -888,17 +888,15 @@
     "status": "published"
   },
   {
-    "id": "1771412692439",
-    "title": "Vintage. Black Belted Puffer Coat ID:75",
-    "price": 55,
-    "description": "Polyester belted puffer coat with side invisible zip pockets and wool detail on the sleeves. Pre-owned in excellent condition, size 38 (IT 42 / D 36), Pinko.",
-    "category": "Curated Pieces",
+    "id": "1771413175096",
+    "title": "Reebok Black Performance T-Shirt ID:69",
+    "price": 12,
+    "description": "Performance T-shirt made of Dri-Fit style technical fabric (polyester), lightweight and quick-drying.\nPre-owned piece in excellent condition, size XS.",
+    "category": "Activewear",
     "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771412692439/1771412696564_0_57492CE2-E29D-41CF-86B3-DC15B32870D5.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771412692439/1771412698132_1_IMG_7372.jpeg"
-    ],
-    "createdAt": 1771412700065,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771413175096/1771413177702_0_37AE1A27-47B9-413F-80D2-8339C4C9121F.png",
+    "gallery": [],
+    "createdAt": 1771413179390,
     "status": "published"
   }
 ]
