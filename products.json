@@ -860,17 +860,15 @@
     "status": "published"
   },
   {
-    "id": "1771410709962",
-    "title": "Levi’s 524 Too Superlow Skinny Jeans ID:72",
-    "price": 30,
-    "description": "Levi’s 524 Too Superlow Skinny jeans made from denim fabric (100% cotton).\nPre-owned piece in excellent condition, size 7M.",
-    "category": "Trousers",
+    "id": "1771411073149",
+    "title": "Grey Adidas Hooded Sweatshirt with Front Logo ID:73",
+    "price": 25,
+    "description": "Hooded sweatshirt made of cotton and polyester fleece, pullover kangaroo style, in grey with front Adidas logo. Pre-owned in excellent condition, size M.",
+    "category": "Hoodies & Sweatshirts",
     "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771410709962/1771410725875_0_5A427111-5413-4836-A4DD-FA71FA85B2AD.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771410709962/1771410727520_1_IMG_7357.jpeg"
-    ],
-    "createdAt": 1771410730926,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411073149/1771411077442_0_153984AB-27B4-4822-B8CB-B5CE9ED8567F.png",
+    "gallery": [],
+    "createdAt": 1771411079288,
     "status": "published"
   }
 ]
