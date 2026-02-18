@@ -822,17 +822,15 @@
     "status": "published"
   },
   {
-    "id": "1771408725629",
-    "title": "Vintage Denim Midi Skirt ID:67",
-    "price": 25,
-    "description": "Vintage denim skirt made from cotton denim fabric, midi length.\nPre-owned piece in excellent condition, size 44.",
-    "category": "Dresses & Skirts",
+    "id": "1771409167513",
+    "title": "Vintage Black Lace Shirt ID:68",
+    "price": 15,
+    "description": "Vintage lace shirt with satin fabric details and front button closure.\nPre-owned piece in excellent condition, size L.",
+    "category": "Shirts & Tees",
     "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771408725629/1771408729928_0_DC4DAED9-E01B-4869-9C0E-A3A5B0FFDE1A.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771408725629/1771408731742_1_0A148C09-68D0-47D0-8BED-18D104DFD955.png"
-    ],
-    "createdAt": 1771408733623,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771409167513/1771409169945_0_82876A93-5C19-47E1-BAE3-5B6902778B77.png",
+    "gallery": [],
+    "createdAt": 1771409172847,
     "status": "published"
   }
 ]
