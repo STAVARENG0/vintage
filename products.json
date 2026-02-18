@@ -870,5 +870,21 @@
     "gallery": [],
     "createdAt": 1771411079288,
     "status": "published"
+  },
+  {
+    "id": "1771411918405",
+    "title": "Vintage Destroy CAPPOPERA Jeans ID:74",
+    "price": 55,
+    "description": "Vintage denim (cotton) destroyed jeans with no rips, by CAPPOPERA Jeans. Selected piece, pre-owned in excellent condition, size 42 (USA 28), made in Italy.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411918405/1771411944258_0_A4593C17-44C5-4C20-A37C-69AD063E74C4.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411918405/1771411945554_1_C9F8B9D9-564A-4FBD-AA34-7FADD66BC2D3.jpeg",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411918405/1771411946761_2_IMG_7365.jpeg",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411918405/1771411949551_3_IMG_7367.jpeg"
+    ],
+    "createdAt": 1771411951747,
+    "status": "published"
   }
 ]
