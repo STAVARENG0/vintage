@@ -886,5 +886,19 @@
     ],
     "createdAt": 1771411951747,
     "status": "published"
+  },
+  {
+    "id": "1771412692439",
+    "title": "Vintage. Black Belted Puffer Coat ID:75",
+    "price": 55,
+    "description": "Polyester belted puffer coat with side invisible zip pockets and wool detail on the sleeves. Pre-owned in excellent condition, size 38 (IT 42 / D 36), Pinko.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771412692439/1771412696564_0_57492CE2-E29D-41CF-86B3-DC15B32870D5.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771412692439/1771412698132_1_IMG_7372.jpeg"
+    ],
+    "createdAt": 1771412700065,
+    "status": "published"
   }
 ]
