@@ -922,5 +922,17 @@
     "gallery": [],
     "createdAt": 1771584302714,
     "status": "published"
+  },
+  {
+    "id": "1771585305616",
+    "title": "Dark Green Grey Overcoat ID:78",
+    "price": 30,
+    "description": "Structured overcoat in a suede-like fabric, with belt loops (belt missing), pre-owned in excellent condition. Size 40.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771585305616/1771585308454_0_66FA7474-88D5-45FB-905E-8FE13BB99D2D.png",
+    "gallery": [],
+    "createdAt": 1771585310121,
+    "status": "published"
   }
 ]
