@@ -898,5 +898,17 @@
     "gallery": [],
     "createdAt": 1771413179390,
     "status": "published"
+  },
+  {
+    "id": "1771583793733",
+    "title": "Lotto Navy Blue Track Jacket ID:76",
+    "price": 15,
+    "description": "Cotton and polyester track jacket with full front zipper, brand new . Size XL.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771583793733/1771583795012_0_D1EB7494-89C8-45F6-BB21-E50EFE3253C8.jpeg",
+    "gallery": [],
+    "createdAt": 1771583796451,
+    "status": "published"
   }
 ]
