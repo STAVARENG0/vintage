@@ -961,5 +961,17 @@
     "gallery": [],
     "createdAt": 1771586916562,
     "status": "published"
+  },
+  {
+    "id": "1771598345361",
+    "title": "ADOR Sleeveless Satin Blouse with Classic Collar in Red ID:53",
+    "price": 15,
+    "description": "Women’s sleeveless blouse in satin (100% polyester) with a classic collar and smooth glossy finish.\nSize XL, brand new with tag.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771598345361/1771598347186_0_4A9D93E5-E3F9-4190-85B4-6A6D13104E4D.png",
+    "gallery": [],
+    "createdAt": 1771598349148,
+    "status": "published"
   }
 ]
