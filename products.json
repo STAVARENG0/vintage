@@ -934,5 +934,20 @@
     "gallery": [],
     "createdAt": 1771585310121,
     "status": "published"
+  },
+  {
+    "id": "1771586497733",
+    "title": "Red Wool Blazer HMC Munich Mode Collection ID:79",
+    "price": 40,
+    "description": "Blazer made of 100% virgin wool with 55% polyester and 45% viscose lining, pre-owned in excellent condition. Size 42 (EU) / 12 (USA).",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771586497733/1771586510828_0_9E7FD22E-798E-4AE0-80A1-DB02E78E72B9.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771586497733/1771586512387_1_4A08BC7C-FD76-4112-8DA9-6DE999D7A464.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771586497733/1771586514014_2_IMG_7400.jpeg"
+    ],
+    "createdAt": 1771586516502,
+    "status": "published"
   }
 ]
