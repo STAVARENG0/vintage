@@ -949,5 +949,17 @@
     ],
     "createdAt": 1771586516502,
     "status": "published"
+  },
+  {
+    "id": "1771586912139",
+    "title": "Navy Blue Cardigan with Red Details Tommy Hilfiger ID:80",
+    "price": 25,
+    "description": "Vintage 100% cotton knit cardigan featuring a V-neck and button closure, size M. Shows natural signs of wear that enhance its authenticity, while remaining in excellent overall condition.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771586912139/1771586914747_0_35348D94-F782-4077-A7E1-D0F962B25F95.png",
+    "gallery": [],
+    "createdAt": 1771586916562,
+    "status": "published"
   }
 ]
