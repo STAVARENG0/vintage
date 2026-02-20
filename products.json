@@ -973,5 +973,19 @@
     "gallery": [],
     "createdAt": 1771598349148,
     "status": "published"
+  },
+  {
+    "id": "1771598770128",
+    "title": "Acid Wash Denim Pencil Skirt ID:67",
+    "price": 30,
+    "description": "Pencil skirt in denim fabric with acid wash finish, pre-owned in excellent condition. Size M, featuring a back slit with button detail for added style.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771598770128/1771598778998_0_DC4DAED9-E01B-4869-9C0E-A3A5B0FFDE1A.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771598770128/1771598780568_1_0A148C09-68D0-47D0-8BED-18D104DFD955.png"
+    ],
+    "createdAt": 1771598782297,
+    "status": "published"
   }
 ]
