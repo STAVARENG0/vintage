@@ -961,17 +961,5 @@
     "gallery": [],
     "createdAt": 1771598349148,
     "status": "published"
-  },
-  {
-    "id": "1771667302708",
-    "title": "Yellow AVX Avirex Dept Airplane Graphic T-Shirt ID:61",
-    "price": 1,
-    "description": "T-shirt in cotton jersey (appears to be cotton), yellow color, featuring AVX Avirex Dept front print and sleeve detail.\nSize L, pre-owned piece in excellent condition.",
-    "category": "Shirts & Tees",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771667302708/1771667304335_0_C2C0FA54-8EA9-4E5D-BE47-220081DF0CE5.png",
-    "gallery": [],
-    "createdAt": 1771667306014,
-    "status": "published"
   }
 ]
