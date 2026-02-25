@@ -961,5 +961,17 @@
     "gallery": [],
     "createdAt": 1771598349148,
     "status": "published"
+  },
+  {
+    "id": "1772020721574",
+    "title": "Yellow AVX Graphic T-Shirt ID:61",
+    "price": 10,
+    "description": "Men’s size L T-shirt made of cotton jersey, in yellow with “AVX Avirex Dept.” front print. Pre-owned piece in excellent condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772020721574/1772020723439_0_C2C0FA54-8EA9-4E5D-BE47-220081DF0CE5.png",
+    "gallery": [],
+    "createdAt": 1772020725495,
+    "status": "published"
   }
 ]
