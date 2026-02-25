@@ -1001,5 +1001,19 @@
     ],
     "createdAt": 1772022561289,
     "status": "published"
+  },
+  {
+    "id": "1772027879551",
+    "title": "Black A-Style Casual Blazer with Embroidered Patches ID:82",
+    "price": 25,
+    "description": "Casual blazer made of cotton sweatshirt fabric (structured knit), in black, featuring original brand patches and embroidery.\nPre-owned piece in excellent condition, size L",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772027879551/1772027884050_0_F084E65F-F56D-4930-8748-96939A745D4B.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772027879551/1772027885704_1_CFC44538-088C-40F5-829C-6E7BC5AB4B28.png"
+    ],
+    "createdAt": 1772027887328,
+    "status": "published"
   }
 ]
