@@ -503,17 +503,5 @@
     ],
     "createdAt": 1771410207970,
     "status": "published"
-  },
-  {
-    "id": "1771411073149",
-    "title": "Grey Adidas Hooded Sweatshirt with Front Logo ID:73",
-    "price": 25,
-    "description": "Hooded sweatshirt made of cotton and polyester fleece, pullover kangaroo style, in grey with front Adidas logo. Pre-owned in excellent condition, size M.",
-    "category": "Hoodies & Sweatshirts",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411073149/1771411077442_0_153984AB-27B4-4822-B8CB-B5CE9ED8567F.png",
-    "gallery": [],
-    "createdAt": 1771411079288,
-    "status": "published"
   }
 ]
