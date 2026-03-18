@@ -644,19 +644,5 @@
     ],
     "createdAt": 1772021098837,
     "status": "published"
-  },
-  {
-    "id": "1772022541145",
-    "title": "Levi’s Blue Denim Jeans ID:72",
-    "price": 25,
-    "description": "100% cotton denim jeans, classic five-pocket style in medium blue wash, Size 7M, pre-owned in excellent condition.",
-    "category": "Trousers",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772022541145/1772022556977_0_5A427111-5413-4836-A4DD-FA71FA85B2AD.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772022541145/1772022558502_1_IMG_7357.jpeg"
-    ],
-    "createdAt": 1772022561289,
-    "status": "published"
   }
 ]
