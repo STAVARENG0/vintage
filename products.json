@@ -531,17 +531,5 @@
     ],
     "createdAt": 1771411951747,
     "status": "published"
-  },
-  {
-    "id": "1771413175096",
-    "title": "Reebok Black Performance T-Shirt ID:69",
-    "price": 12,
-    "description": "Performance T-shirt made of Dri-Fit style technical fabric (polyester), lightweight and quick-drying.\nPre-owned piece in excellent condition, size XS.",
-    "category": "Activewear",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771413175096/1771413177702_0_37AE1A27-47B9-413F-80D2-8339C4C9121F.png",
-    "gallery": [],
-    "createdAt": 1771413179390,
-    "status": "published"
   }
 ]
