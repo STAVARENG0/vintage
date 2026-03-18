@@ -389,17 +389,5 @@
     "gallery": [],
     "createdAt": 1771322168860,
     "status": "published"
-  },
-  {
-    "id": "1771323431479",
-    "title": "ST. Polo Beige V-Neck Knit Sweater ID:60",
-    "price": 25,
-    "description": "Cotton knit V-neck sweater with textured pattern.\nPre-owned in excellent condition, size M/L",
-    "category": "Curated Pieces",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771323431479/1771323435004_0_1C14E2F9-3579-45E5-A2F2-2F8BDDCF7CA4.png",
-    "gallery": [],
-    "createdAt": 1771323436868,
-    "status": "published"
   }
 ]
