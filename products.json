@@ -401,19 +401,5 @@
     "gallery": [],
     "createdAt": 1771323436868,
     "status": "published"
-  },
-  {
-    "id": "1771324426985",
-    "title": "Scotch & Soda Grey Sweatshirt ID:62",
-    "price": 25,
-    "description": "Cotton sweatshirt with brushed inner lining, classic crewneck style.\nPre-owned in excellent condition, size S",
-    "category": "Curated Pieces",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771324426985/1771324434896_0_B29CE6FA-FCCF-4325-91C7-AA97AC266561.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771324426985/1771324436518_1_300A711A-15DF-42A6-A7C2-A1B5BF72D463.png"
-    ],
-    "createdAt": 1771324438135,
-    "status": "published"
   }
 ]
