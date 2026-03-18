@@ -1,19 +1,5 @@
 [
   {
-    "id": "1770633586029",
-    "title": "Columbia Gray Fleece Jacket ID: 09",
-    "price": 40,
-    "description": "Fleece jacket made of polyester, soft and warm. Pre-owned, in excellent condition, size L.",
-    "category": "Coats & Outerwear",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770633586029/1770633592458_0_C34D4B0A-3469-426F-BB21-8F317A6CD373.png",
-    "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770633586029/1770633594074_1_58A4C68E-F89D-4FD5-937A-9259C4C8F0DE.png"
-    ],
-    "createdAt": 1770633596061,
-    "status": "published"
-  },
-  {
     "id": "1770635863914",
     "title": "McKinley Black and Pink Outdoor Jacket ID:10",
     "price": 25,
