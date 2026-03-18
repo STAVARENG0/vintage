@@ -465,17 +465,5 @@
     "gallery": [],
     "createdAt": 1771408268013,
     "status": "published"
-  },
-  {
-    "id": "1771409167513",
-    "title": "Vintage Black Lace Shirt ID:68",
-    "price": 15,
-    "description": "Vintage lace shirt with satin fabric details and front button closure.\nPre-owned piece in excellent condition, size L.",
-    "category": "Shirts & Tees",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771409167513/1771409169945_0_82876A93-5C19-47E1-BAE3-5B6902778B77.png",
-    "gallery": [],
-    "createdAt": 1771409172847,
-    "status": "published"
   }
 ]
