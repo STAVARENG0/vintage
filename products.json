@@ -477,17 +477,5 @@
     "gallery": [],
     "createdAt": 1771409172847,
     "status": "published"
-  },
-  {
-    "id": "1771409819339",
-    "title": "Ellesse Heritage Black Hoodie ID:70",
-    "price": 35,
-    "description": "Ellesse Heritage hoodie made of cotton and polyester fleece fabric, featuring a front kangaroo pocket.\nPre-owned piece in excellent condition, size S.",
-    "category": "Hoodies & Sweatshirts",
-    "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771409819339/1771409821300_0_81816EAA-18E1-45AB-9ECE-B26D2218F266.png",
-    "gallery": [],
-    "createdAt": 1771409823052,
-    "status": "published"
   }
 ]
