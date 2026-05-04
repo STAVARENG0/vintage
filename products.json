@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "1777898132958",
+    "title": "CHAVEIRO DE BANANA",
+    "price": 1,
+    "description": "CHAVEIRO PERWSONALIZADO",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1777898132958/1777898139235_1_Gemini_Generated_Image_al5zqal5zqal5zqa.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1777898132958/1777898137333_0_Gemini_Generated_Image_bdjm0wbdjm0wbdjm.png"
+    ],
+    "createdAt": 1777898140115,
+    "status": "published"
+  }
+]
