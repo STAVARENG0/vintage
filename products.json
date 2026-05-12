@@ -1,16 +1,989 @@
 [
   {
-    "id": "1777898132958",
-    "title": "CHAVEIRO DE BANANA",
-    "price": 1,
-    "description": "CHAVEIRO PERWSONALIZADO",
+    "id": "1770390372098",
+    "title": "Flannel blazer ID: 01",
+    "price": 35,
+    "description": "Vintage flannel blazer with a warm-toned plaid pattern and gold buttons. Size M.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770390372098/1770390378973_0_AB443371-F859-415B-AF82-63EEC50AC528.png",
+    "gallery": [],
+    "createdAt": 1770390381064,
+    "status": "published"
+  },
+  {
+    "id": "1770391609439",
+    "title": "Vintage Camouflage Military Denim Jacket ID: 02",
+    "price": 45,
+    "description": "Original vintage military jacket with camouflage pattern, made of soft cotton-blend denim. Authentic, well-crafted, and visually striking.\nSize M/L",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770391609439/1770391613407_0_946B6C06-C81E-45FE-B9A5-81F6CA758989.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770391609439/1770391615043_1_22D19A79-6CC2-40CC-BA83-27636D7BC5FC.png"
+    ],
+    "createdAt": 1770391616946,
+    "status": "published"
+  },
+  {
+    "id": "1770392593360",
+    "title": "Tommy Hilfiger Lightweight Puffer-Style Jacket ID: 03",
+    "price": 35,
+    "description": "Vintage Tommy Hilfiger Lightweight Puffer-Style Jacket – Size L",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770392593360/1770392597087_0_946D88D9-24D4-452F-866D-DCFDB3234E60.png",
+    "gallery": [],
+    "createdAt": 1770392598957,
+    "status": "published"
+  },
+  {
+    "id": "1770395962171",
+    "title": "Columbia Puffer Jacket ID: 04",
+    "price": 45,
+    "description": "Vintage Columbia puffer jacket with a classic, comfortable design. Original, versatile, and timeless piece. Size L",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770395962171/1770395964417_0_9CAAA69A-AB5F-4616-BAF9-0D5D5470E496.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770395962171/1770395966119_1_7E494946-9021-425D-8487-54DB7AF85AA6.png"
+    ],
+    "createdAt": 1770395967798,
+    "status": "published"
+  },
+  {
+    "id": "1770556241592",
+    "title": "Vintage Pink Tweed Blazer ID: 05",
+    "price": 35,
+    "description": "Vintage tweed blazer with gold-tone buttons and a classic silhouette.\nSize: M",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770556241592/1770556250958_0_6F393F68-676A-47B5-AAFE-3BCDCFEA6F08.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770556241592/1770556252517_1_IMG_6986.jpeg"
+    ],
+    "createdAt": 1770556255047,
+    "status": "published"
+  },
+  {
+    "id": "1770560010039",
+    "title": "Black Leather Coat with Waist Adjustment ID: 6",
+    "price": 55,
+    "description": "Genuine leather coat, pre-owned and in excellent condition. Classic style with an adjustable waist, perfect for timeless everyday wear. Size L",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770560010039/1770560020624_0_C8FDE0FB-7489-44D4-A022-4FCE36CDC3A9.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770560010039/1770560022170_1_E044DC40-5686-41D6-BEA5-000CAECAC6BE.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770560010039/1770560023757_2_IMG_6990.jpeg"
+    ],
+    "createdAt": 1770560025398,
+    "status": "published"
+  },
+  {
+    "id": "1770630460194",
+    "title": "Diadora Black Puffer Jacket ID: 07",
+    "price": 40,
+    "description": "Black Diadora puffer jacket made of polyester. Pre-owned, in excellent condition, size M.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770630460194/1770630462737_0_879F21C3-EDA8-48DC-BB1C-CCFB546231E3.png",
+    "gallery": [],
+    "createdAt": 1770630464625,
+    "status": "published"
+  },
+  {
+    "id": "1770632309889",
+    "title": "Brown Shearling Coat ID: 08",
+    "price": 45,
+    "description": "Shearling-style coat in synthetic suede with faux shearling lining. Pre-owned, in excellent condition, size M.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770632309889/1770632311588_0_353AB19B-13C0-4E16-833D-A30DC81DD7CF.png",
+    "gallery": [],
+    "createdAt": 1770632313510,
+    "status": "published"
+  },
+  {
+    "id": "1770633586029",
+    "title": "Columbia Gray Fleece Jacket ID: 09",
+    "price": 40,
+    "description": "Fleece jacket made of polyester, soft and warm. Pre-owned, in excellent condition, size L.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770633586029/1770633592458_0_C34D4B0A-3469-426F-BB21-8F317A6CD373.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770633586029/1770633594074_1_58A4C68E-F89D-4FD5-937A-9259C4C8F0DE.png"
+    ],
+    "createdAt": 1770633596061,
+    "status": "published"
+  },
+  {
+    "id": "1770635863914",
+    "title": "McKinley Black and Pink Outdoor Jacket ID:10",
+    "price": 25,
+    "description": "Outdoor jacket made of synthetic fabric (polyester), with hood. Pre-owned, in excellent condition, size M/L.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770635863914/1770635866012_0_CF871079-2D2B-4881-85A8-C5AD7BA35F75.png",
+    "gallery": [],
+    "createdAt": 1770635867797,
+    "status": "published"
+  },
+  {
+    "id": "1770637250476",
+    "title": "Reebok Black Puffer Jacket ID:12",
+    "price": 35,
+    "description": "Puffer jacket made of synthetic fabric (polyester), lightweight and warm. Pre-owned, in excellent condition, size M.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637250476/1770637261903_0_C7FEA432-AB65-4D5B-926E-04F762F640D5.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637250476/1770637263533_1_IMG_7019.jpeg"
+    ],
+    "createdAt": 1770637265752,
+    "status": "published"
+  },
+  {
+    "id": "1770637505847",
+    "title": "Columbia Blue Sportswear ID:11",
+    "price": 45,
+    "description": "Jacket made of synthetic fabric (polyester), lightweight and comfortable. Pre-owned, in excellent condition, size XL.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637505847/1770637517762_0_6636B4E5-936A-4231-B86D-0CEEC863F361.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770637505847/1770637519389_1_IMG_7017.jpeg"
+    ],
+    "createdAt": 1770637522477,
+    "status": "published"
+  },
+  {
+    "id": "1770638445481",
+    "title": "Vintage Black Leather Vest ID:13",
+    "price": 25,
+    "description": "Vest made of genuine leather, biker/vintage style with button closure. Pre-owned, in excellent condition, size S.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770638445481/1770638454573_0_C2896119-942E-489C-876E-5D3BEE337F4E.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770638445481/1770638456161_1_93D645D7-E469-4120-8B8B-DD33A8E4DC02.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770638445481/1770638457815_2_CFD5BBBC-E193-41BB-A46E-F1D5C03493BC.png"
+    ],
+    "createdAt": 1770638459443,
+    "status": "published"
+  },
+  {
+    "id": "1770716928844",
+    "title": "Vintage Outdoor Color Block Jacket with Hood ID:14",
+    "price": 65,
+    "description": "Outdoor jacket in synthetic fabric with hood and zip and snap-button closure. Pre-owned, in excellent condition. Size M.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770716928844/1770716946343_0_493B2FB5-31E2-42FA-9E13-237FE36989CC.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770716928844/1770716947943_1_4A0DEF60-D31A-4626-AC7A-1F3FB4DE3200.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770716928844/1770716949644_2_IMG_7051.jpeg"
+    ],
+    "createdAt": 1770716952743,
+    "status": "published"
+  },
+  {
+    "id": "1770717481561",
+    "title": "Leather Ankle Boot with Heel ID:15",
+    "price": 30,
+    "description": "Leather ankle boot with high heel and zip closure. Pre-owned item in excellent condition. Size UK 6, made in Brazil.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770717481561/1770717485331_0_93B60872-F58A-4B34-B53D-05F1FE98867A.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770717481561/1770717487028_1_17361AB7-D473-40D9-B598-E5FF0DECCA0E.png"
+    ],
+    "createdAt": 1770717488699,
+    "status": "published"
+  },
+  {
+    "id": "1770718023678",
+    "title": "Suede Ankle Boot with Block Heel ID:16",
+    "price": 20,
+    "description": "Suede ankle boot with block heel and zip closure. Pre-owned, in excellent condition. Size UK 7, River Island.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770718023678/1770718028849_0_CD2AC33C-DEC5-4F9E-83EB-96E79E5AEC8A.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770718023678/1770718030528_1_C2CCB66F-8586-4B2D-9868-38EE8DA2955E.png"
+    ],
+    "createdAt": 1770718032287,
+    "status": "published"
+  },
+  {
+    "id": "1770718878307",
+    "title": "Converse All Star Camouflage High-Top Sneakers ID 17",
+    "price": 35,
+    "description": "High-top sneakers made of canvas fabric with camouflage print and rubber sole. Pre-owned, in excellent condition. Size UK 8.5.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770718878307/1770718882097_0_4D97CACD-33E3-4755-9606-9ED499F7BF16.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770718878307/1770718883775_1_7CE5BE7E-A0CE-4346-AEE9-2391FB653C68.png"
+    ],
+    "createdAt": 1770718885735,
+    "status": "published"
+  },
+  {
+    "id": "1770804275260",
+    "title": "Lacoste White Sneakers with Green Detail ID:18",
+    "price": 35,
+    "description": "Lacoste casual sneakers, size UK 6. Pre-owned piece in excellent condition, perfect for versatile and modern outfits.",
+    "category": "Shoes",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770804275260/1770804279047_0_C037C766-AF69-44F4-B812-C64EEA4D0CD5.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770804275260/1770804280863_1_13B4A3A3-8DE0-42C9-8A7B-229DB89BDE8E.png"
+    ],
+    "createdAt": 1770804282616,
+    "status": "published"
+  },
+  {
+    "id": "1770804747898",
+    "title": "Black Leather Long Coat ID:19",
+    "price": 55,
+    "description": "Long leather coat, size L. Pre-owned piece in excellent condition, featuring natural signs of wear that make it unique and authentic.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770804747898/1770804757859_0_B8EA4EE6-1795-4552-BC6D-4A59867BE8B6.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770804747898/1770804759478_1_IMG_7095.jpeg"
+    ],
+    "createdAt": 1770804762261,
+    "status": "published"
+  },
+  {
+    "id": "1770805999476",
+    "title": "Black Coat with Faux Fur Collar and Cuffs ID:20",
+    "price": 35,
+    "description": "Coat made of synthetic fabric with faux fur collar and cuffs, size L. Pre-owned piece in excellent condition, perfect for colder days with style and elegance. Size L",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770805999476/1770806009381_0_2D9D9F0F-F3D1-4443-B8D0-1DBDAB3DCE3D.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770805999476/1770806010928_1_IMG_7101.jpeg"
+    ],
+    "createdAt": 1770806013784,
+    "status": "published"
+  },
+  {
+    "id": "1770806783140",
+    "title": "Brown Vera Pelle Leather Coat ID:21",
+    "price": 55,
+    "description": "Genuine leather coat (Vera Pelle), size M. Pre-owned piece in excellent condition, featuring natural signs of wear that make it unique and authentic.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770806783140/1770806793592_0_4CFF043E-4571-41B5-A0E0-EE55814FEB42.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770806783140/1770806795229_1_IMG_7104.jpeg"
+    ],
+    "createdAt": 1770806798167,
+    "status": "published"
+  },
+  {
+    "id": "1770807516043",
+    "title": "Adidas Black Sports Leggings ID:22",
+    "price": 15,
+    "description": "Adidas sports leggings made from stretch performance fabric, size L. Pre-owned piece in excellent condition.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770807516043/1770807520079_0_C1150CBD-4C78-452B-80F0-C685E8C8946E.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770807516043/1770807521633_1_48FAFEEF-5D78-49D1-A31C-CA2E0264485F.png"
+    ],
+    "createdAt": 1770807523253,
+    "status": "published"
+  },
+  {
+    "id": "1770807882112",
+    "title": "Nike Black Sports Leggings ID:23",
+    "price": 15,
+    "description": "Nike sports leggings made from stretch performance fabric, size L. Pre-owned piece in excellent condition.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770807882112/1770807883879_0_DE8B2D75-FCF5-4127-AC45-171D2C975D65.png",
+    "gallery": [],
+    "createdAt": 1770807885443,
+    "status": "published"
+  },
+  {
+    "id": "1770808787166",
+    "title": "Nike Dri-FIT Patterned Sports Leggings ID:24",
+    "price": 15,
+    "description": "Nike Dri-FIT leggings made from stretch performance fabric, size M/L. Pre-owned piece in excellent condition.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770808787166/1770808789233_0_55DFD8A5-5739-4874-A2B2-78461F5215CE.png",
+    "gallery": [],
+    "createdAt": 1770808790966,
+    "status": "published"
+  },
+  {
+    "id": "1770809922898",
+    "title": "Nike Dri-FIT Pink Printed Leggings ID:25",
+    "price": 15,
+    "description": "Nike Dri-FIT leggings in polyester with elastane, breathable and quick-drying fabric. Size XS, pre-owned in excellent condition.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770809922898/1770809927578_0_106A0CE5-135F-47B7-BC2A-2E806C32A084.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770809922898/1770809929147_1_261DC1FE-535B-444F-A885-204A517E2A63.png"
+    ],
+    "createdAt": 1770809930869,
+    "status": "published"
+  },
+  {
+    "id": "1770814311756",
+    "title": "Nike Miami White Hoodie ID:26",
+    "price": 12,
+    "description": "Nike cotton hoodie with soft fleece interior, size M/L. Pre-owned in excellent condition, with original color and fabric preserved.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770814311756/1770814313930_0_37BAC8D9-6325-4BD2-911E-530E451EBCEF.png",
+    "gallery": [],
+    "createdAt": 1770814315811,
+    "status": "published"
+  },
+  {
+    "id": "1770815919613",
+    "title": "The North Face Grey Crewneck Sweatshirt ID:27",
+    "price": 15,
+    "description": "The North Face crewneck sweatshirt, size S, made from a soft and comfortable cotton and polyester blend.\nPre-owned piece in excellent condition, perfect for everyday wear.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770815919613/1770815921806_0_E9F5927A-B506-48F5-A645-016EC72FD65E.png",
+    "gallery": [],
+    "createdAt": 1770815923897,
+    "status": "published"
+  },
+  {
+    "id": "1770893481654",
+    "title": "Black Champion Logo Sweatshirt ID:28",
+    "price": 15,
+    "description": "Champion cotton sweatshirt with soft fleece lining, size XL. Pre-owned piece in excellent condition, comfortable and perfect for everyday wear.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770893481654/1770893485085_0_96C12DB7-0551-4C70-81A3-D453E873A32F.png",
+    "gallery": [],
+    "createdAt": 1770893486870,
+    "status": "published"
+  },
+  {
+    "id": "1770893940786",
+    "title": "Black Nike Swoosh Jogger Pants ID:29",
+    "price": 25,
+    "description": "Nike jogger pants made of lightweight polyester (nylon-style synthetic fabric), size XL. Pre-owned piece in excellent condition, featuring an elastic waistband and comfortable fit.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770893940786/1770893943300_0_0DE678E5-034E-4ECF-9B76-5E13E7A860A7.png",
+    "gallery": [],
+    "createdAt": 1770893944937,
+    "status": "published"
+  },
+  {
+    "id": "1770894461081",
+    "title": "Lotto Track Jogger Pants ID:30",
+    "price": 15,
+    "description": "Lotto jogger pants made of polyester, size L. Pre-owned piece in excellent condition, featuring an elastic waistband and comfortable fit for casual or athletic wear.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770894461081/1770894462686_0_98941D62-F133-4C58-B691-CA6609DB63CD.png",
+    "gallery": [],
+    "createdAt": 1770894464396,
+    "status": "published"
+  },
+  {
+    "id": "1770895937825",
+    "title": "Calvin Klein Jeans Pink Wool Peacoat Jacket ID:31",
+    "price": 40,
+    "description": "Women’s wool peacoat featuring a classic double-breasted design with zip pockets by Calvin Klein Jeans.\nSize M, pre-owned piece in excellent condition.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770895937825/1770895944085_0_C8AC7063-2E1E-4AA1-BEA4-CCD6DFA486BB.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770895937825/1770895946519_1_IMG_7142.jpeg"
+    ],
+    "createdAt": 1770895949046,
+    "status": "published"
+  },
+  {
+    "id": "1770897304739",
+    "title": "Under Armour Grey Hoodie with Blue Logo ID:32",
+    "price": 25,
+    "description": "Polyester hoodie, size M, featuring a hood and kangaroo pocket.\nPre-owned item in excellent condition, original Under Armour.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770897304739/1770897310909_0_AFB0879F-75A1-4134-8EB3-DD111F865AD8.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770897304739/1770897312625_1_IMG_7145.jpeg"
+    ],
+    "createdAt": 1770897314889,
+    "status": "published"
+  },
+  {
+    "id": "1770898387920",
+    "title": "The North Face Kids DryVent Hooded Jacket ID:33",
+    "price": 35,
+    "description": "Kids’ waterproof polyester jacket with DryVent technology, size S (7/8), featuring a hood and full-zip closure.\nPre-owned item in excellent condition, authentic The North Face.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770898387920/1770898390860_0_6A38B3F5-923A-4568-B8E1-87706EEAE68D.png",
+    "gallery": [],
+    "createdAt": 1770898392544,
+    "status": "published"
+  },
+  {
+    "id": "1770899271877",
+    "title": "Adidas Light Green Hoodie with Printed Sleeves ID:34",
+    "price": 15,
+    "description": "Adidas Originals hoodie made of cotton and polyester blend, featuring a front logo and printed sleeves; size S.\nBrand new, never worn.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770899271877/1770899274288_0_21C30172-FCC8-472A-A589-22C9BE49CD79.png",
+    "gallery": [],
+    "createdAt": 1770899276045,
+    "status": "published"
+  },
+  {
+    "id": "1770899919173",
+    "title": "Champion Black Hoodie with Animal Print Logo ID:35",
+    "price": 25,
+    "description": "Champion cotton and polyester hoodie, size S.\nPre-owned in excellent condition.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770899919173/1770899921211_0_D2B828F5-13E2-4F70-A7B7-72EA97231077.png",
+    "gallery": [],
+    "createdAt": 1770899922799,
+    "status": "published"
+  },
+  {
+    "id": "1770900981574",
+    "title": "Vintage Leather Belt with Braided Detail ID:36",
+    "price": 35,
+    "description": "Genuine leather vintage belt, 87 cm in length.\nPre-owned piece in excellent condition.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770900981574/1770900983013_0_4DAF9C49-F5ED-4FB3-A901-84EB66105D65.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770900981574/1770900984437_1_0C9441FD-7779-4465-880F-72673C72088C.jpeg",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770900981574/1770900985545_2_8A7619C6-6CB8-4540-A3BA-986007954DE6.jpeg"
+    ],
+    "createdAt": 1770900986729,
+    "status": "published"
+  },
+  {
+    "id": "1770901677526",
+    "title": "Leather Belt with Metal Buckle ID:37",
+    "price": 20,
+    "description": "Genuine leather belt, 93 cm in length.\nPre-owned piece in excellent condition.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770901677526/1770901680793_0_8D5A063B-C60C-4260-A7FA-B9EF4F1EA6AE.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770901677526/1770901682915_1_A2C920CD-5F68-438D-9335-26CB419D133E.png"
+    ],
+    "createdAt": 1770901684578,
+    "status": "published"
+  },
+  {
+    "id": "1770982537497",
+    "title": "Zara Basic Floral Blouse with Tie Detail ID:38",
+    "price": 10,
+    "description": "Zara Basic polyester blouse with floral print and tie detail.\nSize XS, pre-owned in excellent condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770982537497/1770982541141_0_11397AFF-E495-4CFC-B26A-048999FA9FA6.png",
+    "gallery": [],
+    "createdAt": 1770982543029,
+    "status": "published"
+  },
+  {
+    "id": "1770982895896",
+    "title": "Dolce & Gabbana Cropped Denim Jeans ID:39",
+    "price": 20,
+    "description": "Denim (cotton) cropped jeans with washed finish and distressed details.\nSize 42, pre-owned in excellent condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770982895896/1770982901065_0_748C03BA-D621-424F-A3BE-78256631D460.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770982895896/1770982902844_1_63765F3D-1F0F-4349-978F-060106219740.png"
+    ],
+    "createdAt": 1770982904496,
+    "status": "published"
+  },
+  {
+    "id": "1770983255157",
+    "title": "River Island Pants ID:40",
+    "price": 10,
+    "description": "Women’s denim (cotton) casual pants.\nSize UK 12 / EU 38, pre-owned in excellent condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770983255157/1770983258552_0_6BE14993-83D0-43EA-AB79-3FB363F66B76.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770983255157/1770983260158_1_5F2E2B12-2C81-43C8-9258-170A90984581.png"
+    ],
+    "createdAt": 1770983261768,
+    "status": "published"
+  },
+  {
+    "id": "1770983485619",
+    "title": "Carrera Corduroy Pants ID:41",
+    "price": 25,
+    "description": "Corduroy (cotton) classic straight-leg pants.\nSize 34, pre-owned in excellent condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770983485619/1770983493373_0_CC1F2C04-A0F5-4CCE-A39E-9404DCAA209D.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770983485619/1770983494881_1_DFF26569-AC57-46B7-BB3C-AABAF7EE7978.png"
+    ],
+    "createdAt": 1770983496467,
+    "status": "published"
+  },
+  {
+    "id": "1770986323356",
+    "title": "Puma Lime Green Puffer Jacket ID:43",
+    "price": 30,
+    "description": "Puffer jacket made of quilted synthetic fabric (100% polyester), lightweight and insulated, with full front zipper closure. Pre-owned in excellent condition, size M.",
+    "category": "Puffers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770986323356/1770986325100_0_252F1421-D58B-4A86-906C-0C19D2DD8902.png",
+    "gallery": [],
+    "createdAt": 1770986326826,
+    "status": "published"
+  },
+  {
+    "id": "1770987241287",
+    "title": "Vintage Mustard Merino Wool Cardigan ID:44",
+    "price": 40,
+    "description": "Knit cardigan made from 100% extra fine merino wool, featuring textured cable detailing and button-front closure. Vintage pre-owned piece in excellent condition, Size M/L",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770987241287/1770987243745_0_7053ACD9-0CB4-4148-8C79-09F88C459965.png",
+    "gallery": [],
+    "createdAt": 1770987245514,
+    "status": "published"
+  },
+  {
+    "id": "1770988245940",
+    "title": "Zara Basic Black Midi Dress with Ruffled Hem ID:45",
+    "price": 12,
+    "description": "Zara Basic midi dress in polyester with a subtle satin finish, fitted style with wide straps and ruffled hem. Pre-owned piece, size 38, in excellent condition.",
     "category": "Dresses & Skirts",
     "stock": 1,
-    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1777898132958/1777898139235_1_Gemini_Generated_Image_al5zqal5zqal5zqa.png",
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770988245940/1770988247618_0_12D80EFA-659B-471E-9F53-AC74916717FC.png",
+    "gallery": [],
+    "createdAt": 1770988249347,
+    "status": "published"
+  },
+  {
+    "id": "1770988701724",
+    "title": "Black Lace Dress with Tulle Skirt by Q London ID:46",
+    "price": 15,
+    "description": "Q London dress, size 12, featuring a lined lace bodice and a lined tulle skirt. Pre-owned piece in excellent condition, perfect for special occasions.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1770988701724/1770988703707_0_86691935-E7BE-45A6-92E9-E0670E239000.png",
+    "gallery": [],
+    "createdAt": 1770988705425,
+    "status": "published"
+  },
+  {
+    "id": "1771069260647",
+    "title": "Boohoo Long Sequin Tulle Dress ID:48",
+    "price": 30,
+    "description": "Long dress in tulle with sequin embellishment, unlined and featuring an invisible back zipper. Pre-owned in excellent condition, size UK 10.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771069260647/1771069262465_0_2B62DE8A-7836-403A-995E-E3B3AF6895F1.png",
+    "gallery": [],
+    "createdAt": 1771069264147,
+    "status": "published"
+  },
+  {
+    "id": "1771239055752",
+    "title": "Tommy Hilfiger Denim Plaid Cotton Shirt ID:50",
+    "price": 20,
+    "description": "Men’s long-sleeve cotton plaid shirt in blue and white.\nPre-owned in excellent condition, size XL.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771239055752/1771239059704_0_85BC281C-E1F2-4335-94C8-13B184399022.png",
+    "gallery": [],
+    "createdAt": 1771239061606,
+    "status": "published"
+  },
+  {
+    "id": "1771239648119",
+    "title": "GAP Plaid Cotton Shirt ID:51",
+    "price": 15,
+    "description": "Men’s long-sleeve cotton plaid shirt with button-front closure.\nPre-owned in excellent condition, size M.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771239648119/1771239655020_0_51854F61-3B22-44E2-9D02-0A1CB7EA4BF1.png",
+    "gallery": [],
+    "createdAt": 1771239656650,
+    "status": "published"
+  },
+  {
+    "id": "1771240010626",
+    "title": "Black Puma Racerback Tank Top ID:52",
+    "price": 15,
+    "description": "Women’s athletic tank top made from synthetic stretch fabric, racerback style.\nPre-owned in excellent condition, size UK 8.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771240010626/1771240012480_0_0479B8B2-D3E9-44C0-A8E5-3A726AF15177.png",
+    "gallery": [],
+    "createdAt": 1771240014128,
+    "status": "published"
+  },
+  {
+    "id": "1771242254664",
+    "title": "Polo Ralph Lauren Striped Dress Shirt ID:54",
+    "price": 25,
+    "description": "Men’s cotton dress shirt in blue and white stripes, Custom Fit model.\nPre-owned in excellent condition, size 17½ (44).",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771242254664/1771242261639_0_384C9ED0-6830-419F-9717-C49F49292967.png",
     "gallery": [
-      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1777898132958/1777898137333_0_Gemini_Generated_Image_bdjm0wbdjm0wbdjm.png"
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771242254664/1771242263229_1_IMG_7275.jpeg"
     ],
-    "createdAt": 1777898140115,
+    "createdAt": 1771242265887,
+    "status": "published"
+  },
+  {
+    "id": "1771242870118",
+    "title": "Hugo Boss Striped Dress Shirt ID:55",
+    "price": 12,
+    "description": "Men’s long-sleeve cotton striped dress shirt.\nPre-owned in excellent condition\nSize XL",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771242870118/1771242872318_0_08B85BDC-2547-45D8-9308-3E58F3EE3119.png",
+    "gallery": [],
+    "createdAt": 1771242874045,
+    "status": "published"
+  },
+  {
+    "id": "1771243676327",
+    "title": "Vintage Embroidered Clutch Bag with Metal Handle ID:56",
+    "price": 55,
+    "description": "Vendula London \nClutch bag crafted in satin fabric with floral embroidery and bead embellishments, featuring a metal frame and chain strap.\nPre-owned in excellent condition",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771243676327/1771243678700_0_41D21E41-124C-4115-88F0-ACD715621DCE.png",
+    "gallery": [],
+    "createdAt": 1771243680337,
+    "status": "published"
+  },
+  {
+    "id": "1771244321483",
+    "title": "Brown Puffer Fabric Bucket Bag ID:57",
+    "price": 15,
+    "description": "Bucket-style bag crafted in padded (puffer) fabric with a woven textile strap. Pre-owned piece in excellent condition.",
+    "category": "Bags & Accessories",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771244321483/1771244322711_0_F0826BB3-00F1-4106-B365-DA36DEC7CE4A.jpeg",
+    "gallery": [],
+    "createdAt": 1771244323912,
+    "status": "published"
+  },
+  {
+    "id": "1771322165659",
+    "title": "Tommy Hilfiger Olive Green Long Sleeve T-Shirt ID:58",
+    "price": 10,
+    "description": "Long sleeve T-shirt made of cotton jersey in olive green, featuring the brand’s signature tricolor inner neckline detail.\nPre-owned in excellent condition, size M.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771322165659/1771322167184_0_ECA1B858-0EA8-4A1A-B247-13F6FDB38BB3.png",
+    "gallery": [],
+    "createdAt": 1771322168860,
+    "status": "published"
+  },
+  {
+    "id": "1771323431479",
+    "title": "ST. Polo Beige V-Neck Knit Sweater ID:60",
+    "price": 25,
+    "description": "Cotton knit V-neck sweater with textured pattern.\nPre-owned in excellent condition, size M/L",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771323431479/1771323435004_0_1C14E2F9-3579-45E5-A2F2-2F8BDDCF7CA4.png",
+    "gallery": [],
+    "createdAt": 1771323436868,
+    "status": "published"
+  },
+  {
+    "id": "1771324426985",
+    "title": "Scotch & Soda Grey Sweatshirt ID:62",
+    "price": 25,
+    "description": "Cotton sweatshirt with brushed inner lining, classic crewneck style.\nPre-owned in excellent condition, size S",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771324426985/1771324434896_0_B29CE6FA-FCCF-4325-91C7-AA97AC266561.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771324426985/1771324436518_1_300A711A-15DF-42A6-A7C2-A1B5BF72D463.png"
+    ],
+    "createdAt": 1771324438135,
+    "status": "published"
+  },
+  {
+    "id": "1771325245780",
+    "title": "Vera Pelle Leather Coat with Quilted Lining ID:63",
+    "price": 65,
+    "description": "Genuine leather (Vera Pelle) coat with quilted polyester inner lining, pre-owned in excellent condition. Size 46.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771325245780/1771325247765_0_FD3883E7-54BC-4C97-8239-DD1F3D59C247.png",
+    "gallery": [],
+    "createdAt": 1771325249341,
+    "status": "published"
+  },
+  {
+    "id": "1771325972305",
+    "title": "Privilegi Classic Originale Leather Coat ID:64",
+    "price": 65,
+    "description": "Genuine leather (Vera Pelle) coat with polyester inner lining, pre-owned in excellent condition. Size 46.",
+    "category": "Leatherwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771325972305/1771325974466_0_A942F521-11EA-45CE-BCBB-1D9AEB7F3AE6.png",
+    "gallery": [],
+    "createdAt": 1771325975966,
+    "status": "published"
+  },
+  {
+    "id": "1771326755910",
+    "title": "Stefanel  Black Tailored Coat ID:65",
+    "price": 40,
+    "description": "Structured coat in polyester and wool blend with polyester lining, pre-owned in excellent condition. Size 40.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771326755910/1771326759209_0_9096E4DF-2C77-4161-96BE-FB8CD050EBC0.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771326755910/1771326760435_1_A40B6249-2143-46C8-B139-2E707387CA7A.png"
+    ],
+    "createdAt": 1771326761883,
+    "status": "published"
+  },
+  {
+    "id": "1771408263357",
+    "title": "Reebok Navy Blue Sweatpants ID:66",
+    "price": 15,
+    "description": "Reebok fleece sweatpants in cotton and polyester sweatshirt fabric, jogger style.\nPre-owned piece in excellent condition, size M.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771408263357/1771408266080_0_37977AD9-F778-4C21-8628-45C7C6373CCD.png",
+    "gallery": [],
+    "createdAt": 1771408268013,
+    "status": "published"
+  },
+  {
+    "id": "1771409167513",
+    "title": "Vintage Black Lace Shirt ID:68",
+    "price": 15,
+    "description": "Vintage lace shirt with satin fabric details and front button closure.\nPre-owned piece in excellent condition, size L.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771409167513/1771409169945_0_82876A93-5C19-47E1-BAE3-5B6902778B77.png",
+    "gallery": [],
+    "createdAt": 1771409172847,
+    "status": "published"
+  },
+  {
+    "id": "1771409819339",
+    "title": "Ellesse Heritage Black Hoodie ID:70",
+    "price": 35,
+    "description": "Ellesse Heritage hoodie made of cotton and polyester fleece fabric, featuring a front kangaroo pocket.\nPre-owned piece in excellent condition, size S.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771409819339/1771409821300_0_81816EAA-18E1-45AB-9ECE-B26D2218F266.png",
+    "gallery": [],
+    "createdAt": 1771409823052,
+    "status": "published"
+  },
+  {
+    "id": "1771410193645",
+    "title": "Levi’s 311 Shaping Skinny Jeans ID:71",
+    "price": 30,
+    "description": "Levi’s 311 Shaping Skinny jeans made from stretch denim fabric (cotton with elastane).\nPre-owned piece in excellent condition, size 30.",
+    "category": "Trousers",
+    "stock": 10,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771410193645/1771410203348_0_198034E3-924C-41B2-9553-D31B409495B8.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771410193645/1771410204976_1_IMG_7353.jpeg"
+    ],
+    "createdAt": 1771410207970,
+    "status": "published"
+  },
+  {
+    "id": "1771411073149",
+    "title": "Grey Adidas Hooded Sweatshirt with Front Logo ID:73",
+    "price": 25,
+    "description": "Hooded sweatshirt made of cotton and polyester fleece, pullover kangaroo style, in grey with front Adidas logo. Pre-owned in excellent condition, size M.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411073149/1771411077442_0_153984AB-27B4-4822-B8CB-B5CE9ED8567F.png",
+    "gallery": [],
+    "createdAt": 1771411079288,
+    "status": "published"
+  },
+  {
+    "id": "1771411918405",
+    "title": "Vintage Destroy CAPPOPERA Jeans ID:74",
+    "price": 55,
+    "description": "Vintage denim (cotton) destroyed jeans with no rips, by CAPPOPERA Jeans. Selected piece, pre-owned in excellent condition, size 42 (USA 28), made in Italy.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411918405/1771411944258_0_A4593C17-44C5-4C20-A37C-69AD063E74C4.jpeg",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411918405/1771411945554_1_C9F8B9D9-564A-4FBD-AA34-7FADD66BC2D3.jpeg",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411918405/1771411946761_2_IMG_7365.jpeg",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771411918405/1771411949551_3_IMG_7367.jpeg"
+    ],
+    "createdAt": 1771411951747,
+    "status": "published"
+  },
+  {
+    "id": "1771413175096",
+    "title": "Reebok Black Performance T-Shirt ID:69",
+    "price": 12,
+    "description": "Performance T-shirt made of Dri-Fit style technical fabric (polyester), lightweight and quick-drying.\nPre-owned piece in excellent condition, size XS.",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771413175096/1771413177702_0_37AE1A27-47B9-413F-80D2-8339C4C9121F.png",
+    "gallery": [],
+    "createdAt": 1771413179390,
+    "status": "published"
+  },
+  {
+    "id": "1771583793733",
+    "title": "Lotto Navy Blue Track Jacket ID:76",
+    "price": 15,
+    "description": "Cotton and polyester track jacket with full front zipper, brand new . Size XL.",
+    "category": "Hoodies & Sweatshirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771583793733/1771583795012_0_D1EB7494-89C8-45F6-BB21-E50EFE3253C8.jpeg",
+    "gallery": [],
+    "createdAt": 1771583796451,
+    "status": "published"
+  },
+  {
+    "id": "1771584299150",
+    "title": "Adidas Blue Long Sleeve Sports Shirt ID:77",
+    "price": 20,
+    "description": "Long sleeve sports shirt made of polyester, lightweight and comfortable, pre-owned in excellent condition. Size 2XL",
+    "category": "Activewear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771584299150/1771584301075_0_24321390-A719-4FD6-AAED-596E310E916E.png",
+    "gallery": [],
+    "createdAt": 1771584302714,
+    "status": "published"
+  },
+  {
+    "id": "1771585305616",
+    "title": "Dark Green Grey Overcoat ID:78",
+    "price": 30,
+    "description": "Structured overcoat in a suede-like fabric, with belt loops (belt missing), pre-owned in excellent condition. Size 40.",
+    "category": "Coats & Outerwear",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771585305616/1771585308454_0_66FA7474-88D5-45FB-905E-8FE13BB99D2D.png",
+    "gallery": [],
+    "createdAt": 1771585310121,
+    "status": "published"
+  },
+  {
+    "id": "1771586497733",
+    "title": "Red Wool Blazer HMC Munich Mode Collection ID:79",
+    "price": 40,
+    "description": "Blazer made of 100% virgin wool with 55% polyester and 45% viscose lining, pre-owned in excellent condition. Size 42 (EU) / 12 (USA).",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771586497733/1771586510828_0_9E7FD22E-798E-4AE0-80A1-DB02E78E72B9.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771586497733/1771586512387_1_4A08BC7C-FD76-4112-8DA9-6DE999D7A464.png",
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771586497733/1771586514014_2_IMG_7400.jpeg"
+    ],
+    "createdAt": 1771586516502,
+    "status": "published"
+  },
+  {
+    "id": "1771586912139",
+    "title": "Navy Blue Cardigan with Red Details Tommy Hilfiger ID:80",
+    "price": 25,
+    "description": "Vintage 100% cotton knit cardigan featuring a V-neck and button closure, size M. Shows natural signs of wear that enhance its authenticity, while remaining in excellent overall condition.",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771586912139/1771586914747_0_35348D94-F782-4077-A7E1-D0F962B25F95.png",
+    "gallery": [],
+    "createdAt": 1771586916562,
+    "status": "published"
+  },
+  {
+    "id": "1771598345361",
+    "title": "ADOR Sleeveless Satin Blouse with Classic Collar in Red ID:53",
+    "price": 15,
+    "description": "Women’s sleeveless blouse in satin (100% polyester) with a classic collar and smooth glossy finish.\nSize XL, brand new with tag.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1771598345361/1771598347186_0_4A9D93E5-E3F9-4190-85B4-6A6D13104E4D.png",
+    "gallery": [],
+    "createdAt": 1771598349148,
+    "status": "published"
+  },
+  {
+    "id": "1772020721574",
+    "title": "Yellow AVX Graphic T-Shirt ID:81",
+    "price": 10,
+    "description": "Men’s size L T-shirt made of cotton jersey, in yellow with “AVX Avirex Dept.” front print. Pre-owned piece in excellent condition.",
+    "category": "Shirts & Tees",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772020721574/1772020723439_0_C2C0FA54-8EA9-4E5D-BE47-220081DF0CE5.png",
+    "gallery": [],
+    "createdAt": 1772020725495,
+    "status": "published"
+  },
+  {
+    "id": "1772021088418",
+    "title": "Acid Wash Denim Pencil Skirt ID:67",
+    "price": 25,
+    "description": "Pencil skirt in denim fabric with acid wash finish, pre-owned in excellent condition. Size M, featuring a back slit with button detail for added style and comfort.",
+    "category": "Dresses & Skirts",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772021088418/1772021095678_0_DC4DAED9-E01B-4869-9C0E-A3A5B0FFDE1A.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772021088418/1772021097217_1_0A148C09-68D0-47D0-8BED-18D104DFD955.png"
+    ],
+    "createdAt": 1772021098837,
+    "status": "published"
+  },
+  {
+    "id": "1772022541145",
+    "title": "Levi’s Blue Denim Jeans ID:72",
+    "price": 25,
+    "description": "100% cotton denim jeans, classic five-pocket style in medium blue wash, Size 7M, pre-owned in excellent condition.",
+    "category": "Trousers",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772022541145/1772022556977_0_5A427111-5413-4836-A4DD-FA71FA85B2AD.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772022541145/1772022558502_1_IMG_7357.jpeg"
+    ],
+    "createdAt": 1772022561289,
+    "status": "published"
+  },
+  {
+    "id": "1772027879551",
+    "title": "Black A-Style Casual Blazer with Embroidered Patches ID:82",
+    "price": 25,
+    "description": "Casual blazer made of cotton sweatshirt fabric (structured knit), in black, featuring original brand patches and embroidery.\nPre-owned piece in excellent condition, size L",
+    "category": "Curated Pieces",
+    "stock": 1,
+    "image": "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772027879551/1772027884050_0_F084E65F-F56D-4930-8748-96939A745D4B.png",
+    "gallery": [
+      "https://raw.githubusercontent.com/STAVARENG0/vintage/main/products/1772027879551/1772027885704_1_CFC44538-088C-40F5-829C-6E7BC5AB4B28.png"
+    ],
+    "createdAt": 1772027887328,
     "status": "published"
   }
 ]
