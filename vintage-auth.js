@@ -3,14 +3,14 @@
 
   /**
    * VintageAuth (cookie-based)
-   * - NÃO lê token (nenhum sessionStorage/localStorage de token)
-   * - Valida sessão chamando GET /me no backend
-   * - Envia cookies cross-domain via fetch(..., { credentials: 'include' })
+   * - Does not read tokens from sessionStorage/localStorage.
+   * - Validates the session with GET /me on the backend.
+   * - Sends cross-domain cookies through fetch(..., { credentials: 'include' }).
    *
-   * Configuração do backend (opcional):
+   * Optional backend configuration:
    *   - window.__API_BASE_URL__ = 'https://api.seudominio.com'
-   *   - ou window.API_BASE_URL
-   *   - ou VintageAuth.setApiBase('https://api.seudominio.com')
+   *   - or window.API_BASE_URL
+   *   - or VintageAuth.setApiBase('https://api.seudominio.com')
    */
 
   var DEFAULT_LOGIN_PAGE = 'cliente-login-2.html';
@@ -76,7 +76,7 @@
   }
 
   /**
-   * fetch JSON (com cookies)
+   * Fetch JSON with cookies.
    */
   function apiFetch(path, options) {
     options = options && typeof options === 'object' ? options : {};
@@ -96,22 +96,22 @@
 
   /**
    * GET /me
-   * - Se 200: retorna { ok: true, user }
-   * - Se 401/403: retorna { ok: false, status }
-   * - Outros: retorna { ok: false, status }
+   * - If 200: returns { ok: true, user }.
+   * - If 401/403: returns { ok: false, status }.
+   * - Other statuses: returns { ok: false, status }.
    */
   function me() {
     return withTimeout(
       apiFetch('/user/me', { method: 'GET' })
         .then(function (res) {
           if (res.ok) {
-            // pode ser JSON ou vazio
+            // It can be JSON or empty.
             return res.text().then(function (txt) {
               var data = safeJsonParse(txt);
               if (data) {
                 ssSet(USER_CACHE_KEY, JSON.stringify(data));
               } else {
-                // se não vier JSON, mantém cache existente
+                // If JSON is missing, keep the existing cache.
               }
               return { ok: true, status: res.status, user: data || safeJsonParse(ssGet(USER_CACHE_KEY)) || null };
             });
@@ -126,7 +126,7 @@
   }
 
   /**
-   * Valida login e redireciona para login em caso de 401/403 (ou erro)
+   * Validate login and redirect on 401/403 or error.
    */
   function checkOrRedirect() {
     return me().then(function (r) {
@@ -137,14 +137,14 @@
         redirectToLogin('unauthorized');
         return r;
       }
-      // Falha inesperada: por segurança, manda pro login também
+      // Unexpected failure: redirect to login for safety.
       redirectToLogin('auth_failed');
       return r;
     });
   }
 
   /**
-   * Logout (opcional): tenta POST /logout e redireciona
+   * Optional logout: try POST /logout and redirect.
    */
   function logout() {
   ssRemove(USER_CACHE_KEY);
@@ -160,7 +160,7 @@
     { path: '/auth/signout', method: 'GET' }
   ];
 
-  // tenta derrubar sessão no backend (cookie HttpOnly só sai assim)
+  // Try ending the backend session; HttpOnly cookies can only be cleared this way.
   var p = Promise.resolve();
   tries.forEach(function (t) {
     p = p.then(function () {
@@ -169,7 +169,7 @@
   });
 
   return p.then(function () {
-    // IMPORTANTe: manda pro login SEM back= pra não voltar pro painel
+    // Important: send to login without back= to avoid returning to the panel.
     location.href = DEFAULT_LOGIN_PAGE + '?reason=logout';
   });
 }
@@ -181,7 +181,7 @@
   }
 
   function authHeaders(extra) {
-    // Mantido por compatibilidade (agora sem Authorization)
+    // Kept for compatibility, now without Authorization.
     var h = {};
     if (extra && typeof extra === 'object') {
       for (var k in extra) {

@@ -2,6 +2,10 @@
 <!DOCTYPE html>
 <html lang="en-IE">
 <head>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest"/>
+<meta name="theme-color" content="#f1dfc2"/>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Customer Dashboard</title>
@@ -667,6 +671,86 @@
 
     .hidden{ display:none !important; }
   </style>
+
+<style id="vintage-polish-2026">
+  .menu-panel{
+    background: linear-gradient(135deg, rgba(253,244,227,.76), rgba(241,223,194,.58), rgba(227,195,149,.66)) !important;
+    backdrop-filter: blur(20px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(145%) !important;
+    border: 1px solid rgba(212,175,55,.64) !important;
+    box-shadow: 0 26px 78px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.48), 0 0 34px rgba(212,175,55,.16) !important;
+    overflow: hidden !important;
+  }
+  .menu-panel::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background: radial-gradient(circle at 28% 20%, rgba(255,255,255,.56), transparent 28%), radial-gradient(circle at 72% 12%, rgba(245,215,110,.34), transparent 32%);
+    pointer-events:none;
+  }
+  .menu-title,
+  .menu-list,
+  .menu-close{ position:relative; z-index:1; }
+  .menu-title{
+    color:#3b2206 !important;
+    letter-spacing:.22em !important;
+    text-shadow:0 1px 0 rgba(255,255,255,.55) !important;
+  }
+  .menu-list a{
+    background: rgba(255,255,255,.34) !important;
+    border:1px solid rgba(212,175,55,.38) !important;
+    border-radius:16px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.46), 0 10px 24px rgba(0,0,0,.08) !important;
+  }
+  .menu-list a:hover{
+    background: rgba(255,255,255,.58) !important;
+    transform: translateX(4px) translateY(-1px) !important;
+  }
+  .menu-close{
+    background: rgba(255,255,255,.54) !important;
+    border:1px solid rgba(212,175,55,.45) !important;
+    box-shadow:0 10px 24px rgba(0,0,0,.12) !important;
+  }
+  .cta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .share-btn,
+  .vmodal__share{
+    background: rgba(255,255,255,.74) !important;
+    color:#3b2206 !important;
+    border:1px solid rgba(212,175,55,.52) !important;
+  }
+  .share-btn:hover,
+  .vmodal__share:hover{ filter:brightness(1.04) !important; }
+  .cart-qty{
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    padding:5px !important;
+    border-radius:999px !important;
+    background: rgba(255,255,255,.56) !important;
+    border:1px solid rgba(212,175,55,.38) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 8px 18px rgba(0,0,0,.08) !important;
+  }
+  .cart-qty .qty-btn{
+    width:34px !important;
+    height:34px !important;
+    padding:0 !important;
+    border-radius:999px !important;
+    border:1px solid rgba(212,175,55,.58) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(245,215,110,.28)) !important;
+    color:#3b2206 !important;
+    font-weight:900 !important;
+    cursor:pointer !important;
+    box-shadow:0 6px 14px rgba(0,0,0,.10) !important;
+  }
+  .cart-qty .qty-btn:hover{ transform:translateY(-1px) !important; }
+  .cart-qty .qty-number{
+    min-width:24px !important;
+    text-align:center !important;
+    font-weight:900 !important;
+    color:#3b2206 !important;
+  }
+  .vmodal__actions{ display:flex; gap:10px; flex-wrap:wrap; }
+</style>
 </head>
 
 <body>
@@ -1224,7 +1308,7 @@ function escAttr(v){
       setText('year', new Date().getFullYear());
     }
 
-    // ====== Ações ======
+    // ====== Actions ======
     window.editAddress = function(id){
       const a = (state.addresses||[]).find(x => x.id === id);
       if (!a) return;
@@ -1331,7 +1415,7 @@ function escAttr(v){
       }
     }
 
-    // Salvar conta (demo)
+    // Save account (demo)
     function saveAccount(){
       const name = $('accName').value.trim();
       const email = $('accEmail').value.trim();
@@ -1343,7 +1427,7 @@ function escAttr(v){
       renderHero();
     }
 
-    // Senha (demo)
+    // Password (demo)
     function changePassword(){
       const n1 = $('passNew').value.trim();
       const n2 = $('passConfirm').value.trim();
@@ -1362,7 +1446,7 @@ function escAttr(v){
       setText('passMsg', '✅ Password updated.');
     }
 
-    // Roleta (dinâmica com pesos + posições aleatórias)
+    // Roleta (dinâmica com pesos + positions aleatórias)
 let spinning = false;
 
 const BASE_PRIZES = [
@@ -1396,10 +1480,10 @@ function shuffle(arr){
 }
 
 function jitterWeights(prizes){
-  // Dá uma leve variada para não ficar "padrão", mas mantém o maior prêmio com menor chance.
+  // Add slight variation so it does not look static, while keeping the largest reward less likely.
   return prizes.map(p => {
     let mult = 0.85 + Math.random()*0.30; // 0.85..1.15
-    // Segura o €20 numa faixa menor (prêmio maior)
+    // Segura o €20 numa faixa menor (reward maior)
     if (p.id === 'cash20'){
       mult = 0.70 + Math.random()*0.20;   // 0.70..0.90
     }
@@ -1575,17 +1659,17 @@ async function spin(){
     // 1) calcula pesos com leve variação
     const weighted = jitterWeights(BASE_PRIZES);
 
-    // 2) define o prêmio vencedor por peso (mais chance nos prêmios "fracos")
+    // 2) define o reward vencedor por peso (mais chance nos rewards "fracos")
     const winner = pickWeighted(weighted);
 
-    // 3) embaralha posições (dinâmico) e redesenha
+    // 3) embaralha positions (dynamic) e redraws
     const order = shuffle(BASE_PRIZES);
     drawWheel(order);
 
-    // 4) anima até o prêmio
+    // 4) anima até o reward
     await animateToPrize(winner.id);
 
-    // 5) aplica prêmio
+    // 5) aplica reward
     state.spinsLeftToday = Math.max(0, Number(state.spinsLeftToday||0) - 1);
     const dateKey = getIrelandDateKey();
 
@@ -1616,11 +1700,11 @@ async function spin(){
               await rApi.grantExtraSpin(1, 'wheel');
             }
           } catch(err){
-            console.warn('Erro ao creditar extra spin no backend:', err && err.message || err);
+            console.warn('Error crediting extra spin in backend:', err && err.message || err);
           }
         }
 
-       // ===== Sincroniza prêmios com o banco (MySQL) via API =====
+       // ===== Sync rewards with the database (MySQL) through the API =====
     try{
       const api = window.VW_API;
       if (api && api.apiJson){
@@ -1657,7 +1741,7 @@ async function spin(){
         }
       }
     } catch(err){
-      console.warn('Falha ao sincronizar prêmio com API:', err?.message || err);
+      console.warn('Failed syncing reward com API:', err?.message || err);
     }
 
     savePersisted();
@@ -1819,7 +1903,7 @@ async function spin(){
 
 });
 
-    // ======= Campo reativo dourado =======
+    // ======= Reactive gold field =======
     (() => {
       const MAX_PARTICLES_BASE = 120;
       const LINK_DIST = 170;
@@ -1933,7 +2017,7 @@ async function spin(){
   </script>
 <script>
   const API_ROOT = "https://auth.vintage-clothes.ie"; // backend de login/conta
-    const REWARDS_ROOT = "https://clientes.vintage-clothes.ie"; // backend de pontos/bônus (Railway)
+    const REWARDS_ROOT = "https://clientes.vintage-clothes.ie"; // rewards/points backend (Railway)
   function getToken(){
       return (window.VintageAuth && typeof window.VintageAuth.getToken==='function') ? window.VintageAuth.getToken() : null;
     }
@@ -2232,7 +2316,7 @@ function syncPointsUI(points){
       }
 
       if (!res.ok) {
-        console.warn("Falha ao carregar /user/me:", res.status);
+        console.warn("Failed loading /user/me:", res.status);
         return;
       }
 
@@ -2250,10 +2334,10 @@ function syncPointsUI(points){
 
       applyAvatar(user);
 
-      // carrega pontos + desconto (DB)
+      // Load points and discount from the DB.
       loadRewardsStatus();
     } catch (err) {
-      console.error("Erro carregando /user/me", err);
+      console.error("Error loading /user/me", err);
     }
   }
 
@@ -2454,7 +2538,7 @@ function syncPointsUI(points){
         if (typeof renderAll === 'function') renderAll();
       }catch(_){}
 
-      // A partir daqui é o mesmo fluxo antigo da roleta: anima, sorteia e aplica prêmio
+      // A partir daqui é o mesmo fluxo antigo da roleta: anima, sorteia e aplica reward
       if (typeof setText === 'function') {
         setText('spinResultMsg', 'Spinning…');
       }
@@ -2488,7 +2572,7 @@ function syncPointsUI(points){
         }
       }
 
-           // ===== Sincroniza prêmio com o backend de rewards (já existia) =====
+           // ===== Sincroniza reward com o backend de rewards (já existia) =====
       try{
         const rApi = window.VW_API;
         if (rApi && rApi.apiJson && typeof state !== 'undefined'){

@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en-IE">
 <head>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest"/>
+<meta name="theme-color" content="#f1dfc2"/>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Customer Dashboard - Account</title>
@@ -518,6 +522,86 @@
 
     .hidden{ display:none !important; }
   </style>
+
+<style id="vintage-polish-2026">
+  .menu-panel{
+    background: linear-gradient(135deg, rgba(253,244,227,.76), rgba(241,223,194,.58), rgba(227,195,149,.66)) !important;
+    backdrop-filter: blur(20px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(145%) !important;
+    border: 1px solid rgba(212,175,55,.64) !important;
+    box-shadow: 0 26px 78px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.48), 0 0 34px rgba(212,175,55,.16) !important;
+    overflow: hidden !important;
+  }
+  .menu-panel::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background: radial-gradient(circle at 28% 20%, rgba(255,255,255,.56), transparent 28%), radial-gradient(circle at 72% 12%, rgba(245,215,110,.34), transparent 32%);
+    pointer-events:none;
+  }
+  .menu-title,
+  .menu-list,
+  .menu-close{ position:relative; z-index:1; }
+  .menu-title{
+    color:#3b2206 !important;
+    letter-spacing:.22em !important;
+    text-shadow:0 1px 0 rgba(255,255,255,.55) !important;
+  }
+  .menu-list a{
+    background: rgba(255,255,255,.34) !important;
+    border:1px solid rgba(212,175,55,.38) !important;
+    border-radius:16px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.46), 0 10px 24px rgba(0,0,0,.08) !important;
+  }
+  .menu-list a:hover{
+    background: rgba(255,255,255,.58) !important;
+    transform: translateX(4px) translateY(-1px) !important;
+  }
+  .menu-close{
+    background: rgba(255,255,255,.54) !important;
+    border:1px solid rgba(212,175,55,.45) !important;
+    box-shadow:0 10px 24px rgba(0,0,0,.12) !important;
+  }
+  .cta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .share-btn,
+  .vmodal__share{
+    background: rgba(255,255,255,.74) !important;
+    color:#3b2206 !important;
+    border:1px solid rgba(212,175,55,.52) !important;
+  }
+  .share-btn:hover,
+  .vmodal__share:hover{ filter:brightness(1.04) !important; }
+  .cart-qty{
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    padding:5px !important;
+    border-radius:999px !important;
+    background: rgba(255,255,255,.56) !important;
+    border:1px solid rgba(212,175,55,.38) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 8px 18px rgba(0,0,0,.08) !important;
+  }
+  .cart-qty .qty-btn{
+    width:34px !important;
+    height:34px !important;
+    padding:0 !important;
+    border-radius:999px !important;
+    border:1px solid rgba(212,175,55,.58) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(245,215,110,.28)) !important;
+    color:#3b2206 !important;
+    font-weight:900 !important;
+    cursor:pointer !important;
+    box-shadow:0 6px 14px rgba(0,0,0,.10) !important;
+  }
+  .cart-qty .qty-btn:hover{ transform:translateY(-1px) !important; }
+  .cart-qty .qty-number{
+    min-width:24px !important;
+    text-align:center !important;
+    font-weight:900 !important;
+    color:#3b2206 !important;
+  }
+  .vmodal__actions{ display:flex; gap:10px; flex-wrap:wrap; }
+</style>
 </head>
 
 <body>
@@ -985,7 +1069,7 @@ function normalizeUser(raw){
   headers: authHeaders()
 });
         if (!res.ok) {
-          console.warn('Falha ao carregar /user/me:', res.status);
+          console.warn('Failed loading /user/me:', res.status);
           const cached = readCache(USER_CACHE_KEY);
           if (cached) { currentUser = cached; fillProfileUI(); }
           return;
@@ -995,7 +1079,7 @@ function normalizeUser(raw){
         writeCache(USER_CACHE_KEY, currentUser);
         fillProfileUI();
       } catch (err) {
-        console.error('Erro carregando /user/me', err);
+        console.error('Error loading /user/me', err);
         const cached = readCache(USER_CACHE_KEY);
         if (cached) { currentUser = cached; fillProfileUI(); }
       }
@@ -1008,7 +1092,7 @@ function normalizeUser(raw){
   headers: authHeaders()
 });
           if (!res.ok) {
-          console.warn('Falha ao carregar /user/settings:', res.status);
+          console.warn('Failed loading /user/settings:', res.status);
           const cached = readCache(ADDR_CACHE_KEY);
           if (cached) { currentAddress = cached; fillAddressUI(); }
           return;
@@ -1025,7 +1109,7 @@ function normalizeUser(raw){
         writeCache(ADDR_CACHE_KEY, currentAddress);
         fillAddressUI();
       } catch (err) {
-        console.error('Erro carregando /user/settings', err);
+        console.error('Error loading /user/settings', err);
         const cached = readCache(ADDR_CACHE_KEY);
         if (cached) { currentAddress = cached; fillAddressUI(); }
       }
@@ -1054,7 +1138,7 @@ function normalizeUser(raw){
     }
 
     if (!res.ok) {
-      throw new Error("Erro ao salvar");
+      throw new Error("Save failed");
     }
 
     currentUser = currentUser || {};
@@ -1099,7 +1183,7 @@ function normalizeUser(raw){
         }
 
         if (!res.ok) {
-          throw new Error("Erro ao salvar endereço");
+          throw new Error("Address save failed");
         }
 
         currentAddress = data;
@@ -1112,7 +1196,7 @@ function normalizeUser(raw){
 
     // Em alguns celulares (especialmente iPhone), fotos da galeria podem vir MUITO grandes,
     // ou com mimetype vazio/HEIC, e isso costuma estourar limites do backend/Cloudinary.
-    // Aqui a gente tenta reduzir e converter pra JPEG antes de enviar.
+    // Reduce and convert to JPEG before uploading.
     async function prepareAvatarForUpload(file){
       const MAX_BYTES = 2.5 * 1024 * 1024; // ~2.5MB
       const MAX_DIM = 1600;
@@ -1129,7 +1213,7 @@ function normalizeUser(raw){
         return { blob: file, name: file.name || 'avatar.jpg' };
       }
 
-      // Tenta desenhar num canvas e exportar JPEG (tambem resolve tipo vazio em iOS).
+      // Try drawing to a canvas and exporting as JPEG. This also fixes empty MIME type on iOS.
       try {
         const objectUrl = URL.createObjectURL(file);
         const img = await new Promise((resolve, reject) => {
@@ -1159,7 +1243,7 @@ function normalizeUser(raw){
         const base = (file.name || 'avatar').replace(/\.[a-z0-9]+$/i, '');
         return { blob, name: base + '.jpg' };
       } catch (e) {
-        // Se falhar a conversao, envia o arquivo original mesmo.
+        // If conversion fails, upload the original file.
         return { blob: file, name: file.name || 'avatar.jpg' };
       }
     }

@@ -2,6 +2,10 @@
 
 <html lang="en">
 <head>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest"/>
+<meta name="theme-color" content="#f1dfc2"/>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>VintageShop — Shoes</title>
@@ -416,7 +420,7 @@ header{ text-align:center; }
 .menu-overlay{
   position: absolute;
   inset: 0;
-  background: transparent; /* não escurece o site */
+  background: transparent; /* do not darken the site */
 }
 
 .menu-panel{
@@ -586,7 +590,7 @@ body{
   pointer-events:none;
 }
 
-/* container glass (usa os wrappers existentes .wrap + .card) */
+/* glass container using existing .wrap and .card wrappers */
 .wrap{
   max-width:1180px !important;
   margin:0 auto 32px !important;
@@ -731,7 +735,7 @@ body{
   filter: brightness(.99);
 }
 
-/* Mantém o texto dos botões sociais legível */
+/* Keep social button text readable */
 .social-btn svg path{ fill: currentColor !important; }
 
 /* 3) Logo bem maior (PC e mobile) + borda dourada */
@@ -767,7 +771,7 @@ body{
 <style id="logo-neon-tight">
 /* 1) Remove “moldura”/espaços do container da logo */
 .site-name{
-  /* faz a imagem encostar (remove letterbox do contain) */
+  /* faz a image encostar (remove letterbox do contain) */
   background: url("LOGO.png") center / cover no-repeat !important;
 
   /* tira fundo/borda/sombra que viravam “margem” */
@@ -787,7 +791,7 @@ body{
     drop-shadow(0 0 44px rgba(200,255,255,0.35)) !important;
 }
 
-/* se existir qualquer <img> de logo em outros pontos, aplica o mesmo neon */
+/* Apply the same neon treatment to any other logo image */
 .brand img{
     border-radius: 18px !important;
 background: transparent !important;
@@ -812,6 +816,86 @@ background: transparent !important;
   .category-buttons{ margin-top: 12px !important; }
 }
 
+</style>
+
+<style id="vintage-polish-2026">
+  .menu-panel{
+    background: linear-gradient(135deg, rgba(253,244,227,.76), rgba(241,223,194,.58), rgba(227,195,149,.66)) !important;
+    backdrop-filter: blur(20px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(145%) !important;
+    border: 1px solid rgba(212,175,55,.64) !important;
+    box-shadow: 0 26px 78px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.48), 0 0 34px rgba(212,175,55,.16) !important;
+    overflow: hidden !important;
+  }
+  .menu-panel::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background: radial-gradient(circle at 28% 20%, rgba(255,255,255,.56), transparent 28%), radial-gradient(circle at 72% 12%, rgba(245,215,110,.34), transparent 32%);
+    pointer-events:none;
+  }
+  .menu-title,
+  .menu-list,
+  .menu-close{ position:relative; z-index:1; }
+  .menu-title{
+    color:#3b2206 !important;
+    letter-spacing:.22em !important;
+    text-shadow:0 1px 0 rgba(255,255,255,.55) !important;
+  }
+  .menu-list a{
+    background: rgba(255,255,255,.34) !important;
+    border:1px solid rgba(212,175,55,.38) !important;
+    border-radius:16px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.46), 0 10px 24px rgba(0,0,0,.08) !important;
+  }
+  .menu-list a:hover{
+    background: rgba(255,255,255,.58) !important;
+    transform: translateX(4px) translateY(-1px) !important;
+  }
+  .menu-close{
+    background: rgba(255,255,255,.54) !important;
+    border:1px solid rgba(212,175,55,.45) !important;
+    box-shadow:0 10px 24px rgba(0,0,0,.12) !important;
+  }
+  .cta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .share-btn,
+  .vmodal__share{
+    background: rgba(255,255,255,.74) !important;
+    color:#3b2206 !important;
+    border:1px solid rgba(212,175,55,.52) !important;
+  }
+  .share-btn:hover,
+  .vmodal__share:hover{ filter:brightness(1.04) !important; }
+  .cart-qty{
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    padding:5px !important;
+    border-radius:999px !important;
+    background: rgba(255,255,255,.56) !important;
+    border:1px solid rgba(212,175,55,.38) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 8px 18px rgba(0,0,0,.08) !important;
+  }
+  .cart-qty .qty-btn{
+    width:34px !important;
+    height:34px !important;
+    padding:0 !important;
+    border-radius:999px !important;
+    border:1px solid rgba(212,175,55,.58) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(245,215,110,.28)) !important;
+    color:#3b2206 !important;
+    font-weight:900 !important;
+    cursor:pointer !important;
+    box-shadow:0 6px 14px rgba(0,0,0,.10) !important;
+  }
+  .cart-qty .qty-btn:hover{ transform:translateY(-1px) !important; }
+  .cart-qty .qty-number{
+    min-width:24px !important;
+    text-align:center !important;
+    font-weight:900 !important;
+    color:#3b2206 !important;
+  }
+  .vmodal__actions{ display:flex; gap:10px; flex-wrap:wrap; }
 </style>
 </head>
 <body>
@@ -967,6 +1051,7 @@ function render(list){
   }
   list.forEach(p=>{
     const el = document.createElement('article'); el.className='product';
+    try { el.setAttribute('data-product-id', String(p.id || '')); el.id = 'product-' + String(p.id || '').replace(/[^a-zA-Z0-9_-]/g, '-'); } catch(e) {}
     // attach description & gallery for vmodal to read
     try {
       el.setAttribute('data-description', String(p.description || ''));
@@ -1016,7 +1101,15 @@ el.appendChild(body);
     const a = document.createElement('a');
     a.className='btn'; a.href='#'; a.textContent = Number(p.stock) > 0 ? "Add to cart" : "Out of Stock";
     if(Number(p.stock) > 0){ a.dataset.action = 'add-to-cart'; a.dataset.id = p.id; } else { a.classList.add('disabled'); }
-    cta.appendChild(a); el.appendChild(cta); grid.appendChild(el);
+    cta.appendChild(a);
+    const share = document.createElement('button');
+    share.className = 'btn share-btn';
+    share.type = 'button';
+    share.dataset.action = 'share-product';
+    share.dataset.id = p.id;
+    share.textContent = 'Share';
+    cta.appendChild(share);
+    el.appendChild(cta); grid.appendChild(el);
   });
 }
 function searchProducts(){
@@ -1068,7 +1161,7 @@ function setHadLogin(v){
 }
 
 // Se a sessão sumiu (token/uid limpos) mas esse navegador já teve login,
-// limpa o carrinho antes mesmo de renderizar o ícone.
+// Clear the cart before rendering the icon.
 (function(){
   try{
     if (hasHadLogin() && !isLoggedInForCart()){
@@ -1372,7 +1465,7 @@ function addToCart(productId){
   const existing = cart.find(item => String(item.id) === String(product.id));
   if(existing){
     if (existing.qty >= max){
-      try { alert('Limite de estoque atingido para este item.'); } catch(_) {}
+      try { alert('Stock limit reached for this item.'); } catch(_) {}
       return;
     }
     existing.qty++;
@@ -1432,17 +1525,20 @@ function openCart(){
       qty.className = 'cart-qty';
 
       const dec = document.createElement('button');
-      dec.style.padding = '4px 8px';
+      dec.className = 'qty-btn';
+      dec.setAttribute('aria-label','Decrease quantity');
       dec.textContent = '−';
       dec.addEventListener('click', () => changeQty(String(item.id), -1));
       qty.appendChild(dec);
 
       const span = document.createElement('span');
+      span.className = 'qty-number';
       span.textContent = String(item.qty);
       qty.appendChild(span);
 
       const inc = document.createElement('button');
-      inc.style.padding = '4px 8px';
+      inc.className = 'qty-btn';
+      inc.setAttribute('aria-label','Increase quantity');
       inc.textContent = '+';
       inc.addEventListener('click', () => changeQty(String(item.id), 1));
       qty.appendChild(inc);
@@ -1465,7 +1561,7 @@ function changeQty(id, delta){
   if (delta > 0){
     if (max <= 0){ return; }
     if (item.qty >= max){
-      try { alert('Limite de estoque atingido para este item.'); } catch(_) {}
+      try { alert('Stock limit reached for this item.'); } catch(_) {}
       return;
     }
   }
@@ -1476,6 +1572,57 @@ function changeQty(id, delta){
   openCart();
   updateCartIcon();
 }
+
+
+function buildProductShareUrl(id){
+  const u = new URL(window.location.href);
+  const safeId = String(id || '').trim();
+  if (safeId) {
+    u.searchParams.set('product', safeId);
+    u.hash = 'product-' + safeId.replace(/[^a-zA-Z0-9_-]/g, '-');
+  }
+  return u.href;
+}
+async function shareProduct(id, title){
+  const safeTitle = String(title || '').trim();
+  const url = buildProductShareUrl(id);
+  const payload = { title: safeTitle || document.title, text: safeTitle ? `Check this product: ${safeTitle}` : 'Check this product', url };
+  try{
+    if(navigator.share){ await navigator.share(payload); return; }
+  }catch(_){ }
+  try{
+    await navigator.clipboard.writeText(url);
+    alert('Product link copied!');
+  }catch(_){
+    prompt('Copy this product link:', url);
+  }
+}
+function openSharedProductFromUrl(){
+  try{
+    const pid = new URLSearchParams(window.location.search).get('product');
+    if(!pid) return;
+    const index = currentList.findIndex(p => String(p.id) === String(pid));
+    if(index >= 0 && typeof goToPage === 'function'){
+      goToPage(Math.floor(index / PAGE_SIZE) + 1);
+    }
+    setTimeout(() => {
+      const card = Array.from(document.querySelectorAll('.product')).find(el => String(el.getAttribute('data-product-id')) === String(pid));
+      if(!card) return;
+      card.scrollIntoView({ behavior:'smooth', block:'center' });
+      const opener = card.querySelector('img') || card.querySelector('h3');
+      if(opener) opener.click();
+    }, 320);
+  }catch(_){ }
+}
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action="share-product"]');
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const id = btn.dataset.id;
+  const product = currentList.find(p => String(p.id) === String(id));
+  shareProduct(id, product?.title || '');
+});
 
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-action="add-to-cart"]');
@@ -1510,6 +1657,7 @@ document.addEventListener('DOMContentLoaded', () => {
   currentList = currentList.filter(p => (p.category || '').toLowerCase() === 'shoes');
   currentList.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
   render(currentList);
+  openSharedProductFromUrl();
   document.getElementById('year').textContent = new Date().getFullYear();
   updateCartIcon();
 })();
@@ -1525,57 +1673,40 @@ document.addEventListener('DOMContentLoaded', () => {
       let price = 0;
       let qty = 1;
       if (priceEl){
-        price = parseFloat((priceEl.getAttribute('data-price')||'0').replace(',', '.'));
+        price = parseFloat((priceEl.getAttribute('data-price') || '0').replace(',', '.'));
       } else {
-        const m = (item.textContent||'').match(/€\s*([\d,.]+)/);
+        const m = (item.textContent || '').match(/€\s*([\d,.]+)/);
         if (m) price = parseFloat(m[1].replace(',', '.'));
       }
       if (qtyEl) qty = parseInt(qtyEl.value || '1', 10);
-      if (!isNaN(price) && !isNaN(qty)) sum += price * qty;
+      if (!Number.isNaN(price) && !Number.isNaN(qty)) sum += price * qty;
     });
     return sum;
   }
   function updateTotals(){
-  let subtotal = getCartSubtotal();
-  const totalEl = document.getElementById('cartTotal');
-  if(totalEl){ totalEl.textContent = fmtEUR(subtotal); }
-}
-
-
-    if (shipVal){
-      shipVal.textContent = '€' + shipping.toFixed(0);
-    }
-
-    const grand = subtotal + shipping;
-
-    let totalValueEl = document.querySelector('#cart-grand-total');
-    if (!totalValueEl){
-      const totalEl = document.querySelector('.cart-total span:last-child');
-      if (totalEl){ totalEl.id = 'cart-grand-total'; totalValueEl = totalEl; }
-    }
-    if (totalValueEl) totalValueEl.textContent = '€' + grand.toFixed(2);
+    const subtotal = getCartSubtotal();
+    const formatted = (typeof fmtEUR === 'function') ? fmtEUR(subtotal) : ('€ ' + subtotal.toFixed(2));
+    const totalEl = document.getElementById('cartTotal');
+    if (totalEl) totalEl.textContent = formatted;
+    const grandTotalEl = document.querySelector('#cart-grand-total');
+    if (grandTotalEl) grandTotalEl.textContent = formatted;
   }
-
   document.addEventListener('change', function(e){
-    /* delivery method removed */
-    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')){
-      updateTotals();
-    }
+    if (e.target && e.target.matches('.cart-qty input, .cart-qty input[type="number"]')) updateTotals();
   });
-
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.closest('.cart-qty')) setTimeout(updateTotals, 0);
+  });
   const ready = () => { updateTotals(); };
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', ready);
-  } else {
-    ready();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready);
+  else ready();
   window.updateCartTotalsWithShipping = updateTotals;
 })();
 </script>
 <!-- ==== VModal (clean build) ==== -->
 <div aria-hidden="true" class="vmodal" id="vModal">
 <div aria-labelledby="vmTitle" aria-modal="true" class="vmodal__dialog" role="dialog">
-<button aria-label="Fechar" class="vmodal__close" id="vmClose">✕</button>
+<button aria-label="Close" class="vmodal__close" id="vmClose">✕</button>
 <div class="vmodal__left">
 <div class="vmodal__main"><img alt="" id="vmMain"/></div>
 <div class="vmodal__thumbs" id="vmThumbs"></div>
@@ -1585,7 +1716,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="vmodal__price" id="vmPrice"></div>
 <div class="vmodal__meta" id="vmMeta"></div>
 <div class="vmodal__desc" id="vmDesc"></div>
-<div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button></div>
+<div class="vmodal__actions"><button class="vmodal__cta" id="vmAdd">Add to Cart</button><button class="vmodal__cta vmodal__share" id="vmShare" type="button">Share product</button></div>
 </div>
 </div>
 </div>
@@ -1593,7 +1724,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <div aria-hidden="true" class="menu-modal" id="menuModal" style="display:none;">
 <div class="menu-overlay" id="menuOverlay"></div>
 <nav aria-label="Main menu" class="menu-panel">
-<button aria-label="Fechar menu" class="menu-close" id="menuClose">×</button>
+<button aria-label="Close menu" class="menu-close" id="menuClose">×</button>
 <h2 class="menu-title">Menu</h2>
 <ul class="menu-list">
 <li><a href="dresses-skirts.html">Dresses &amp; Skirts</a></li>
@@ -1627,6 +1758,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const descEl = $('#vmDesc');
   const btnClose = $('#vmClose');
   const btnAdd = $('#vmAdd');
+  const btnShare = $('#vmShare');
   let card = null;
   let imgs = [];
   let idx = 0;
@@ -1650,7 +1782,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openFromCard(c){
     card = c;
-    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Produto';
+    const title = card.querySelector('h3')?.textContent?.trim() || card.getAttribute('data-title') || 'Product';
     const price = card.querySelector('.price')?.textContent?.trim() || card.getAttribute('data-price') || '';
     const meta  = (card.querySelector('.stock')?.textContent?.trim() || card.querySelector('.meta')?.textContent?.trim() || card.getAttribute('data-meta') || '');
     const desc  = card.getAttribute('data-description') || card.querySelector('.description')?.textContent?.trim() || '';
@@ -1672,7 +1804,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const ctaBtn = card.querySelector('[data-action="add-to-cart"]');
       const pidFromBtn = ctaBtn?.dataset?.id;
       const pidGuess = pidFromBtn || card.getAttribute('data-id') || card.getAttribute('data-product-id') || card.dataset?.productId;
-      if (pidGuess) btnAdd.dataset.id = String(pidGuess);
+      if (pidGuess) {
+        btnAdd.dataset.id = String(pidGuess);
+        if (btnShare) btnShare.dataset.id = String(pidGuess);
+      }
     } catch(e) {}
     renderThumbs(); go(0);
     modal.style.display = 'flex';
@@ -1701,6 +1836,16 @@ document.addEventListener('DOMContentLoaded', () => {
   modal?.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
   document.addEventListener('keydown', (e)=>{
     if (modal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeModal();
+  });
+
+
+  // Share product from modal
+  btnShare?.addEventListener('click', (e)=>{
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    const id = btnShare.dataset?.id || card?.getAttribute('data-product-id') || card?.dataset?.productId || '';
+    const product = currentList.find(p => String(p.id) === String(id));
+    shareProduct(id, product?.title || titleEl?.textContent || '');
   });
 
   // Add to Cart — robust integration
@@ -1768,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 (() => {
-  // Campo reativo dourado (mesmo efeito do Artesanato)
+  // Reactive gold field
   const GOLD = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#D4AF37';
   const GOLD_LIGHT = getComputedStyle(document.documentElement).getPropertyValue('--gold-light').trim() || '#F5D76E';
   const GOLD_DEEP = getComputedStyle(document.documentElement).getPropertyValue('--gold-deep').trim() || '#8D6E21';
@@ -1981,7 +2126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 async function clearCartOnLogout(){
-  // Limpa carrinho local + tenta limpar no servidor (best-effort)
+  // Clear the local cart and try to clear it on the server as a best-effort action.
   try { saveCart([], { suppressPush:true }); } catch(_){}
   try { cart = []; updateCartIcon(); } catch(_){}
   try { localStorage.removeItem(CART_DIRTY_KEY); } catch(_){}
@@ -2037,7 +2182,7 @@ async function clearCartOnLogout(){
 
       
 if (!r.ok){
-  // Se a sessão expirou / foi deslogada em outro dispositivo, limpa o carrinho e dados locais
+  // If the session expired or was logged out on another device, clear local cart and user data.
   let hadAuth = false;
   try{
     hadAuth = !!(localStorage.getItem(USER_ID_KEY) || sessionStorage.getItem(USER_ID_KEY) || TOKEN_KEYS.some(k => (localStorage.getItem(k) || sessionStorage.getItem(k))));
@@ -2060,7 +2205,7 @@ if (!r.ok){
         try{ setHadLogin(true); }catch(_){ }}
     
 }catch(_){
-  // Se deu erro ao validar sessão, e havia dados de login, limpa carrinho + dados locais
+  // If session validation failed while login data existed, clear the cart and local data.
   let hadAuth = false;
   try{
     hadAuth = !!(localStorage.getItem(USER_ID_KEY) || sessionStorage.getItem(USER_ID_KEY) || TOKEN_KEYS.some(k => (localStorage.getItem(k) || sessionStorage.getItem(k))));

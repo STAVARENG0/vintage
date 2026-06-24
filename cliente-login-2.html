@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest"/>
+<meta name="theme-color" content="#f1dfc2"/>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Vintage • Customer Login</title>
@@ -321,6 +325,86 @@
       .twoBtns{ flex-direction:column; }
     }
   </style>
+
+<style id="vintage-polish-2026">
+  .menu-panel{
+    background: linear-gradient(135deg, rgba(253,244,227,.76), rgba(241,223,194,.58), rgba(227,195,149,.66)) !important;
+    backdrop-filter: blur(20px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(145%) !important;
+    border: 1px solid rgba(212,175,55,.64) !important;
+    box-shadow: 0 26px 78px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.48), 0 0 34px rgba(212,175,55,.16) !important;
+    overflow: hidden !important;
+  }
+  .menu-panel::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background: radial-gradient(circle at 28% 20%, rgba(255,255,255,.56), transparent 28%), radial-gradient(circle at 72% 12%, rgba(245,215,110,.34), transparent 32%);
+    pointer-events:none;
+  }
+  .menu-title,
+  .menu-list,
+  .menu-close{ position:relative; z-index:1; }
+  .menu-title{
+    color:#3b2206 !important;
+    letter-spacing:.22em !important;
+    text-shadow:0 1px 0 rgba(255,255,255,.55) !important;
+  }
+  .menu-list a{
+    background: rgba(255,255,255,.34) !important;
+    border:1px solid rgba(212,175,55,.38) !important;
+    border-radius:16px !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.46), 0 10px 24px rgba(0,0,0,.08) !important;
+  }
+  .menu-list a:hover{
+    background: rgba(255,255,255,.58) !important;
+    transform: translateX(4px) translateY(-1px) !important;
+  }
+  .menu-close{
+    background: rgba(255,255,255,.54) !important;
+    border:1px solid rgba(212,175,55,.45) !important;
+    box-shadow:0 10px 24px rgba(0,0,0,.12) !important;
+  }
+  .cta{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .share-btn,
+  .vmodal__share{
+    background: rgba(255,255,255,.74) !important;
+    color:#3b2206 !important;
+    border:1px solid rgba(212,175,55,.52) !important;
+  }
+  .share-btn:hover,
+  .vmodal__share:hover{ filter:brightness(1.04) !important; }
+  .cart-qty{
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    padding:5px !important;
+    border-radius:999px !important;
+    background: rgba(255,255,255,.56) !important;
+    border:1px solid rgba(212,175,55,.38) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 8px 18px rgba(0,0,0,.08) !important;
+  }
+  .cart-qty .qty-btn{
+    width:34px !important;
+    height:34px !important;
+    padding:0 !important;
+    border-radius:999px !important;
+    border:1px solid rgba(212,175,55,.58) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,.94), rgba(245,215,110,.28)) !important;
+    color:#3b2206 !important;
+    font-weight:900 !important;
+    cursor:pointer !important;
+    box-shadow:0 6px 14px rgba(0,0,0,.10) !important;
+  }
+  .cart-qty .qty-btn:hover{ transform:translateY(-1px) !important; }
+  .cart-qty .qty-number{
+    min-width:24px !important;
+    text-align:center !important;
+    font-weight:900 !important;
+    color:#3b2206 !important;
+  }
+  .vmodal__actions{ display:flex; gap:10px; flex-wrap:wrap; }
+</style>
 </head>
 <body>
 
@@ -602,7 +686,7 @@ function pwScore(pw){ return validatePassword(pw).points; }
 
 
 function redirectAfterLogin(){ window.location.href = REDIRECT_AFTER_LOGIN; }
-// Se já estiver logado, entra direto no painel (MAS não quando veio de logout)
+// If already logged in, go directly to the panel, except after logout.
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("LOGIN PAGE OPENED:", location.href);
 

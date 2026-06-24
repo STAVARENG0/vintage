@@ -3,19 +3,19 @@
 
   /**
    * auth-guard (cookie-based)
-   * - Valida sessão chamando GET /me (via VintageAuth.checkOrRedirect)
-   * - Se OK: permanece na página
-   * - Se 401: redireciona pro login
+   * - Validates the session with GET /me through VintageAuth.checkOrRedirect.
+   * - If OK: stay on the page.
+   * - If 401: redirect to login.
    */
 
   function run() {
     if (window.VintageAuth && typeof window.VintageAuth.checkOrRedirect === 'function') {
-      // importante: aguarda o /me antes de liberar
+      // Wait for /me before releasing the page.
       window.VintageAuth.checkOrRedirect();
       return;
     }
 
-    // se VintageAuth ainda não carregou, tenta novamente por um curto período
+    // If VintageAuth has not loaded yet, retry briefly.
     var tries = 0;
     var maxTries = 40; // ~2s
     var t = setInterval(function () {
@@ -25,7 +25,7 @@
         window.VintageAuth.checkOrRedirect();
       } else if (tries >= maxTries) {
         clearInterval(t);
-        // Sem guard disponível: redireciona por segurança
+        // No guard available: redirect for safety.
         try { location.href = 'cliente-login-2.html?reason=missing_guard'; } catch (_) { location.href = 'cliente-login-2.html'; }
       }
     }, 50);
